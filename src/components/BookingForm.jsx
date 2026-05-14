@@ -22,7 +22,7 @@ const checkmark = keyframes`
 /* ─── Page wrapper ───────────────────────────────────────── */
 const PageWrapper = styled.div`
   min-height: 80vh;
-  background: linear-gradient(160deg, #0d0d0d 0%, #1a1008 40%, #0d0d0d 100%);
+  background: linear-gradient(160deg, #e8d5a3 0%, #d4b97a 40%, #e0c990 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,14 +33,14 @@ const PageWrapper = styled.div`
 const FormCard = styled.div`
   width: 100%;
   max-width: 760px;
-  background: rgba(15, 10, 5, 0.85);
+  background: rgba(255, 248, 230, 0.92);
   backdrop-filter: blur(24px);
   border-radius: ${theme.borderRadius.large};
-  border: 1px solid rgba(153, 101, 21, 0.35);
+  border: 1px solid rgba(153, 101, 21, 0.4);
   box-shadow:
-    0 0 0 1px rgba(201, 148, 42, 0.08),
-    0 32px 80px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(201, 148, 42, 0.12);
+    0 0 0 1px rgba(201, 148, 42, 0.18),
+    0 32px 80px rgba(120, 75, 10, 0.25),
+    inset 0 1px 0 rgba(201, 148, 42, 0.25);
   padding: 3rem 3.5rem;
   animation: ${fadeInUp} 0.65s ease-out, ${glowPulse} 5s ease-in-out infinite;
 
@@ -77,14 +77,14 @@ const Title = styled.h2`
   text-align: center;
   font-size: 2.8rem;
   font-weight: 600;
-  color: #f5e9c8;
+  color: ${theme.colors.primaryDark};
   margin-bottom: 0.4rem;
   letter-spacing: 0.5px;
 `;
 
 const Subtitle = styled.p`
   text-align: center;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(100, 70, 20, 0.65);
   font-size: 1.15rem;
   margin-bottom: 2.5rem;
 `;
@@ -129,22 +129,22 @@ const Label = styled.label`
 const inputBase = `
   padding: 0.9rem 1.1rem;
   border-radius: 12px;
-  border: 1px solid rgba(153, 101, 21, 0.25);
-  background: rgba(255, 255, 255, 0.04);
-  color: #f5e9c8;
+  border: 1px solid rgba(153, 101, 21, 0.4);
+  background: rgba(255, 242, 200, 0.55);
+  color: #3a2808;
   font-size: 1.1rem;
   font-family: inherit;
   transition: all 0.25s ease;
   outline: none;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.25);
+    color: rgba(100, 70, 20, 0.45);
   }
 
   &:focus {
     border-color: ${theme.colors.accent};
-    background: rgba(201, 148, 42, 0.06);
-    box-shadow: 0 0 0 3px rgba(153, 101, 21, 0.2), 0 0 18px rgba(201, 148, 42, 0.12);
+    background: rgba(255, 242, 200, 0.8);
+    box-shadow: 0 0 0 3px rgba(153, 101, 21, 0.2), 0 0 18px rgba(201, 148, 42, 0.15);
   }
 `;
 
@@ -169,8 +169,8 @@ const Select = styled.select`
   cursor: pointer;
 
   option {
-    background: #1a1008;
-    color: #f5e9c8;
+    background: #f5e9c0;
+    color: #3a2808;
   }
 `;
 
@@ -263,13 +263,13 @@ const SuccessTitle = styled.h3`
 `;
 
 const SuccessDetail = styled.p`
-  color: rgba(255,255,255,0.6);
+  color: rgba(80, 50, 10, 0.75);
   font-size: 1.15rem;
   line-height: 1.8;
   margin-bottom: 0.75rem;
 
   strong {
-    color: #f5e9c8;
+    color: ${theme.colors.primaryDark};
   }
 `;
 
