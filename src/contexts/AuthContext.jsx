@@ -1,83 +1,72 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { apiLogin, apiRegister, apiGetProfile } from '../services/api';
 
 const AuthContext = createContext(null);
-
-// Usuarios predeterminados para pruebas
-const PREDEFINED_USERS = [
-  {
-    username: 'admin',
-    password: 'admin123',
-    fullName: 'Administrador',
-    email: 'admin@essencedetoi.com',
-    role: 'ADMIN'
-  },
-  {
-    username: 'tuki',
-    password: 'tuki123',
-    fullName: 'Tuki Gonzales',
-    email: 'tuki@essencedetoi.com',
-    role: 'CLIENT'
-  },
-  {
-    username: 'estilista',
-    password: 'estilista123',
-    fullName: 'Estilista Demo',
-    email: 'estilista@essencedetoi.com',
-    role: 'STYLIST'
-  }
-];
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Al montar la app, si hay token guardado recuperamos el perfil
   useEffect(() => {
-    // Verificar si hay un usuario almacenado en localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+    const token = localStorage.getItem('token');
+    if (token) {
+      apiGetProfile()
+        .then((userData) => {
+          setUser(userData);
+          setIsAuthenticated(true);
+        })
+        .catch(() => {
+          // Token inválido o expirado — limpiamos
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const login = (username, password) => {
-    // Buscar usuario en los usuarios predeterminados
-    const foundUser = PREDEFINED_USERS.find(
-      u => u.username === username && u.password === password
-    );
-
-    if (foundUser) {
-      const userData = {
-        username: foundUser.username,
-        fullName: foundUser.fullName,
-        email: foundUser.email,
-        role: foundUser.role
-      };
-      setUser(userData);
+  // Login contra la API real
+  const login = async (username, password) => {
+    try {
+      const data = await apiLogin(username, password);
+      // Guardar token y usuario
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
       setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return { success: true, user: userData };
+      return { success: true, user: data.user };
+    } catch (error) {
+      return { success: false, error: error.message || 'Credenciales inválidas' };
     }
+  };
 
-    return { success: false, error: 'Credenciales inválidas' };
+  // Registro contra la API real
+  const register = async (userData) => {
+    try {
+      const data = await apiRegister(userData);
+      // Auto-login tras registro
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return { success: true, user: data.user };
+    } catch (error) {
+      return { success: false, error: error.message || 'Error al registrar usuario' };
+    }
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
   };
 
-  const register = (userData) => {
-    // Aquí iría la lógica de registro
-    // Por ahora, solo guardamos los datos
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
-
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, loading, PREDEFINED_USERS }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, loading }}>
       {children}
     </AuthContext.Provider>
   );

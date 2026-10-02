@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
+import { useAuth } from '../contexts/AuthContext';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -216,7 +217,7 @@ const StyledLink = styled(Link)`
   }
 `;
 
-function Register({ onRegister }) {
+function Register() {
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
@@ -228,6 +229,7 @@ function Register({ onRegister }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const validateForm = () => {
     const newErrors = {};
@@ -287,17 +289,19 @@ function Register({ onRegister }) {
     setLoading(true);
 
     try {
-      // Aquí iría la llamada a la API de registro
-      // Por ahora, simulamos el registro
-      const userData = {
+      const result = await register({
         username: formData.username,
         fullName: formData.fullName,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
+        password: formData.password,
         role: 'CLIENT',
-      };
-      onRegister(userData);
-      navigate('/login');
+      });
+
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setErrors({ general: result.error || 'Error al registrar usuario.' });
+      }
     } catch (err) {
       setErrors({ general: 'Error al registrar usuario. Por favor, intenta nuevamente.' });
     } finally {

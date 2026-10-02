@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "name": "Maquillaje Social de Día",
+    "description": "Un maquillaje fresco, natural y elegante ideal para eventos de día, graduaciones o reuniones.",
+    "price": "$30.000",
+    "image": "/images/services/manicura_clasica.jpg"
+  },
+  {
+    "id": "2",
+    "name": "Maquillaje de Novia & Gala",
+    "description": "Maquillaje premium de alta duración con técnicas de contorneado y acabado perfecto para tu gran día.",
+    "price": "$150.000",
+    "image": "/images/services/tintura.webp"
+  },
+  {
+    "id": "3",
+    "name": "Perfilado y Diseño de Cejas",
+    "description": "Diseño personalizado de cejas con perfilado profesional según tu visagismo facial.",
+    "price": "$60.000",
+    "image": "/images/services/tratamiento_capilar.webp"
+  },
+  {
+    "id": "4",
+    "name": "Curso de Automaquillaje Express",
+    "description": "Aprende a destacar tus mejores facciones, técnicas de difuminado y preparación de piel.",
+    "price": "$35.000",
+    "image": "/images/services/corte_dama.jpg"
+  },
+  {
+    "id": "5",
+    "name": "Maquillaje Editorial & de Moda",
+    "description": "Maquillaje artístico y creativo de alta fantasía o editorial para pasarelas y sesiones fotográficas.",
+    "price": "$200.000",
+    "image": "/images/services/peinado_evento.jpg"
+  },
+  {
+    "id": "6",
+    "name": "Lifting de Pestañas & Laminado",
+    "description": "Tratamiento para realzar la belleza natural de tus pestañas y cejas, dando volumen y definición.",
+    "price": "$70.000",
+    "image": "/images/services/pedicure.jpg"
+  }
+]

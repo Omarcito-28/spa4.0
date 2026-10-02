@@ -44,7 +44,7 @@ function App() {
       <Route path="/" element={<Layout isAuthenticated={isAuthenticated} user={user} onLogout={logout} />}>
         <Route index element={<Home isAuthenticated={isAuthenticated} />} />
         <Route path="login" element={<Login onLogin={login} />} />
-        <Route path="register" element={<Register onRegister={register} />} />
+        <Route path="register" element={<Register />} />
         <Route path="dashboard" element={isAuthenticated ? <Dashboard user={user} /> : <Navigate to="/login" replace />} />
         <Route path="admin/dashboard" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminDashboard user={user} /> : <Navigate to="/login" replace />} />
         <Route path="stylist/dashboard" element={isAuthenticated && user?.role === 'STYLIST' ? <StylistDashboard user={user} /> : <Navigate to="/login" replace />} />

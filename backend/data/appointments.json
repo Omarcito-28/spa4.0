@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1",
+    "username": "maria_g",
+    "service": "Maquillaje Social de Día",
+    "date": "2026-06-15",
+    "time": "10:00 AM",
+    "notes": "Prefiere tonos nude y naturales",
+    "status": "CONFIRMED",
+    "createdAt": "2026-06-03T18:07:33.491Z"
+  },
+  {
+    "id": "2",
+    "username": "carlos_m",
+    "service": "Curso de Automaquillaje Express",
+    "date": "2026-06-16",
+    "time": "02:00 PM",
+    "notes": "Nivel básico, quiere aprender contorno",
+    "status": "CONFIRMED",
+    "createdAt": "2026-06-03T18:07:33.497Z"
+  },
+  {
+    "id": "3",
+    "username": "tuki",
+    "service": "Maquillaje de Novia & Gala",
+    "date": "2026-06-17",
+    "time": "11:00 AM",
+    "notes": "Boda civil por la tarde",
+    "status": "CONFIRMED",
+    "createdAt": "2026-06-03T18:07:33.497Z"
+  },
+  {
+    "id": "4",
+    "username": "juan_p",
+    "service": "Perfilado y Diseño de Cejas",
+    "date": "2026-06-14",
+    "time": "05:00 PM",
+    "notes": "Primera vez que se realiza el perfilado",
+    "status": "CANCELLED",
+    "createdAt": "2026-06-03T18:07:33.497Z"
+  }
+]

@@ -262,7 +262,11 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
           
           {isAuthenticated && (
             <>
-              <NavLink to="/dashboard">Dashboard</NavLink>
+              <NavLink to={
+                user?.role === 'ADMIN' ? '/admin/dashboard' :
+                user?.role === 'STYLIST' ? '/stylist/dashboard' :
+                '/dashboard'
+              }>Dashboard</NavLink>
               <NavLink to="/appointments/my">Mis Citas</NavLink>
             </>
           )}

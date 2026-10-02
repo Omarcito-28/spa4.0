@@ -223,7 +223,7 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      const result = login(username, password);
+      const result = await login(username, password);
       
       if (result.success) {
         setSuccess('Has iniciado sesión correctamente');

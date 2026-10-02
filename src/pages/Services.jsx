@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { theme, fadeInUp } from '../styles/theme';
+import { apiGetServices } from '../services/api';
 
 const ServicesContainer = styled.div`
   max-width: 1200px;
@@ -132,53 +134,46 @@ const NoServices = styled.div`
   color: ${theme.colors.textMuted};
 `;
 
-// Datos de ejemplo de servicios
-const sampleServices = [
-  {
-    id: 1,
-    name: 'Manicura Clásica',
-    description: 'Cuidado completo de uñas con esmalte de alta calidad',
-    price: '$25.000',
-    image: '/images/services/manicura_clasica.jpg'
-  },
-  {
-    id: 2,
-    name: 'Tintura',
-    description: 'Coloración profesional con productos premium',
-    price: '$80.000',
-    image: '/images/services/tintura.webp'
-  },
-  {
-    id: 3,
-    name: 'Tratamiento Capilar',
-    description: 'Tratamiento profundo para revitalizar tu cabello',
-    price: '$60.000',
-    image: '/images/services/tratamiento_capilar.webp'
-  },
-  {
-    id: 4,
-    name: 'Corte de Cabello',
-    description: 'Corte profesional según tu estilo preferido',
-    price: '$35.000',
-    image: '/images/services/corte_dama.jpg'
-  },
-  {
-    id: 5,
-    name: 'Peinado de Evento',
-    description: 'Peinado elegante para ocasiones especiales',
-    price: '$55.000',
-    image: '/images/services/peinado_evento.jpg'
-  },
-  {
-    id: 6,
-    name: 'Masaje Relajante',
-    description: 'Masaje terapéutico para aliviar el estrés',
-    price: '$70.000',
-    image: '/images/services/masaje.jpg'
-  },
-];
+
+// Spinner de carga
+const LoadingWrapper = styled.div`
+  text-align: center;
+  padding: 5rem 2rem;
+  color: ${theme.colors.textMuted};
+  font-size: 1.3rem;
+
+  i {
+    font-size: 2.5rem;
+    color: ${theme.colors.primary};
+    margin-bottom: 1rem;
+    display: block;
+  }
+`;
+
+const ErrorWrapper = styled.div`
+  text-align: center;
+  padding: 3rem;
+  background: rgba(231, 76, 60, 0.06);
+  border-radius: ${theme.borderRadius.medium};
+  color: #c0392b;
+  font-size: 1.2rem;
+  border: 1px solid rgba(231, 76, 60, 0.2);
+
+  i { margin-right: 0.5rem; }
+`;
 
 function Services() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    apiGetServices()
+      .then((data) => setServices(data))
+      .catch(() => setError('No se pudieron cargar los servicios. Verifica que el servidor esté activo.'))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <ServicesContainer>
       <Header>
@@ -186,15 +181,31 @@ function Services() {
         <Title>Nuestros Servicios</Title>
         <Subtitle>Descubre todos los tratamientos que tenemos para ti</Subtitle>
       </Header>
-      
-      {sampleServices.length === 0 ? (
+
+      {loading && (
+        <LoadingWrapper>
+          <i className="fas fa-spinner fa-spin" />
+          Cargando servicios...
+        </LoadingWrapper>
+      )}
+
+      {error && (
+        <ErrorWrapper>
+          <i className="fas fa-exclamation-circle" />
+          {error}
+        </ErrorWrapper>
+      )}
+
+      {!loading && !error && services.length === 0 && (
         <NoServices>
           Actualmente no hay servicios para mostrar. ¡Vuelve pronto!
         </NoServices>
-      ) : (
+      )}
+
+      {!loading && !error && services.length > 0 && (
         <ServicesGrid>
-          {sampleServices.map((service, index) => (
-            <ServiceCard key={service.id} $delay={`${index * 0.1}s`}>
+          {services.map((service, index) => (
+            <ServiceCard key={service._id} $delay={`${index * 0.1}s`}>
               <ImageWrapper>
                 <ServiceImage $image={service.image}>
                   {!service.image && '💆'}
@@ -214,3 +225,4 @@ function Services() {
 }
 
 export default Services;
+

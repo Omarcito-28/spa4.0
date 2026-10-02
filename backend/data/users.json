@@ -1,0 +1,26 @@
+[
+  {
+    "id": "user_admin",
+    "username": "admin",
+    "password": "$2a$10$gFlcHSO6HKYMvmCVy2U3DupliAbbMzPINRb7wSiGdLHYJXdyz5QcS",
+    "fullName": "Administrador",
+    "email": "admin@essencedetoi.com",
+    "role": "ADMIN"
+  },
+  {
+    "id": "user_tuki",
+    "username": "tuki",
+    "password": "$2a$10$7/DMs4KM3mDptf/yCLlBmOhOQtCF8ttZ8ZbKVJoMrGNfLxt3I.sq2",
+    "fullName": "Tuki Gonzales",
+    "email": "tuki@essencedetoi.com",
+    "role": "CLIENT"
+  },
+  {
+    "id": "user_estilista",
+    "username": "estilista",
+    "password": "$2a$10$oqZ7dto6CuNjtGn7irxa3uKhTh60oFB4yLVABaXn.PrbAch.DL56C",
+    "fullName": "Estilista Demo",
+    "email": "estilista@essencedetoi.com",
+    "role": "STYLIST"
+  }
+]
