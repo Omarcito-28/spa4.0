@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import styled, { keyframes, css } from 'styled-components';
-import { theme, fadeInUp, fadeIn } from '../styles/theme';
+import styled, { keyframes } from 'styled-components';
+import { theme } from '../styles/theme';
 
 const heroImages = [
   '/images/services/corte_dama.jpg',
@@ -10,24 +10,9 @@ const heroImages = [
 ];
 
 /* ─── ANIMATIONS ─── */
-const float = keyframes`
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-`;
-
-const scaleIn = keyframes`
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-`;
-
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(40px); }
   to { opacity: 1; transform: translateY(0); }
-`;
-
-const glowPulse = keyframes`
-  0%, 100% { box-shadow: 0 0 5px rgba(153, 101, 21, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(153, 101, 21, 0.4); }
 `;
 
 /* ─── HERO SECTION ─── */
@@ -535,6 +520,9 @@ const ContactCardText = styled.div`
 /* ─── COMPONENT ─── */
 function Home({ isAuthenticated }) {
   const [currentBg, setCurrentBg] = useState(0);
+  const phone = import.meta.env.VITE_CONTACT_PHONE?.trim();
+  const email = import.meta.env.VITE_CONTACT_EMAIL?.trim();
+  const address = import.meta.env.VITE_CONTACT_ADDRESS?.trim();
 
   useEffect(() => {
     // First transition happens quickly, then regular interval
@@ -576,7 +564,7 @@ function Home({ isAuthenticated }) {
             </ButtonGroup>
           ) : (
             <ButtonGroup>
-              <PrimaryButton to="/dashboard">
+              <PrimaryButton to={isAuthenticated ? '/dashboard' : '/login'}>
                 Ir al Dashboard <i className="fas fa-arrow-right" style={{ fontSize: '0.8rem' }}></i>
               </PrimaryButton>
             </ButtonGroup>
@@ -646,15 +634,9 @@ function Home({ isAuthenticated }) {
             <CardText>
               ¿Lista para tu transformación? Agendar tu cita es fácil y rápido. Selecciona tu servicio, estilista y horario favorito.
             </CardText>
-            {isAuthenticated ? (
-              <OutlineButton $isDark={false} to="/appointments/new">
-                Agendar Ahora <i className="fas fa-arrow-right" style={{ fontSize: '0.75rem' }}></i>
-              </OutlineButton>
-            ) : (
-              <OutlineButton $isDark={false} to="/login">
-                Agendar Ahora <i className="fas fa-arrow-right" style={{ fontSize: '0.75rem' }}></i>
-              </OutlineButton>
-            )}
+            <OutlineButton $isDark={false} to={isAuthenticated ? '/appointments/new' : '/login'}>
+              Agendar Ahora <i className="fas fa-arrow-right" style={{ fontSize: '0.75rem' }}></i>
+            </OutlineButton>
           </LightCard>
         </CardContainer>
       </Section>
@@ -667,27 +649,27 @@ function Home({ isAuthenticated }) {
             ¿Tienes alguna pregunta? Estamos aquí para ayudarte.
           </ContactSubtitle>
           <ContactGrid>
-            <ContactCard>
+            {phone && <ContactCard>
               <ContactIconCircle><i className="fas fa-phone"></i></ContactIconCircle>
               <ContactCardText>
                 <span>Teléfono</span>
-                <a href="tel:+1234567890">+1 234 567 890</a>
+                <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{phone}</a>
               </ContactCardText>
-            </ContactCard>
-            <ContactCard>
+            </ContactCard>}
+            {email && <ContactCard>
               <ContactIconCircle><i className="fas fa-envelope"></i></ContactIconCircle>
               <ContactCardText>
                 <span>Email</span>
-                <a href="mailto:contacto@essencedetoi.com">contacto@essencedetoi.com</a>
+                <a href={`mailto:${email}`}>{email}</a>
               </ContactCardText>
-            </ContactCard>
-            <ContactCard>
+            </ContactCard>}
+            {address && <ContactCard>
               <ContactIconCircle><i className="fas fa-map-marker-alt"></i></ContactIconCircle>
               <ContactCardText>
                 <span>Dirección</span>
-                <p>Calle 123, Neiva, Colombia</p>
+                <p>{address}</p>
               </ContactCardText>
-            </ContactCard>
+            </ContactCard>}
             <ContactCard>
               <ContactIconCircle><i className="fas fa-clock"></i></ContactIconCircle>
               <ContactCardText>

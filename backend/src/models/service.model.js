@@ -14,9 +14,16 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  duration: {
+    type: Number,
+    min: 15,
+    max: 480,
+    default: 60
+  },
   image: {
     type: String,
-    default: ''
+    default: '',
+    trim: true
   }
 }, {
   timestamps: true

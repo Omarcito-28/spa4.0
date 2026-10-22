@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 
 import connectDB from './db.js';
@@ -13,9 +12,7 @@ import usersRoutes from './src/routes/users.routes.js';
 
 import User from './src/models/user.model.js';
 import Service from './src/models/service.model.js';
-import Appointment from './src/models/appointment.model.js';
-
-dotenv.config();
+import BookingLock from './src/models/booking-lock.model.js';
 
 const app = express();
 
@@ -25,33 +22,25 @@ app.use(express.json());
 
 // Seeding - Inicialización de datos en MongoDB
 const initDatabase = async () => {
-  // 1. Usuarios por defecto
-  const usersCount = await User.countDocuments();
-  if (usersCount === 0) {
-    await User.insertMany([
-      {
-        username: 'admin',
-        password: bcrypt.hashSync('admin123', 10),
-        fullName: 'Administrador',
-        email: 'admin@essencedetoi.com',
-        role: 'ADMIN'
-      },
-      {
-        username: 'tuki',
-        password: bcrypt.hashSync('tuki123', 10),
-        fullName: 'Tuki Gonzales',
-        email: 'tuki@essencedetoi.com',
-        role: 'CLIENT'
-      },
-      {
-        username: 'estilista',
-        password: bcrypt.hashSync('estilista123', 10),
-        fullName: 'Estilista Demo',
-        email: 'estilista@essencedetoi.com',
-        role: 'STYLIST'
-      }
-    ]);
-    console.log('✅ Usuarios iniciales creados.');
+  const adminCount = await User.countDocuments({ role: 'ADMIN' });
+  await BookingLock.updateOne(
+    { _id: 'unassigned' },
+    { $setOnInsert: { version: 0 } },
+    { upsert: true }
+  );
+  const { BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD, BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_NAME } = process.env;
+  if (!adminCount && BOOTSTRAP_ADMIN_USERNAME && BOOTSTRAP_ADMIN_PASSWORD &&
+      BOOTSTRAP_ADMIN_EMAIL && BOOTSTRAP_ADMIN_NAME) {
+    await User.create({
+      username: BOOTSTRAP_ADMIN_USERNAME.trim().toLowerCase(),
+      password: await bcrypt.hash(BOOTSTRAP_ADMIN_PASSWORD, 12),
+      email: BOOTSTRAP_ADMIN_EMAIL.trim().toLowerCase(),
+      fullName: BOOTSTRAP_ADMIN_NAME.trim(),
+      role: 'ADMIN'
+    });
+    console.log('✅ Administrador inicial creado desde variables de entorno.');
+  } else if (!adminCount) {
+    console.warn('⚠️ No hay administrador. Configura BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD, BOOTSTRAP_ADMIN_EMAIL y BOOTSTRAP_ADMIN_NAME para crear uno.');
   }
 
   // 2. Servicios por defecto
@@ -92,51 +81,39 @@ const initDatabase = async () => {
         name: 'Pedicure Completo',
         description: 'Tratamiento completo de pedicure con exfoliación, hidratación y esmaltado para unos pies suaves y perfectos.',
         price: '$70.000',
-        image: '/images/services/pedicure.jpg'
+        image: '/images/services/manicura_clasica.jpg'
       }
     ]);
     console.log('✅ Servicios iniciales creados.');
-  }
-
-  // 3. Citas por defecto
-  const appointmentsCount = await Appointment.countDocuments();
-  if (appointmentsCount === 0) {
-    await Appointment.insertMany([
-      {
-        username: 'tuki',
-        service: 'Maquillaje de Novia & Gala',
-        date: '2026-06-17',
-        time: '11:00 AM',
-        notes: 'Boda civil por la tarde',
-        status: 'CONFIRMED'
-      },
-      {
-        username: 'tuki',
-        service: 'Perfilado y Diseño de Cejas',
-        date: '2026-06-14',
-        time: '05:00 PM',
-        notes: 'Primera vez',
-        status: 'CANCELLED'
-      }
-    ]);
-    console.log('✅ Citas iniciales creadas.');
   }
 };
 
 // Conectar a MongoDB y luego iniciar el servidor
 const startServer = async () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('Configura MONGODB_URI antes de iniciar el servidor.');
+  }
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET debe contener al menos 32 caracteres aleatorios.');
+  }
   await connectDB();
   await initDatabase();
 
+  app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
   // Rutas
   app.use('/api/auth', authRoutes);
   app.use('/api/services', servicesRoutes);
   app.use('/api/appointments', appointmentsRoutes);
   app.use('/api/users', usersRoutes);
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
+  await new Promise((resolve, reject) => {
+    const server = app.listen(PORT, () => resolve(server));
+    server.once('error', reject);
   });
+  console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
 };
 
-startServer();
+startServer().catch(error => {
+  console.error(`❌ No se pudo iniciar el servidor: ${error.message}`);
+  process.exitCode = 1;
+});

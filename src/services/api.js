@@ -18,7 +18,7 @@ const apiFetch = async (url, options = {}) => {
     headers: authHeaders(),
     ...options,
   });
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.error || 'Error en la petición');
   }
@@ -47,6 +47,18 @@ export const apiUpdateProfile = (data) =>
     body: JSON.stringify(data),
   });
 
+export const apiRequestPasswordReset = email =>
+  apiFetch('/auth/password-reset/request', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+
+export const apiResetPassword = (token, password) =>
+  apiFetch('/auth/password-reset/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  });
+
 // ─── SERVICES ────────────────────────────────────────────────────────────────
 
 export const apiGetServices = () => apiFetch('/services');
@@ -70,6 +82,9 @@ export const apiDeleteService = (id) =>
 
 export const apiGetAppointments = () => apiFetch('/appointments');
 
+export const apiGetStylistAvailability = (date, stylist) =>
+  apiFetch(`/appointments/availability?date=${encodeURIComponent(date)}&stylist=${encodeURIComponent(stylist)}`);
+
 export const apiCreateAppointment = (data) =>
   apiFetch('/appointments', {
     method: 'POST',
@@ -82,9 +97,32 @@ export const apiUpdateAppointment = (id, data) =>
     body: JSON.stringify(data),
   });
 
+export const apiUpdateAppointmentStatus = (id, status) =>
+  apiFetch(`/appointments/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+
+export const apiRescheduleAppointment = (id, data) =>
+  apiFetch(`/appointments/${id}/reschedule`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+
 export const apiDeleteAppointment = (id) =>
   apiFetch(`/appointments/${id}`, { method: 'DELETE' });
 
 // ─── USERS ───────────────────────────────────────────────────────────────────
 
 export const apiGetUsers = () => apiFetch('/users');
+export const apiUpdateUser = (id, data) =>
+  apiFetch(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+export const apiDeleteUser = id =>
+  apiFetch(`/users/${id}`, { method: 'DELETE' });
+export const apiGetStylists = () => apiFetch('/users/stylists');
+export const apiGetSchedule = () => apiFetch('/users/me/schedule');
+export const apiUpdateSchedule = weeklySchedule =>
+  apiFetch('/users/me/schedule', {
+    method: 'PUT',
+    body: JSON.stringify({ weeklySchedule }),
+  });

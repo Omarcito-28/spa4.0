@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -207,13 +207,14 @@ const StyledLink = styled(Link)`
   }
 `;
 
-function Login({ onLogin }) {
+function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -228,6 +229,11 @@ function Login({ onLogin }) {
       if (result.success) {
         setSuccess('Has iniciado sesión correctamente');
         setTimeout(() => {
+          const returnTo = searchParams.get('returnTo');
+          if (returnTo?.startsWith('/appointments/new')) {
+            navigate(returnTo);
+            return;
+          }
           // Redirigir según el rol
           if (result.user.role === 'ADMIN') {
             navigate('/admin/dashboard');
@@ -240,7 +246,7 @@ function Login({ onLogin }) {
       } else {
         setError(result.error || 'Usuario o contraseña incorrectos');
       }
-    } catch (err) {
+    } catch {
       setError('Error al iniciar sesión. Por favor, intenta nuevamente.');
     } finally {
       setLoading(false);
@@ -261,7 +267,7 @@ function Login({ onLogin }) {
         
         <Form onSubmit={handleSubmit}>
           <FormGroup>
-            <Label htmlFor="username">Usuario o Email</Label>
+            <Label htmlFor="username">Usuario o correo electrónico</Label>
             <Input
               id="username"
               type="text"
@@ -298,6 +304,9 @@ function Login({ onLogin }) {
         
         <RegisterLink>
           ¿No tienes cuenta? <StyledLink to="/register">Regístrate aquí</StyledLink>
+        </RegisterLink>
+        <RegisterLink>
+          <StyledLink to="/forgot-password">¿Olvidaste tu contraseña?</StyledLink>
         </RegisterLink>
       </LoginContainer>
     </PageWrapper>

@@ -267,7 +267,11 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                 user?.role === 'STYLIST' ? '/stylist/dashboard' :
                 '/dashboard'
               }>Dashboard</NavLink>
-              <NavLink to="/appointments/my">Mis Citas</NavLink>
+              <NavLink to={
+                user?.role === 'ADMIN' ? '/appointments/all' :
+                user?.role === 'STYLIST' ? '/stylist/appointments' :
+                '/appointments/my'
+              }>{user?.role === 'ADMIN' ? 'Todas las Citas' : 'Mis Citas'}</NavLink>
             </>
           )}
           

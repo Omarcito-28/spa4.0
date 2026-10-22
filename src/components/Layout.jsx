@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom';
 import styled from 'styled-components';
-import { theme } from '../styles/theme';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { GlobalStyle } from '../styles/theme';
+import ChatAssistant from './ChatAssistant';
 
 const MainContainer = styled.div`
   min-height: 100vh;
@@ -26,6 +26,7 @@ function Layout({ isAuthenticated = false, user = null, onLogout }) {
           <Outlet />
         </Content>
         <Footer />
+        <ChatAssistant />
       </MainContainer>
     </>
   );
