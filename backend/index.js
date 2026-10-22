@@ -78,10 +78,10 @@ const initDatabase = async () => {
         image: '/images/services/peinado_evento.jpg'
       },
       {
-        name: 'Pedicure Completo',
-        description: 'Tratamiento completo de pedicure con exfoliaciÃ³n, hidrataciÃ³n y esmaltado para unos pies suaves y perfectos.',
+        name: 'Masaje Relajante',
+        description: 'Masaje terapéutico para aliviar el estrés, relajar tensiones musculares y renovar tu energía.',
         price: '$70.000',
-        image: '/images/services/manicura_clasica.jpg'
+        image: '/images/services/masaje.jpg'
       }
     ]);
     console.log('âœ… Servicios iniciales creados.');
