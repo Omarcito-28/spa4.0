@@ -158,7 +158,7 @@ function AdminDashboard({ user }) {
           <CardText>Administra clientes, estilistas y administradores</CardText>
         </Card>
         
-        <Card to="/services">
+        <Card to="/admin/services">
           <CardIcon><i className="fas fa-concierge-bell"></i></CardIcon>
           <CardTitle>Gestionar Servicios</CardTitle>
           <CardText>Agrega, edita o elimina servicios disponibles</CardText>
@@ -170,7 +170,7 @@ function AdminDashboard({ user }) {
           <CardText>Visualiza y gestiona todas las citas programadas</CardText>
         </Card>
         
-        <Card to="/admin/dashboard">
+        <Card to="/admin/reports">
           <CardIcon><i className="fas fa-chart-line"></i></CardIcon>
           <CardTitle>Reportes</CardTitle>
           <CardText>Genera reportes de estadísticas y métricas</CardText>

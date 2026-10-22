@@ -1,6 +1,6 @@
-# Essence De Toi - Frontend React
+# Essence De Toi
 
-Proyecto frontend migrado de Spring Boot/Thymeleaf a Vite + React con styled-components.
+Aplicación de reservas para el spa con frontend React/Vite y API Express/MongoDB.
 
 ## Tecnologías
 
@@ -9,46 +9,35 @@ Proyecto frontend migrado de Spring Boot/Thymeleaf a Vite + React con styled-com
 - Styled Components 6.4.0
 - React Router DOM 7.1.1
 
-## Instalación
+## Desarrollo local
 
-1. Instalar dependencias:
+Instala las dependencias del frontend y del backend:
    ```bash
+   npm install
+   cd backend
    npm install
    ```
 
-2. Ejecutar el servidor de desarrollo:
+Configura `backend/.env` a partir de `backend/.env.example`. Usa una URI de MongoDB Atlas, un `JWT_SECRET` aleatorio de al menos 32 caracteres y, si la base todavía no tiene administrador, las cuatro variables `BOOTSTRAP_ADMIN_*`. El administrador inicial se crea una sola vez y no se restablece en arranques posteriores. Nunca publiques esos valores.
+
+Inicia el backend en una terminal:
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+Inicia Vite desde otra terminal en la raíz:
    ```bash
    npm run dev
    ```
 
-3. Construir para producción:
-   ```bash
-   npm run build
-   ```
+El proxy de desarrollo envía `/api` al puerto 5000. Comprueba el backend en `/api/health`. Los valores de contacto y redes sociales se configuran con las variables `VITE_CONTACT_*`, `VITE_*_URL` del `.env.local`; los campos sin configurar no muestran datos de ejemplo.
 
-## Estructura del Proyecto
+El asistente consulta los servicios, duraciones, horarios y disponibilidad actual del backend; guía a la persona al formulario, pero no confirma ni crea reservas desde el chat. Configura `VITE_WHATSAPP_NUMBER` para derivar consultas a WhatsApp, `VITE_CONTACT_EMAIL` como alternativa y, cuando el negocio los confirme, `VITE_PAYMENT_METHODS` y `VITE_CANCELLATION_POLICY` para responder esas preguntas sin inventar datos. Estas variables `VITE_*` se incluyen en el frontend compilado y no deben contener secretos.
 
+## Comprobaciones
+
+```bash
+npm run lint
+npm run build
 ```
-src/
-├── components/       # Componentes reutilizables (Navbar, Footer, Layout)
-├── contexts/         # Contextos de React (AuthContext)
-├── pages/           # Páginas de la aplicación (Home, Login, Register, Dashboard, Services)
-├── styles/          # Estilos globales y tema (theme.js)
-├── App.jsx          # Configuración de rutas
-└── main.jsx         # Punto de entrada
-```
-
-## Características
-
-- Sistema de routing con React Router
-- Autenticación con Context API
-- Estilos con Styled Components
-- Diseño responsivo
-- Tema global con variables de colores
-
-## Próximos Pasos
-
-- Conectar con la API del backend
-- Implementar formularios de citas
-- Agregar página de administración
-- Implementar gestión de perfiles in your project.

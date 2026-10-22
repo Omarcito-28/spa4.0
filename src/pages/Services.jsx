@@ -77,21 +77,14 @@ const ImageWrapper = styled.div`
   height: 220px;
   overflow: hidden;
   position: relative;
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
 `;
 
-const ServiceImage = styled.div`
+const ServiceImage = styled.img`
   height: 100%;
   width: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-image: ${props => props.$image ? `url(${props.$image})` : `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent})`};
+  object-fit: cover;
   transition: transform 0.6s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 3.5rem;
 `;
 
 const PriceTag = styled.div`
@@ -207,9 +200,7 @@ function Services() {
           {services.map((service, index) => (
             <ServiceCard key={service._id} $delay={`${index * 0.1}s`}>
               <ImageWrapper>
-                <ServiceImage $image={service.image}>
-                  {!service.image && '💆'}
-                </ServiceImage>
+                {service.image && <ServiceImage src={service.image} alt={service.name} onError={event => { event.currentTarget.hidden = true; }} />}
                 <PriceTag>{service.price}</PriceTag>
               </ImageWrapper>
               <ServiceContent>
@@ -225,4 +216,3 @@ function Services() {
 }
 
 export default Services;
-

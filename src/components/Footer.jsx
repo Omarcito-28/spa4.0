@@ -1,6 +1,6 @@
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
-import { theme, fadeInUp } from '../styles/theme';
+import { theme } from '../styles/theme';
 
 const shimmer = keyframes`
   0% { background-position: -200% center; }
@@ -196,6 +196,12 @@ const HeartPulse = styled.span`
 
 function Footer() {
   const year = new Date().getFullYear();
+  const socialLinks = [
+    { url: import.meta.env.VITE_FACEBOOK_URL, label: 'Facebook', icon: 'fab fa-facebook-f' },
+    { url: import.meta.env.VITE_INSTAGRAM_URL, label: 'Instagram', icon: 'fab fa-instagram' },
+    { url: import.meta.env.VITE_WHATSAPP_URL, label: 'WhatsApp', icon: 'fab fa-whatsapp' },
+    { url: import.meta.env.VITE_TIKTOK_URL, label: 'TikTok', icon: 'fab fa-tiktok' },
+  ].filter(item => item.url);
 
   return (
     <FooterContainer>
@@ -204,12 +210,11 @@ function Footer() {
           <FooterBrand>
             <h3>✦ Essence De Toi</h3>
             <p>Tu oasis de belleza y bienestar. Transformamos tu imagen con dedicación, productos premium y pasión por lo que hacemos.</p>
-            <SocialLinks>
-              <SocialIcon href="#" aria-label="Facebook" style={{ '--i': 0 }}><i className="fab fa-facebook-f"></i></SocialIcon>
-              <SocialIcon href="#" aria-label="Instagram" style={{ '--i': 1 }}><i className="fab fa-instagram"></i></SocialIcon>
-              <SocialIcon href="#" aria-label="WhatsApp" style={{ '--i': 2 }}><i className="fab fa-whatsapp"></i></SocialIcon>
-              <SocialIcon href="#" aria-label="TikTok" style={{ '--i': 3 }}><i className="fab fa-tiktok"></i></SocialIcon>
-            </SocialLinks>
+            {socialLinks.length > 0 && <SocialLinks>
+              {socialLinks.map(({ url, label, icon }, index) => (
+                <SocialIcon key={label} href={url} target="_blank" rel="noreferrer" aria-label={label} style={{ '--i': index }}><i className={icon}></i></SocialIcon>
+              ))}
+            </SocialLinks>}
           </FooterBrand>
 
           <FooterColumn>

@@ -1,7 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useSearchParams } from 'react-router-dom';
 import { theme, fadeInUp } from '../styles/theme';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
+import { todayInTimeZone } from '../utils/date';
+import {
+  apiCreateAppointment,
+  apiGetServices,
+  apiGetStylists,
+  apiGetStylistAvailability
+} from '../services/api';
 
 /* ─── Animations ─────────────────────────────────────────── */
 const shimmer = keyframes`
@@ -12,11 +20,6 @@ const shimmer = keyframes`
 const glowPulse = keyframes`
   0%, 100% { box-shadow: 0 0 8px rgba(153,101,21,0.25), 0 0 20px rgba(153,101,21,0.1); }
   50%       { box-shadow: 0 0 20px rgba(201,148,42,0.5), 0 0 40px rgba(153,101,21,0.25); }
-`;
-
-const checkmark = keyframes`
-  0%   { stroke-dashoffset: 100; }
-  100% { stroke-dashoffset: 0; }
 `;
 
 /* ─── Page wrapper ───────────────────────────────────────── */
@@ -118,7 +121,7 @@ const FormGroup = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -132,7 +135,7 @@ const inputBase = `
   border: 1px solid rgba(153, 101, 21, 0.4);
   background: rgba(255, 242, 200, 0.55);
   color: #3a2808;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-family: inherit;
   transition: all 0.25s ease;
   outline: none;
@@ -171,6 +174,7 @@ const Select = styled.select`
   option {
     background: #f5e9c0;
     color: #3a2808;
+    font-size: 1.2rem;
   }
 `;
 
@@ -295,30 +299,103 @@ const BackButton = styled.button`
 `;
 
 /* ─── Data ───────────────────────────────────────────────── */
-const SERVICES = [
-  'Manicura Clásica',
-  'Tintura',
-  'Tratamiento Capilar',
-  'Corte de Cabello',
-  'Peinado de Evento',
-  'Masaje Relajante',
-];
+const timeInMinutes = time => {
+  const [, hour, minute, period] = time.match(/^(\d{1,2}):(\d{2}) (AM|PM)$/);
+  return ((Number(hour) % 12) + (period === 'PM' ? 12 : 0)) * 60 + Number(minute);
+};
 
-const TIME_SLOTS = [
-  '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-  '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM',
-  '05:00 PM', '06:00 PM', '07:00 PM',
-];
+const formatTime = minutes => {
+  const hour24 = Math.floor(minutes / 60);
+  const hour12 = hour24 % 12 || 12;
+  return `${String(hour12).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')} ${hour24 < 12 ? 'AM' : 'PM'}`;
+};
+
+const getTimeSlots = (schedule, duration) => {
+  if (!schedule) return [];
+  const [startHour, startMinute] = schedule.start.split(':').map(Number);
+  const [endHour, endMinute] = schedule.end.split(':').map(Number);
+  const start = startHour * 60 + startMinute;
+  const end = endHour * 60 + endMinute;
+  const slots = [];
+  for (let time = start; time + duration <= end; time += 15) {
+    slots.push(formatTime(time));
+  }
+  return slots;
+};
+
+const appointmentsOverlap = (time, duration, appointment) => {
+  const start = timeInMinutes(time);
+  const bookedStart = timeInMinutes(appointment.time);
+  const bookedDuration = appointment.duration || 60;
+  return start < bookedStart + bookedDuration && bookedStart < start + duration;
+};
 
 /* ─── Component ──────────────────────────────────────────── */
 function BookingForm() {
   const { user } = useAuth();
-  const today = new Date().toISOString().split('T')[0];
+  const [searchParams] = useSearchParams();
+  const today = todayInTimeZone();
 
-  const [formData, setFormData] = useState({ service: '', date: '', time: '', notes: '' });
+  const [formData, setFormData] = useState(() => ({
+    service: searchParams.get('service') || '',
+    stylist: searchParams.get('stylist') || '',
+    date: searchParams.get('date') || '',
+    time: searchParams.get('time') || '',
+    notes: ''
+  }));
   const [errors, setErrors]     = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess]       = useState(false);
+  const [services, setServices] = useState([]);
+  const [stylists, setStylists] = useState([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
+  const [servicesError, setServicesError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [availabilityResult, setAvailabilityResult] = useState(null);
+  const availabilityKey = `${formData.date}:${formData.stylist}`;
+  const currentAvailability = availabilityResult?.key === availabilityKey ? availabilityResult : null;
+  const busyAppointments = currentAvailability?.appointments || [];
+  const availableSchedule = currentAvailability?.schedule || null;
+  const availabilityError = currentAvailability?.error || '';
+  const isLoadingAvailability = Boolean(
+    formData.date && (!currentAvailability || currentAvailability.loading)
+  );
+  const selectedDuration = services.find(service => service.name === formData.service)?.duration || 60;
+  const availableSlots = getTimeSlots(availableSchedule, selectedDuration);
+  const bookedSlots = availableSlots.filter(time => busyAppointments.some(appointment =>
+    appointmentsOverlap(time, selectedDuration, appointment)));
+
+  useEffect(() => {
+    apiGetServices()
+      .then(setServices)
+      .catch(() => setServicesError('No se pudieron cargar los servicios. Verifica que el servidor esté activo.'))
+      .finally(() => setIsLoadingServices(false));
+    apiGetStylists().then(setStylists).catch(() => setStylists([]));
+  }, []);
+
+  useEffect(() => {
+    if (!formData.date) return undefined;
+
+    let isCurrent = true;
+    apiGetStylistAvailability(formData.date, formData.stylist)
+      .then(availability => {
+        if (isCurrent) {
+          setAvailabilityResult({ key: availabilityKey, ...availability });
+        }
+      })
+      .catch(error => {
+        if (isCurrent) {
+          setAvailabilityResult({
+            key: availabilityKey,
+            appointments: [],
+            schedule: null,
+            error: error.message || 'No se pudo consultar la disponibilidad del estilista.'
+          });
+        }
+      })
+
+    return () => { isCurrent = false; };
+  }, [availabilityKey, formData.date, formData.stylist]);
 
   const validate = () => {
     const e = {};
@@ -326,12 +403,22 @@ function BookingForm() {
     if (!formData.date)    e.date    = 'La fecha es requerida';
     else if (formData.date < today) e.date = 'La fecha no puede ser en el pasado';
     if (!formData.time)    e.time    = 'Selecciona una hora';
+    else if (availabilityError) e.time = 'No se pudo validar la disponibilidad. Inténtalo de nuevo.';
+    else if (!isLoadingAvailability &&
+      (!availableSlots.includes(formData.time) || bookedSlots.includes(formData.time))) {
+      e.time = 'Ese horario ya no está disponible. Selecciona otro.';
+    }
     return e;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      ...(['service', 'date', 'stylist'].includes(name) ? { time: '' } : {})
+    }));
+    setSubmitError('');
     if (errors[name]) setErrors(prev => { const { [name]: _, ...rest } = prev; return rest; });
   };
 
@@ -340,9 +427,15 @@ function BookingForm() {
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return; }
     setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setIsSubmitting(false);
-    setIsSuccess(true);
+    setSubmitError('');
+    try {
+      await apiCreateAppointment(formData);
+      setIsSuccess(true);
+    } catch (error) {
+      setSubmitError(error.message || 'No se pudo agendar la cita. Inténtalo de nuevo.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -353,11 +446,11 @@ function BookingForm() {
             <SuccessIcon>✨</SuccessIcon>
             <SuccessTitle>¡Cita Agendada!</SuccessTitle>
             <SuccessDetail>
-              Gracias, <strong>{user?.fullName || 'Cliente'}</strong>. Hemos recibido tu solicitud para&nbsp;
+              Gracias, <strong>{user?.fullName || 'Cliente'}</strong>. Recibimos tu solicitud para&nbsp;
               <strong>{formData.service}</strong> el día <strong>{formData.date}</strong> a las <strong>{formData.time}</strong>.
             </SuccessDetail>
             <SuccessDetail>
-              Te enviaremos una confirmación a <strong>{user?.email}</strong>.
+              La cita quedó pendiente de confirmación. Puedes consultar su estado en «Mis citas».
             </SuccessDetail>
             <BackButton onClick={() => window.history.back()}>Volver</BackButton>
           </SuccessWrapper>
@@ -376,12 +469,31 @@ function BookingForm() {
                   id="service" name="service"
                   value={formData.service} onChange={handleChange}
                   $error={errors.service}
+                  disabled={isLoadingServices || Boolean(servicesError) || services.length === 0}
                 >
-                  <option value="">Selecciona un servicio...</option>
-                  {SERVICES.map(s => <option key={s} value={s}>{s}</option>)}
+                  <option value="">{isLoadingServices ? 'Cargando servicios...' : 'Selecciona un servicio...'}</option>
+                  {services.map(service => (
+                    <option key={service._id} value={service.name}>{service.name}</option>
+                  ))}
                 </Select>
                 {errors.service && <ErrorMessage>{errors.service}</ErrorMessage>}
+                {servicesError && <ErrorMessage>{servicesError}</ErrorMessage>}
+                {!isLoadingServices && !servicesError && services.length === 0 && (
+                  <ErrorMessage>No hay servicios disponibles para reservar.</ErrorMessage>
+                )}
               </FormGroup>
+
+              {stylists.length > 0 && (
+                <FormGroup $fullWidth>
+                  <Label htmlFor="stylist">Estilista (opcional)</Label>
+                  <Select id="stylist" name="stylist" value={formData.stylist} onChange={handleChange}>
+                    <option value="">Por asignar</option>
+                    {stylists.map(stylist => (
+                      <option key={stylist._id} value={stylist.username}>{stylist.fullName}</option>
+                    ))}
+                  </Select>
+                </FormGroup>
+              )}
 
               {/* Fecha */}
               <FormGroup>
@@ -398,14 +510,33 @@ function BookingForm() {
               <FormGroup>
                 <Label htmlFor="time">Hora</Label>
                 <Select
-                  id="time" name="time"
-                  value={formData.time} onChange={handleChange}
-                  $error={errors.time}
-                >
-                  <option value="">Selecciona una hora...</option>
-                  {TIME_SLOTS.map(t => <option key={t} value={t}>{t}</option>)}
+                    id="time" name="time"
+                    value={formData.time} onChange={handleChange}
+                    $error={errors.time}
+                    disabled={!formData.date || !formData.service || isLoadingAvailability || Boolean(availabilityError)}
+                  >
+                    <option value="">Selecciona una hora...</option>
+                    {availableSlots.map(t => {
+                      const isBooked = busyAppointments.some(appointment =>
+                        appointmentsOverlap(t, selectedDuration, appointment));
+                    return (
+                      <option key={t} value={t} disabled={isBooked}>
+                        {t}{isBooked ? ' — Reservada' : ''}
+                      </option>
+                    );
+                  })}
                 </Select>
                 {errors.time && <ErrorMessage>{errors.time}</ErrorMessage>}
+                {isLoadingAvailability && <small>Consultando horarios disponibles…</small>}
+                {!formData.date && <small>Selecciona una fecha para consultar los horarios.</small>}
+                {availabilityError && <ErrorMessage role="alert">{availabilityError}</ErrorMessage>}
+                {currentAvailability && !availabilityError && !availableSchedule && (
+                  <ErrorMessage>El estilista no trabaja ese día.</ErrorMessage>
+                )}
+                {currentAvailability && !availabilityError && availableSchedule &&
+                  getTimeSlots(availableSchedule, services.find(service => service.name === formData.service)?.duration || 60).length === 0 && (
+                    <ErrorMessage>No hay horarios disponibles para la duración de este servicio.</ErrorMessage>
+                  )}
               </FormGroup>
 
               {/* Notas */}
@@ -418,7 +549,13 @@ function BookingForm() {
                 />
               </FormGroup>
 
-              <SubmitButton type="submit" disabled={isSubmitting}>
+              {submitError && <ErrorMessage role="alert">{submitError}</ErrorMessage>}
+
+              <SubmitButton
+                type="submit"
+                disabled={isSubmitting || isLoadingServices || services.length === 0 ||
+                  isLoadingAvailability || Boolean(availabilityError)}
+              >
                 {isSubmitting ? 'Agendando…' : 'Confirmar Cita'}
               </SubmitButton>
             </Form>

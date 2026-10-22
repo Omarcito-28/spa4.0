@@ -11,6 +11,23 @@ const appointmentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  duration: {
+    type: Number,
+    min: 15,
+    max: 480,
+    default: 60
+  },
+  price: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  stylist: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    default: ''
+  },
   date: {
     type: String,
     required: true

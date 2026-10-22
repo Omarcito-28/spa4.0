@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -250,8 +250,8 @@ function Register() {
 
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres';
     }
 
     if (!formData.confirmPassword) {
@@ -294,6 +294,7 @@ function Register() {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
+        phoneNumber: formData.phoneNumber,
         role: 'CLIENT',
       });
 
@@ -302,7 +303,7 @@ function Register() {
       } else {
         setErrors({ general: result.error || 'Error al registrar usuario.' });
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: 'Error al registrar usuario. Por favor, intenta nuevamente.' });
     } finally {
       setLoading(false);

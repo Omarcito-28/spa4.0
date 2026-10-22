@@ -1,3 +1,5 @@
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
@@ -11,7 +13,7 @@ const connectDB = async () => {
     console.log('✅ Conectado a MongoDB Atlas correctamente');
   } catch (error) {
     console.error('❌ Error al conectar a MongoDB:', error.message);
-    process.exit(1);
+    throw error;
   }
 };
 
