@@ -3,12 +3,13 @@ import nodemailer from 'nodemailer';
 const isConfigured = () => Boolean(
   process.env.SMTP_HOST &&
   process.env.SMTP_PORT &&
-  process.env.SMTP_FROM
+  process.env.SMTP_FROM &&
+  (!process.env.SMTP_USER || process.env.SMTP_PASSWORD)
 );
 
 const createTransport = () => {
   if (!isConfigured()) {
-    throw new Error('Configura SMTP_HOST, SMTP_PORT y SMTP_FROM para habilitar el correo.');
+    throw new Error('Configura SMTP_HOST, SMTP_PORT y SMTP_FROM; si usas autenticación, también SMTP_USER y SMTP_PASSWORD.');
   }
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
