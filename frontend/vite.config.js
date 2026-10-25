@@ -11,5 +11,17 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-  }
+  },
+  test: {
+    environment: 'jsdom',
+    // backend/ tiene su propia configuración de Vitest.
+    include: ['src/**/*.test.{js,jsx}'],
+    setupFiles: ['./src/test/setup.js'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{js,jsx}'],
+      exclude: ['src/test/**', 'src/**/*.test.{js,jsx}', 'src/main.jsx'],
+      reporter: ['text', 'html', 'lcov'],
+    },
+  },
 })

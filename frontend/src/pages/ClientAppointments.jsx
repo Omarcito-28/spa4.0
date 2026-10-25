@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import {
   apiGetAppointments,
   apiGetStylistAvailability,
@@ -8,6 +8,11 @@ import {
 } from '../services/api';
 import { todayInTimeZone } from '../utils/date';
 import { Button, Description, Notice, Page, Table, TableWrap, Title } from '../components/ManagementUI';
+import StatusBadge from '../components/StatusBadge';
+import { isFinalStatus } from '../utils/appointmentStatus';
+import RefreshStatus from '../components/RefreshStatus';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
 
 const formatTime = minutes => {
   const hour = Math.floor(minutes / 60);
@@ -95,34 +100,21 @@ function RescheduleForm({ appointment, onSaved, onCancel }) {
 }
 
 function ClientAppointments() {
-  const [appointments, setAppointments] = useState([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
+  const appointments = live.data ?? [];
+  const loading = live.loading;
+  const [actionError, setActionError] = useState('');
+  const error = actionError || live.error;
   const [reschedulingId, setReschedulingId] = useState('');
-
-  const load = useCallback(async () => {
-    try {
-      setAppointments(await apiGetAppointments());
-      setError('');
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
 
   const cancel = async id => {
     if (!window.confirm('¿Cancelar esta cita?')) return;
     try {
       await apiUpdateAppointmentStatus(id, 'CANCELLED');
-      await load();
+      setActionError('');
+      await live.refresh();
     } catch (requestError) {
-      setError(requestError.message);
+      setActionError(requestError.message);
     }
   };
 
@@ -130,6 +122,7 @@ function ClientAppointments() {
     <Page>
       <Title>Mis citas</Title>
       <Description>Consulta el estado de tus reservas y cancela las que ya no necesites.</Description>
+      <RefreshStatus lastUpdated={live.lastUpdated} refreshing={live.refreshing} onRefresh={live.refresh} />
       {error && <Notice $error role="alert">{error}</Notice>}
       {loading ? <p role="status">Cargando citas…</p> : appointments.length === 0
         ? <p>Aún no tienes citas registradas.</p>
@@ -141,14 +134,14 @@ function ClientAppointments() {
               <tr key={appointment._id}>
                 <td>{appointment.service}</td><td>{appointment.date}</td><td>{appointment.time}</td>
                 <td>{appointment.stylist || 'Por asignar'}</td>
-                <td>{appointment.status === 'PENDING' ? 'Pendiente' : appointment.status === 'CONFIRMED' ? 'Confirmada' : 'Cancelada'}</td>
-                <td>{appointment.status !== 'CANCELLED' && <>
+                <td><StatusBadge status={appointment.status} /></td>
+                <td>{!isFinalStatus(appointment.status) && <>
                   <Button type="button" onClick={() => setReschedulingId(current => current === appointment._id ? '' : appointment._id)}>Reprogramar</Button>
                   <Button type="button" $danger onClick={() => cancel(appointment._id)}>Cancelar</Button>
                 </>}</td>
               </tr>
               {reschedulingId === appointment._id && <tr key={`${appointment._id}-reschedule`}><td colSpan="6">
-                <RescheduleForm appointment={appointment} onSaved={async () => { setReschedulingId(''); await load(); }} onCancel={() => setReschedulingId('')} />
+                <RescheduleForm appointment={appointment} onSaved={async () => { setReschedulingId(''); await live.refresh(); }} onCancel={() => setReschedulingId('')} />
                 <p>El cambio quedará pendiente de confirmación.</p>
               </td></tr>}
               </Fragment>

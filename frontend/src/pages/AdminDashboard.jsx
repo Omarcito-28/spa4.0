@@ -1,6 +1,12 @@
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../styles/theme';
+import { apiGetAppointments } from '../services/api';
+import { AppointmentList, LivePanel, StatGrid } from '../components/LivePanel';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
+import { appointmentsOn, recentRequests, unassignedAppointments } from '../utils/appointmentSummary';
+import { todayInTimeZone } from '../utils/date';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -139,6 +145,28 @@ const CardText = styled.p`
   font-size: 1.1rem;
 `;
 
+function AdminSummary() {
+  const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
+  const appointments = live.data ?? [];
+  const todays = appointmentsOn(appointments, todayInTimeZone());
+  return (
+    <LivePanel title="Operación en vivo" live={live}>
+      <StatGrid stats={[
+        { label: 'Citas hoy', value: todays.length },
+        { label: 'Por confirmar', value: appointments.filter(item => item.status === 'PENDING').length },
+        { label: 'Sin estilista', value: unassignedAppointments(appointments).length },
+        { label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
+      ]} />
+      <AppointmentList
+        title="Solicitudes recientes"
+        appointments={recentRequests(appointments)}
+        empty="No hay solicitudes pendientes."
+        describe={item => `${item.username} · ${item.stylist || 'sin estilista'}`}
+      />
+    </LivePanel>
+  );
+}
+
 function AdminDashboard({ user }) {
   return (
     <DashboardContainer>
@@ -150,6 +178,8 @@ function AdminDashboard({ user }) {
         <p>Conectado como <strong>ADMINISTRADOR</strong></p>
         <p>Gestiona todos los aspectos del sistema desde aquí.</p>
       </WelcomeCard>
+
+      <AdminSummary />
 
       <CardGrid>
         <Card to="/admin/users">

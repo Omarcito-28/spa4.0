@@ -1,6 +1,12 @@
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../styles/theme';
+import { apiGetAppointments } from '../services/api';
+import { AppointmentList, LivePanel, StatGrid } from '../components/LivePanel';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
+import { countByStatus, upcomingAppointments } from '../utils/appointmentSummary';
+import { todayInTimeZone } from '../utils/date';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -133,6 +139,28 @@ const CardText = styled.p`
   font-size: 1.1rem;
 `;
 
+function ClientSummary() {
+  const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
+  const appointments = live.data ?? [];
+  const upcoming = upcomingAppointments(appointments, todayInTimeZone());
+  const counts = countByStatus(appointments);
+  return (
+    <LivePanel title="Tus citas" live={live}>
+      <StatGrid stats={[
+        { label: 'Próximas', value: upcoming.length },
+        { label: 'Por confirmar', value: upcoming.filter(item => item.status === 'PENDING').length },
+        { label: 'Completadas', value: counts.COMPLETED },
+      ]} />
+      <AppointmentList
+        title="Próximas citas"
+        appointments={upcoming.slice(0, 3)}
+        empty="No tienes citas próximas. ¡Agenda una cuando quieras!"
+        describe={item => item.stylist || 'Estilista por asignar'}
+      />
+    </LivePanel>
+  );
+}
+
 function Dashboard({ user }) {
   return (
     <DashboardContainer>
@@ -143,6 +171,8 @@ function Dashboard({ user }) {
         <h2>Hola, {user?.fullName || user?.username} 👋</h2>
         <p>Bienvenido de vuelta a Essence De Toi. ¿Qué te gustaría hacer hoy?</p>
       </WelcomeCard>
+
+      <ClientSummary />
 
       <CardGrid>
         <Card to="/appointments/my">

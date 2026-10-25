@@ -321,7 +321,9 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
               <DropdownContent isOpen={adminDropdownOpen}>
                 <Link to="/admin/dashboard">Panel de Admin</Link>
                 <Link to="/admin/users">Gestionar Usuarios</Link>
+                <Link to="/admin/services">Gestionar Servicios</Link>
                 <Link to="/appointments/all">Todas las Citas</Link>
+                <Link to="/admin/reports">Reportes</Link>
               </DropdownContent>
             </Dropdown>
           )}

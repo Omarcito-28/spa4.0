@@ -1,6 +1,12 @@
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../styles/theme';
+import { apiGetAppointments } from '../services/api';
+import { AppointmentList, LivePanel, StatGrid } from '../components/LivePanel';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
+import { appointmentsOn, readyToComplete, upcomingAppointments } from '../utils/appointmentSummary';
+import { todayInTimeZone } from '../utils/date';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -139,6 +145,29 @@ const CardText = styled.p`
   font-size: 1.1rem;
 `;
 
+function StylistSummary() {
+  const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
+  const appointments = live.data ?? [];
+  const today = todayInTimeZone();
+  const todays = appointmentsOn(appointments, today);
+  return (
+    <LivePanel title="Tu agenda de hoy" live={live}>
+      <StatGrid stats={[
+        { label: 'Citas hoy', value: todays.length },
+        { label: 'Por confirmar', value: upcomingAppointments(appointments, today).filter(item => item.status === 'PENDING').length },
+        { label: 'Listas para completar', value: readyToComplete(appointments).length },
+        { label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
+      ]} />
+      <AppointmentList
+        title="Citas de hoy"
+        appointments={todays}
+        empty="No tienes citas para hoy."
+        describe={item => item.username}
+      />
+    </LivePanel>
+  );
+}
+
 function StylistDashboard({ user }) {
   return (
     <DashboardContainer>
@@ -150,6 +179,8 @@ function StylistDashboard({ user }) {
         <p>Conectado como <strong>ESTILISTA</strong></p>
         <p>Gestiona tus citas y horarios de atención desde aquí.</p>
       </WelcomeCard>
+
+      <StylistSummary />
 
       <CardGrid>
         <Card to="/stylist/appointments">

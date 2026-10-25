@@ -1,28 +1,70 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { theme } from '../styles/theme';
+
+const border = '#e4dccd';
+
+// Los controles de formulario no heredan el tamaño de letra del body; se fija aquí.
+const control = css`
+  min-width: 0;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid ${border};
+  border-radius: 10px;
+  background: #fff;
+  color: ${theme.colors.text};
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  transition: border-color ${theme.transitions.fast}, box-shadow ${theme.transitions.fast};
+
+  &:focus {
+    outline: none;
+    border-color: ${theme.colors.accent};
+    box-shadow: 0 0 0 3px rgba(201, 148, 42, 0.2);
+  }
+
+  &:disabled {
+    background: #f6f3ee;
+    cursor: wait;
+  }
+`;
 
 export const Page = styled.section`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 1.5rem;
+  padding: 3rem 1.5rem 4rem;
 `;
 
 export const Title = styled.h1`
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   color: ${theme.colors.text};
+  font-size: 2.6rem;
+
+  @media (max-width: 600px) {
+    font-size: 2.1rem;
+  }
 `;
 
 export const Description = styled.p`
-  margin-bottom: 1.5rem;
+  max-width: 820px;
+  margin-bottom: 1.75rem;
   color: ${theme.colors.textMuted};
+  font-size: 1.2rem;
+  opacity: 0.8;
 `;
 
 export const Card = styled.div`
-  margin-bottom: 1.25rem;
-  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: ${theme.borderRadius.medium};
   background: ${theme.colors.cardBg};
   box-shadow: ${theme.shadows.small};
+
+  > h2 {
+    margin-bottom: 1rem;
+    color: ${theme.colors.text};
+    font-size: 1.7rem;
+  }
 `;
 
 export const Grid = styled.div`
@@ -37,38 +79,105 @@ export const Field = styled.label`
   gap: 0.4rem;
   margin-bottom: 1rem;
   color: ${theme.colors.text};
+  font-size: 1.1rem;
   font-weight: 600;
 
   input, select, textarea {
-    min-width: 0;
-    padding: 0.7rem 0.8rem;
-    border: 1px solid #d9d3c8;
-    border-radius: 8px;
-    background: #fff;
-    color: ${theme.colors.text};
-    font: inherit;
+    ${control}
+    font-weight: 400;
   }
 `;
 
 export const Button = styled.button`
   margin: 0.25rem;
-  padding: 0.65rem 1rem;
-  border: 0;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: ${props => props.$danger ? '#b93224' : theme.colors.primary};
   color: white;
   font: inherit;
+  font-size: 1.05rem;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
+  transition: background ${theme.transitions.fast}, transform ${theme.transitions.fast}, box-shadow ${theme.transitions.fast};
+
+  &:hover:not(:disabled) {
+    background: ${props => props.$danger ? '#962719' : theme.colors.primaryDark};
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid rgba(201, 148, 42, 0.4);
+    outline-offset: 2px;
+  }
 
   &:disabled {
     opacity: 0.55;
     cursor: wait;
   }
+
+  ${props => props.$secondary && css`
+    border-color: ${border};
+    background: white;
+    color: ${theme.colors.text};
+
+    &:hover:not(:disabled) {
+      background: #faf6ee;
+    }
+  `}
+`;
+
+// Barra de búsqueda y filtros encima de las tablas.
+export const Toolbar = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: ${theme.borderRadius.medium};
+  background: white;
+  box-shadow: ${theme.shadows.small};
+
+  > input, > select {
+    ${control}
+  }
+
+  > input:not([type='date']) {
+    flex: 1 1 260px;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: ${theme.colors.textMuted};
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    input, select {
+      ${control}
+    }
+  }
+
+  ${Button} {
+    margin: 0;
+  }
+`;
+
+export const ResultCount = styled.p`
+  margin: 0 0 0.75rem;
+  color: ${theme.colors.textMuted};
+  font-size: 1.05rem;
+  opacity: 0.8;
 `;
 
 export const TableWrap = styled.div`
   overflow-x: auto;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: ${theme.borderRadius.medium};
   background: white;
   box-shadow: ${theme.shadows.small};
@@ -78,32 +187,117 @@ export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   text-align: left;
+  font-size: 1.12rem;
 
   th, td {
-    padding: 0.8rem 1rem;
+    padding: 0.9rem 1.1rem;
     border-bottom: 1px solid #eee8dc;
-    vertical-align: top;
+    vertical-align: middle;
   }
 
   th {
     background: #faf6ee;
     color: ${theme.colors.primaryDark};
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background ${theme.transitions.fast};
+  }
+
+  tbody tr:hover {
+    background: #fdfaf4;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
   }
 
   select {
-    max-width: 190px;
-    padding: 0.45rem;
-    border: 1px solid #d9d3c8;
-    border-radius: 6px;
-    background: white;
+    ${control}
+    max-width: 200px;
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
   }
+
+  td ${Button} {
+    padding: 0.45rem 0.95rem;
+    font-size: 0.98rem;
+  }
+`;
+
+// Fila de "sin resultados" que ocupa toda la tabla.
+export const EmptyCell = styled.td`
+  padding: 2.5rem 1rem !important;
+  color: ${theme.colors.textMuted};
+  text-align: center;
+  font-style: italic;
+  opacity: 0.75;
 `;
 
 export const Notice = styled.p`
   margin: 0.75rem 0;
-  color: ${props => props.$error ? '#b93224' : '#28623a'};
+  padding: 0.7rem 1rem;
+  border-left: 4px solid ${props => props.$error ? '#b93224' : '#28623a'};
+  border-radius: 8px;
+  background: ${props => props.$error ? '#fbe3e0' : '#dff3e4'};
+  color: ${props => props.$error ? '#8c2318' : '#1f5f33'};
+  font-size: 1.08rem;
 `;
 
 export const Form = styled.form`
-  max-width: 680px;
+  max-width: 760px;
+`;
+
+// Tarjeta de indicador: la cifra va en <h2> y la etiqueta en <p>.
+export const StatCard = styled.div`
+  position: relative;
+  padding: 1.4rem 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: ${theme.borderRadius.medium};
+  background: white;
+  box-shadow: ${theme.shadows.small};
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background: ${props => props.$accent || theme.colors.accent};
+  }
+
+  h2 {
+    margin: 0 0 0.2rem;
+    color: ${theme.colors.text};
+    font-size: 2.3rem;
+    line-height: 1.1;
+  }
+
+  p {
+    margin: 0;
+    color: ${theme.colors.textMuted};
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  small {
+    display: block;
+    margin-top: 0.4rem;
+    color: ${theme.colors.textMuted};
+    font-size: 0.95rem;
+    opacity: 0.75;
+  }
+`;
+
+export const SectionTitle = styled.h2`
+  margin: 2rem 0 1rem;
+  color: ${theme.colors.text};
+  font-size: 1.6rem;
 `;

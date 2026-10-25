@@ -1,37 +1,38 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { apiGetAppointments, apiGetStylists, apiUpdateAppointment } from '../services/api';
-import { Description, Notice, Page, Table, TableWrap, Title } from '../components/ManagementUI';
+import RefreshStatus from '../components/RefreshStatus';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
+import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
+import AdminNav from '../components/AdminNav';
+import Pagination from '../components/Pagination';
+import { Button, Description, EmptyCell, Notice, Page, ResultCount, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
+import StatusBadge from '../components/StatusBadge';
+import { STATUS_OPTIONS } from '../utils/appointmentStatus';
+
+const loadAppointmentsAndStylists = async () => {
+  const [appointments, stylists] = await Promise.all([apiGetAppointments(), apiGetStylists()]);
+  return { appointments, stylists };
+};
+
+const EMPTY_FILTERS = { search: '', status: '', service: '', from: '', to: '' };
 
 function AdminAppointments() {
-  const [appointments, setAppointments] = useState([]);
-  const [stylists, setStylists] = useState([]);
-  const [error, setError] = useState('');
-  const [filters, setFilters] = useState({ search: '', status: '', service: '', from: '', to: '' });
-  const [page, setPage] = useState(1);
+  const live = useAutoRefresh(loadAppointmentsAndStylists, { subscribe: subscribeAppointmentsChanged });
+  const appointments = live.data?.appointments ?? [];
+  const stylists = live.data?.stylists ?? [];
+  const [actionError, setActionError] = useState('');
+  const error = actionError || live.error;
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [requestedPage, setPage] = useState(1);
   const pageSize = 10;
-
-  const load = useCallback(async () => {
-    try {
-      const [allAppointments, allStylists] = await Promise.all([apiGetAppointments(), apiGetStylists()]);
-      setAppointments(allAppointments);
-      setStylists(allStylists);
-      setError('');
-    } catch (requestError) {
-      setError(requestError.message);
-    }
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
 
   const update = async (id, changes) => {
     try {
       await apiUpdateAppointment(id, changes);
-      await load();
+      setActionError('');
+      await live.refresh();
     } catch (requestError) {
-      setError(requestError.message);
+      setActionError(requestError.message);
     }
   };
 
@@ -44,6 +45,8 @@ function AdminAppointments() {
       (!filters.to || appointment.date <= filters.to);
   });
   const pageCount = Math.max(1, Math.ceil(filteredAppointments.length / pageSize));
+  // Si un refresco reduce la lista, se queda en la última página que existe.
+  const page = Math.min(requestedPage, pageCount);
   const visibleAppointments = filteredAppointments.slice((page - 1) * pageSize, page * pageSize);
   const changeFilter = event => {
     setFilters(current => ({ ...current, [event.target.name]: event.target.value }));
@@ -52,41 +55,49 @@ function AdminAppointments() {
 
   return (
     <Page>
+      <AdminNav />
       <Title>Todas las citas</Title>
-      <Description>Confirma las solicitudes y asigna un estilista para cada reserva.</Description>
+      <Description>Confirma las solicitudes, asigna un estilista para cada reserva y marca como completadas las citas ya atendidas.</Description>
+      <RefreshStatus lastUpdated={live.lastUpdated} refreshing={live.refreshing} onRefresh={live.refresh} />
       {error && <Notice $error role="alert">{error}</Notice>}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+      <Toolbar>
         <input name="search" value={filters.search} onChange={changeFilter} placeholder="Buscar cliente, servicio o estilista" aria-label="Buscar citas" />
         <select name="status" value={filters.status} onChange={changeFilter} aria-label="Filtrar por estado">
-          <option value="">Todos los estados</option><option value="PENDING">Pendiente</option><option value="CONFIRMED">Confirmada</option><option value="CANCELLED">Cancelada</option>
+          <option value="">Todos los estados</option>{STATUS_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
         <select name="service" value={filters.service} onChange={changeFilter} aria-label="Filtrar por servicio">
           <option value="">Todos los servicios</option>{[...new Set(appointments.map(item => item.service))].sort().map(service => <option key={service} value={service}>{service}</option>)}
         </select>
         <label>Desde <input name="from" type="date" value={filters.from} onChange={changeFilter} /></label>
         <label>Hasta <input name="to" type="date" value={filters.to} onChange={changeFilter} /></label>
-      </div>
-      <p>{filteredAppointments.length} citas encontradas</p>
+        <Button type="button" $secondary onClick={() => { setFilters(EMPTY_FILTERS); setPage(1); }}>Limpiar filtros</Button>
+      </Toolbar>
+      <ResultCount>{filteredAppointments.length} citas encontradas</ResultCount>
       <TableWrap><Table>
         <thead><tr><th>Cliente</th><th>Servicio</th><th>Fecha y hora</th><th>Estilista</th><th>Estado</th><th>Notas</th></tr></thead>
-        <tbody>{visibleAppointments.map(appointment => (
+        <tbody>
+          {visibleAppointments.length === 0 && <tr><EmptyCell colSpan={6}>No hay citas que coincidan con los filtros.</EmptyCell></tr>}
+          {visibleAppointments.map(appointment => (
           <tr key={appointment._id}>
-            <td>{appointment.username}</td><td>{appointment.service}</td><td>{appointment.date} · {appointment.time}</td>
-            <td><select aria-label={`Estilista de ${appointment.username}`} value={appointment.stylist || ''} onChange={event => update(appointment._id, { stylist: event.target.value })}>
-              <option value="">Por asignar</option>{stylists.map(stylist => <option key={stylist._id} value={stylist.username}>{stylist.fullName}</option>)}
-            </select></td>
-            <td><select aria-label={`Estado de ${appointment.username}`} value={appointment.status} onChange={event => update(appointment._id, { status: event.target.value })}>
-              <option value="PENDING">Pendiente</option><option value="CONFIRMED">Confirmada</option><option value="CANCELLED">Cancelada</option>
-            </select></td>
+            <td>{appointment.username}</td><td>{appointment.service}</td><td style={{ whiteSpace: 'nowrap' }}>{appointment.date} · {appointment.time}</td>
+            {/* Una cita completada es definitiva: se muestra sin controles de edición. */}
+            {appointment.status === 'COMPLETED' ? <>
+              <td>{stylists.find(stylist => stylist.username === appointment.stylist)?.fullName || appointment.stylist || 'Por asignar'}</td>
+              <td><StatusBadge status={appointment.status} /></td>
+            </> : <>
+              <td><select aria-label={`Estilista de ${appointment.username}`} value={appointment.stylist || ''} onChange={event => update(appointment._id, { stylist: event.target.value })}>
+                <option value="">Por asignar</option>{stylists.map(stylist => <option key={stylist._id} value={stylist.username}>{stylist.fullName}</option>)}
+              </select></td>
+              <td><div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}><StatusBadge status={appointment.status} />
+                <select aria-label={`Estado de ${appointment.username}`} value={appointment.status} onChange={event => update(appointment._id, { status: event.target.value })}>
+                  {STATUS_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select></div></td>
+            </>}
             <td>{appointment.notes || '—'}</td>
           </tr>
         ))}</tbody>
       </Table></TableWrap>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '1rem' }}>
-        <button type="button" disabled={page <= 1} onClick={() => setPage(current => current - 1)}>Anterior</button>
-        <span>Página {page} de {pageCount}</span>
-        <button type="button" disabled={page >= pageCount} onClick={() => setPage(current => current + 1)}>Siguiente</button>
-      </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
     </Page>
   );
 }

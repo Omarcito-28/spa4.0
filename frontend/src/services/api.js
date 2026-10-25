@@ -1,7 +1,17 @@
 // Capa central de comunicación con el backend
 // Todas las llamadas a la API pasan por aquí
 
-const API_BASE = '/api';
+import { notifyAppointmentsChanged } from '../utils/appointmentEvents';
+
+// En producción VITE_API_URL apunta al backend (por ejemplo https://mi-api.onrender.com).
+// Acepta la URL con o sin "/api" al final. Sin definir, se usa '/api' y el proxy de Vite.
+export const resolveApiBase = apiUrl => {
+  const base = (apiUrl || '').trim().replace(/\/+$/, '');
+  if (!base) return '/api';
+  return base.endsWith('/api') ? base : `${base}/api`;
+};
+
+const API_BASE = resolveApiBase(import.meta.env.VITE_API_URL);
 
 // Obtener token guardado en localStorage
 const getToken = () => localStorage.getItem('token');
@@ -80,41 +90,50 @@ export const apiDeleteService = (id) =>
 
 // ─── APPOINTMENTS ────────────────────────────────────────────────────────────
 
+// Tras un cambio exitoso avisa a las demás pestañas para que refresquen sus paneles.
+const changeAppointments = async (url, options) => {
+  const data = await apiFetch(url, options);
+  notifyAppointmentsChanged();
+  return data;
+};
+
 export const apiGetAppointments = () => apiFetch('/appointments');
 
 export const apiGetStylistAvailability = (date, stylist) =>
   apiFetch(`/appointments/availability?date=${encodeURIComponent(date)}&stylist=${encodeURIComponent(stylist)}`);
 
 export const apiCreateAppointment = (data) =>
-  apiFetch('/appointments', {
+  changeAppointments('/appointments', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 
 export const apiUpdateAppointment = (id, data) =>
-  apiFetch(`/appointments/${id}`, {
+  changeAppointments(`/appointments/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 
 export const apiUpdateAppointmentStatus = (id, status) =>
-  apiFetch(`/appointments/${id}/status`, {
+  changeAppointments(`/appointments/${id}/status`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
   });
 
 export const apiRescheduleAppointment = (id, data) =>
-  apiFetch(`/appointments/${id}/reschedule`, {
+  changeAppointments(`/appointments/${id}/reschedule`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 
 export const apiDeleteAppointment = (id) =>
-  apiFetch(`/appointments/${id}`, { method: 'DELETE' });
+  changeAppointments(`/appointments/${id}`, { method: 'DELETE' });
 
 // ─── USERS ───────────────────────────────────────────────────────────────────
 
 export const apiGetUsers = () => apiFetch('/users');
+export const apiCreateUser = data =>
+  apiFetch('/users', { method: 'POST', body: JSON.stringify(data) });
 export const apiUpdateUser = (id, data) =>
   apiFetch(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const apiDeleteUser = id =>
