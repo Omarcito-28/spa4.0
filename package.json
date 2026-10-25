@@ -1,0 +1,14 @@
+{
+  "name": "essence-de-toi",
+  "private": true,
+  "description": "Atajos para trabajar con frontend/ y backend/ desde la raíz. Cada carpeta tiene sus propias dependencias.",
+  "scripts": {
+    "install:all": "npm --prefix frontend ci && npm --prefix backend ci",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run dev",
+    "lint": "npm --prefix frontend run lint && npm --prefix backend run lint",
+    "build": "npm --prefix frontend run build",
+    "test": "npm --prefix frontend test && npm --prefix backend test",
+    "test:coverage": "npm --prefix frontend run test:coverage && npm --prefix backend run test:coverage"
+  }
+}

@@ -1,0 +1,49 @@
+# Blueprint de Render para la API (ver docs/despliegue.md).
+# Las variables con `sync: false` se piden en el panel al crear el servicio:
+# sus valores nunca se guardan en el repositorio.
+services:
+  - type: web
+    name: essence-de-toi-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    # --omit=dev evita instalar las herramientas de prueba (incluida la descarga de MongoDB en memoria).
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      # Render genera un valor aleatorio de 256 bits (44 caracteres).
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: BOOTSTRAP_ADMIN_USERNAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
