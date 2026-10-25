@@ -177,7 +177,7 @@ El backend se publica en Render (`render.yaml`) y el frontend en Vercel (`fronte
 
 | Integrante | Rol en el proyecto | Contacto |
 |------------|--------------------|----------|
-| _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
+| Lauren Dayanna Villanueva Camero | Desarrolladora | u20241220012@usco.edu.co |
 | _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
 | _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
 | _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
