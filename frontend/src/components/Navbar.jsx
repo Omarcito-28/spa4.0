@@ -192,7 +192,7 @@ const DropdownButton = styled.button`
 `;
 
 const DropdownContent = styled.div`
-  display: ${props => props.isOpen ? 'block' : 'none'};
+  display: ${props => props.$isOpen ? 'block' : 'none'};
   position: absolute;
   right: 0;
   background: rgba(20, 20, 20, 0.98);
@@ -290,7 +290,7 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                 <i className="fas fa-user-circle" style={{ marginRight: '6px' }}></i>
                 {user.username}
               </DropdownButton>
-              <DropdownContent isOpen={userDropdownOpen}>
+              <DropdownContent $isOpen={userDropdownOpen}>
                 <Link to="/profile">Mi Perfil</Link>
                 <button 
                   onClick={onLogout}
@@ -318,7 +318,7 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                 <i className="fas fa-shield-alt" style={{ marginRight: '6px' }}></i>
                 Admin
               </DropdownButton>
-              <DropdownContent isOpen={adminDropdownOpen}>
+              <DropdownContent $isOpen={adminDropdownOpen}>
                 <Link to="/admin/dashboard">Panel de Admin</Link>
                 <Link to="/admin/users">Gestionar Usuarios</Link>
                 <Link to="/admin/services">Gestionar Servicios</Link>
@@ -334,7 +334,7 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                 <i className="fas fa-cut" style={{ marginRight: '6px' }}></i>
                 Estilista
               </DropdownButton>
-              <DropdownContent isOpen={stylistDropdownOpen}>
+              <DropdownContent $isOpen={stylistDropdownOpen}>
                 <Link to="/stylist/dashboard">Dashboard Estilista</Link>
                 <Link to="/stylist/appointments">Mis Citas</Link>
                 <Link to="/stylist/schedule">Mi Horario</Link>
