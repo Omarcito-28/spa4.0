@@ -7,10 +7,12 @@ const Bar = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: flex-end;
+  gap: 0.6rem;
   margin-bottom: 1rem;
   color: ${theme.colors.textMuted};
-  font-size: 1rem;
+  font-size: 1.05rem;
+  opacity: 0.9;
 `;
 
 const RefreshButton = styled.button`

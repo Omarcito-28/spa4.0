@@ -109,7 +109,7 @@ const SocialIcon = styled.a`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${theme.colors.primary};
+  color: ${theme.colors.accent};
   font-size: 0.85rem;
   transition: all ${theme.transitions.normal};
   animation: ${iconGlow} 3s ease-in-out infinite;
@@ -170,14 +170,14 @@ const BottomBar = styled.div`
   align-items: center;
   padding: 1.25rem 0;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
 
   span {
     transition: color 0.3s ease;
   }
 
   &:hover span {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.8);
   }
 
   @media (max-width: 768px) {
@@ -188,7 +188,7 @@ const BottomBar = styled.div`
 `;
 
 const HeartPulse = styled.span`
-  color: ${theme.colors.primary};
+  color: ${theme.colors.accent};
   display: inline-block;
   animation: ${heartPulse} 1.5s ease-in-out infinite;
   text-shadow: 0 0 6px rgba(153, 101, 21, 0.5);

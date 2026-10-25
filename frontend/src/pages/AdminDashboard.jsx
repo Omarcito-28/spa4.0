@@ -152,10 +152,10 @@ function AdminSummary() {
   return (
     <LivePanel title="Operación en vivo" live={live}>
       <StatGrid stats={[
-        { label: 'Citas hoy', value: todays.length },
-        { label: 'Por confirmar', value: appointments.filter(item => item.status === 'PENDING').length },
-        { label: 'Sin estilista', value: unassignedAppointments(appointments).length },
-        { label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
+        { icon: 'fa-calendar-day', label: 'Citas hoy', value: todays.length },
+        { icon: 'fa-hourglass-half', label: 'Por confirmar', value: appointments.filter(item => item.status === 'PENDING').length },
+        { icon: 'fa-user-slash', label: 'Sin estilista', value: unassignedAppointments(appointments).length },
+        { icon: 'fa-circle-check', label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
       ]} />
       <AppointmentList
         title="Solicitudes recientes"

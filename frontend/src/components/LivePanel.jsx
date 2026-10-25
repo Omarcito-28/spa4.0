@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../styles/theme';
+import { shimmer, theme } from '../styles/theme';
 import RefreshStatus from './RefreshStatus';
 import StatusBadge from './StatusBadge';
 
@@ -38,22 +38,44 @@ const Stats = styled.div`
 `;
 
 const StatBox = styled.div`
-  padding: 1rem 1.15rem;
-  border-radius: 12px;
-  border-left: 4px solid ${theme.colors.accent};
-  background: #faf6ee;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.15rem 0.9rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #eee8dc;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fffdf8, #faf3e3);
+
+  .stat-icon {
+    grid-row: span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+    color: white;
+    font-size: 1.15rem;
+    box-shadow: 0 4px 10px rgba(153, 101, 21, 0.25);
+  }
 
   strong {
-    display: block;
     color: ${theme.colors.primaryDark};
-    font-size: 2.2rem;
-    line-height: 1.1;
+    font-size: 2.7rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: lining-nums;
   }
 
   span {
     color: ${theme.colors.textMuted};
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    opacity: 0.75;
   }
 `;
 
@@ -68,10 +90,29 @@ const List = styled.ul`
     align-items: center;
     justify-content: space-between;
     gap: 0.4rem 1rem;
-    padding: 0.75rem 0;
+    padding: 0.9rem 0.5rem;
     border-top: 1px solid #eee8dc;
     font-size: 1.1rem;
+    transition: background 0.15s ease;
   }
+
+  li:hover {
+    background: #fdfaf4;
+  }
+`;
+
+const Skeleton = styled.div`
+  height: 76px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #f3ecdc 25%, #fbf6ea 50%, #f3ecdc 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.4s linear infinite;
+`;
+
+const SkeletonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
 `;
 
 const Muted = styled.p`
@@ -94,7 +135,12 @@ export function LivePanel({ title, live, children }) {
         <RefreshStatus lastUpdated={live.lastUpdated} refreshing={live.refreshing} onRefresh={live.refresh} />
       </Header>
       {live.error && <ErrorText role="alert">{live.error}</ErrorText>}
-      {live.loading ? <Muted role="status">Cargando…</Muted> : children}
+      {live.loading ? (
+        <div role="status" aria-label="Cargando">
+          <SkeletonGrid><Skeleton /><Skeleton /><Skeleton /><Skeleton /></SkeletonGrid>
+          <span style={{ position: 'absolute', left: '-9999px' }}>Cargando…</span>
+        </div>
+      ) : children}
     </Section>
   );
 }
@@ -102,7 +148,13 @@ export function LivePanel({ title, live, children }) {
 export function StatGrid({ stats }) {
   return (
     <Stats>
-      {stats.map(stat => <StatBox key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></StatBox>)}
+      {stats.map(stat => (
+        <StatBox key={stat.label}>
+          {stat.icon && <div className="stat-icon" aria-hidden="true"><i className={`fas ${stat.icon}`}></i></div>}
+          <strong>{stat.value}</strong>
+          <span>{stat.label}</span>
+        </StatBox>
+      ))}
     </Stats>
   );
 }

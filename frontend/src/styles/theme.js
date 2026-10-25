@@ -10,6 +10,8 @@ export const theme = {
     text: '#1a1a2e',          // Casi negro azulado (Texto Principal)
     textLight: '#010101ff',     // Gris muy oscuro (Texto Secundario)
     textMuted: '#0d0d0eff',     // Gris oscuro sólido (Texto terciario)
+    border: '#9a8452',        // Borde de campos (3.6:1 sobre blanco/crema, WCAG 1.4.11)
+    placeholder: '#6b5b3a',   // Placeholder (6.3:1 sobre crema)
     contentBgLight: '#FFFDF8', // Crema muy suave para contenido
     contentBgWarm: '#FFF9F0',  // Crema cálido
     navbarBg: '#0a0a0a',      // Negro profundo (Navbar)
@@ -137,14 +139,16 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: ${theme.colors.accent};
+    color: ${theme.colors.primaryDark};   /* #7a500f: 6.6:1 sobre crema (el dorado #c9942a daba 2.5:1) */
+    text-decoration: underline;
+    text-underline-offset: 3px;
     text-decoration: none;
     transition: color ${theme.transitions.normal};
   }
 
   a:hover {
-    color: ${theme.colors.primaryLight};
-    text-decoration: none;
+    color: ${theme.colors.primary};
+    text-decoration: underline;
   }
 
   button {

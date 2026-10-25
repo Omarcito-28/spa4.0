@@ -7,7 +7,7 @@ import {
   apiUpdateAppointmentStatus
 } from '../services/api';
 import { todayInTimeZone } from '../utils/date';
-import { Button, Description, Notice, Page, Table, TableWrap, Title } from '../components/ManagementUI';
+import { Button, Description, InlineForm, Notice, Page, Table, TableWrap, Title } from '../components/ManagementUI';
 import StatusBadge from '../components/StatusBadge';
 import { isFinalStatus } from '../utils/appointmentStatus';
 import RefreshStatus from '../components/RefreshStatus';
@@ -81,7 +81,7 @@ function RescheduleForm({ appointment, onSaved, onCancel }) {
   };
 
   return (
-    <form onSubmit={submit}>
+    <InlineForm onSubmit={submit}>
       <label>Fecha <input type="date" min={todayInTimeZone()} value={date} onChange={event => { setDate(event.target.value); setTime(''); }} required /></label>{' '}
       <label>Estilista <select value={stylist} onChange={event => { setStylist(event.target.value); setTime(''); }}>
         <option value="">Por asignar</option>
@@ -94,8 +94,8 @@ function RescheduleForm({ appointment, onSaved, onCancel }) {
       {error && <Notice $error role="alert">{error}</Notice>}
       {availability && !availability.schedule && <p>No hay atención ese día.</p>}
       <Button type="submit" disabled={busy || !date || !time}>{busy ? 'Enviando…' : 'Solicitar cambio'}</Button>
-      <Button type="button" onClick={onCancel}>Cerrar</Button>
-    </form>
+      <Button type="button" $secondary onClick={onCancel}>Cerrar</Button>
+    </InlineForm>
   );
 }
 

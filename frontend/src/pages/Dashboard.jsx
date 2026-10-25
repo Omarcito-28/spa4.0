@@ -33,7 +33,7 @@ const Subtitle = styled.p`
 `;
 
 const WelcomeCard = styled.div`
-  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+  background: linear-gradient(135deg, #120e06 0%, #2b1f0c 60%, #3d2c11 100%); border-left: 4px solid ${theme.colors.primary};
   padding: 2rem 2.5rem;
   border-radius: ${theme.borderRadius.medium};
   box-shadow: 0 8px 30px rgba(153, 101, 21, 0.25);
@@ -147,9 +147,9 @@ function ClientSummary() {
   return (
     <LivePanel title="Tus citas" live={live}>
       <StatGrid stats={[
-        { label: 'Próximas', value: upcoming.length },
-        { label: 'Por confirmar', value: upcoming.filter(item => item.status === 'PENDING').length },
-        { label: 'Completadas', value: counts.COMPLETED },
+        { icon: 'fa-calendar-check', label: 'Próximas', value: upcoming.length },
+        { icon: 'fa-hourglass-half', label: 'Por confirmar', value: upcoming.filter(item => item.status === 'PENDING').length },
+        { icon: 'fa-circle-check', label: 'Completadas', value: counts.COMPLETED },
       ]} />
       <AppointmentList
         title="Próximas citas"

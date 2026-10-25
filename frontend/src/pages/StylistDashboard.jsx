@@ -153,10 +153,10 @@ function StylistSummary() {
   return (
     <LivePanel title="Tu agenda de hoy" live={live}>
       <StatGrid stats={[
-        { label: 'Citas hoy', value: todays.length },
-        { label: 'Por confirmar', value: upcomingAppointments(appointments, today).filter(item => item.status === 'PENDING').length },
-        { label: 'Listas para completar', value: readyToComplete(appointments).length },
-        { label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
+        { icon: 'fa-calendar-day', label: 'Citas hoy', value: todays.length },
+        { icon: 'fa-hourglass-half', label: 'Por confirmar', value: upcomingAppointments(appointments, today).filter(item => item.status === 'PENDING').length },
+        { icon: 'fa-clipboard-check', label: 'Listas para completar', value: readyToComplete(appointments).length },
+        { icon: 'fa-circle-check', label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
       ]} />
       <AppointmentList
         title="Citas de hoy"

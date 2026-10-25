@@ -498,7 +498,7 @@ const ContactCardText = styled.div`
   span {
     display: block;
     font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 2px;

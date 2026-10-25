@@ -87,7 +87,7 @@ const Title = styled.h2`
 
 const Subtitle = styled.p`
   text-align: center;
-  color: rgba(100, 70, 20, 0.65);
+  color: #4a340b;
   font-size: 1.15rem;
   margin-bottom: 2.5rem;
 `;
@@ -132,7 +132,7 @@ const Label = styled.label`
 const inputBase = `
   padding: 0.9rem 1.1rem;
   border-radius: 12px;
-  border: 1px solid rgba(153, 101, 21, 0.4);
+  border: 1px solid #9a8452;
   background: rgba(255, 242, 200, 0.55);
   color: #3a2808;
   font-size: 1.15rem;
@@ -141,7 +141,7 @@ const inputBase = `
   outline: none;
 
   &::placeholder {
-    color: rgba(100, 70, 20, 0.45);
+    color: #6b5b3a;
   }
 
   &:focus {
@@ -153,7 +153,7 @@ const inputBase = `
 
 const Input = styled.input`
   ${inputBase}
-  border-color: ${props => props.$error ? theme.colors.danger : 'rgba(153,101,21,0.25)'};
+  border-color: ${props => props.$error ? theme.colors.danger : '#9a8452'};
 
   &::-webkit-calendar-picker-indicator {
     filter: invert(0.7) sepia(1) saturate(3) hue-rotate(10deg);
@@ -163,7 +163,7 @@ const Input = styled.input`
 
 const Select = styled.select`
   ${inputBase}
-  border-color: ${props => props.$error ? theme.colors.danger : 'rgba(153,101,21,0.25)'};
+  border-color: ${props => props.$error ? theme.colors.danger : '#9a8452'};
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23c9942a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -195,7 +195,7 @@ const SubmitButton = styled.button`
   grid-column: 1 / span 2;
   margin-top: 0.5rem;
   padding: 1.1rem;
-  background: linear-gradient(135deg, ${theme.colors.primaryDark} 0%, ${theme.colors.accent} 50%, ${theme.colors.navbarLinkHover} 100%);
+  background: linear-gradient(135deg, ${theme.colors.primaryDark} 0%, ${theme.colors.primary} 60%, ${theme.colors.primaryDark} 100%);
   background-size: 200% auto;
   color: #fff;
   border: none;
