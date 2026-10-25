@@ -1,24 +1,14 @@
 import { Router } from 'express';
-import {
-  getAppointments,
-  getStylistAvailability,
-  createAppointment,
-  rescheduleAppointment,
-  updateAppointmentStatus,
-  updateAppointment,
-  deleteAppointment
-} from '../controllers/appointments.controller.js';
-import { authenticateToken } from '../middlewares/auth.middleware.js';
-import { requireRole } from '../middlewares/auth.middleware.js';
+import { appointmentController as appointments, authMiddleware as auth } from '../container.js';
 
 const router = Router();
 
-router.get('/', authenticateToken, getAppointments);
-router.get('/availability', getStylistAvailability);
-router.post('/', authenticateToken, createAppointment);
-router.put('/:id/reschedule', authenticateToken, rescheduleAppointment);
-router.put('/:id', authenticateToken, requireRole(['ADMIN']), updateAppointment);
-router.put('/:id/status', authenticateToken, updateAppointmentStatus);
-router.delete('/:id', authenticateToken, requireRole(['ADMIN']), deleteAppointment);
+router.get('/', auth.authenticate, appointments.handle('list'));
+router.get('/availability', appointments.handle('availability'));
+router.post('/', auth.authenticate, appointments.handle('create'));
+router.put('/:id/reschedule', auth.authenticate, appointments.handle('reschedule'));
+router.put('/:id', auth.authenticate, auth.requireRole(['ADMIN']), appointments.handle('update'));
+router.put('/:id/status', auth.authenticate, appointments.handle('updateStatus'));
+router.delete('/:id', auth.authenticate, auth.requireRole(['ADMIN']), appointments.handle('remove'));
 
 export default router;

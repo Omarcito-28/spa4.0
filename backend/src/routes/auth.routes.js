@@ -1,21 +1,13 @@
 import { Router } from 'express';
-import {
-  register,
-  login,
-  getProfile,
-  updateProfile,
-  requestPasswordReset,
-  resetPassword
-} from '../controllers/auth.controller.js';
-import { authenticateToken } from '../middlewares/auth.middleware.js';
+import { authController as authControl, authMiddleware as auth } from '../container.js';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/password-reset/request', requestPasswordReset);
-router.post('/password-reset/confirm', resetPassword);
-router.get('/me', authenticateToken, getProfile);
-router.put('/profile', authenticateToken, updateProfile);
+router.post('/register', authControl.handle('register'));
+router.post('/login', authControl.handle('login'));
+router.post('/password-reset/request', authControl.handle('requestPasswordReset'));
+router.post('/password-reset/confirm', authControl.handle('resetPassword'));
+router.get('/me', auth.authenticate, authControl.handle('getProfile'));
+router.put('/profile', auth.authenticate, authControl.handle('updateProfile'));
 
 export default router;

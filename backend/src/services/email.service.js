@@ -1,42 +1,52 @@
 import nodemailer from 'nodemailer';
 
-const isConfigured = () => Boolean(
-  process.env.SMTP_HOST &&
-  process.env.SMTP_PORT &&
-  process.env.SMTP_FROM &&
-  (!process.env.SMTP_USER || process.env.SMTP_PASSWORD)
-);
+export default class EmailService {
+  #env;
 
-const createTransport = () => {
-  if (!isConfigured()) {
-    throw new Error('Configura SMTP_HOST, SMTP_PORT y SMTP_FROM; si usas autenticación, también SMTP_USER y SMTP_PASSWORD.');
+  constructor(env = process.env) {
+    this.#env = env;
   }
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: process.env.SMTP_USER
-      ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
-      : undefined
-  });
-};
 
-export const emailDeliveryConfigured = isConfigured;
-
-export const sendEmail = async ({ to, subject, text }) => {
-  const transport = createTransport();
-  await transport.sendMail({
-    from: process.env.SMTP_FROM,
-    to,
-    subject,
-    text
-  });
-};
-
-export const sendEmailBestEffort = async message => {
-  try {
-    await sendEmail(message);
-  } catch (error) {
-    console.error(`No se pudo enviar correo a ${message.to}: ${error.message}`);
+  isConfigured() {
+    const env = this.#env;
+    return Boolean(
+      env.SMTP_HOST &&
+      env.SMTP_PORT &&
+      env.SMTP_FROM &&
+      (!env.SMTP_USER || env.SMTP_PASSWORD)
+    );
   }
-};
+
+  async send({ to, subject, text }) {
+    const transport = this.#createTransport();
+    await transport.sendMail({
+      from: this.#env.SMTP_FROM,
+      to,
+      subject,
+      text
+    });
+  }
+
+  async sendBestEffort(message) {
+    try {
+      await this.send(message);
+    } catch (error) {
+      console.error(`No se pudo enviar correo a ${message.to}: ${error.message}`);
+    }
+  }
+
+  #createTransport() {
+    if (!this.isConfigured()) {
+      throw new Error('Configura SMTP_HOST, SMTP_PORT y SMTP_FROM; si usas autenticación, también SMTP_USER y SMTP_PASSWORD.');
+    }
+    const env = this.#env;
+    return nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: Number(env.SMTP_PORT),
+      secure: env.SMTP_SECURE === 'true',
+      auth: env.SMTP_USER
+        ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD }
+        : undefined
+    });
+  }
+}

@@ -1,18 +1,11 @@
 import { Router } from 'express';
-import {
-  getAllServices,
-  createService,
-  updateService,
-  deleteService
-} from '../controllers/services.controller.js';
-import { authenticateToken } from '../middlewares/auth.middleware.js';
-import { requireRole } from '../middlewares/auth.middleware.js';
+import { serviceController as services, authMiddleware as auth } from '../container.js';
 
 const router = Router();
 
-router.get('/', getAllServices);
-router.post('/', authenticateToken, requireRole(['ADMIN']), createService);
-router.put('/:id', authenticateToken, requireRole(['ADMIN']), updateService);
-router.delete('/:id', authenticateToken, requireRole(['ADMIN']), deleteService);
+router.get('/', services.handle('list'));
+router.post('/', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('create'));
+router.put('/:id', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('update'));
+router.delete('/:id', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('remove'));
 
 export default router;

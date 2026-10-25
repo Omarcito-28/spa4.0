@@ -1,15 +1,14 @@
 import { Router } from 'express';
-import { getAllUsers, getStylists, getSchedule, updateSchedule, updateUser, deleteUser } from '../controllers/users.controller.js';
-import { authenticateToken } from '../middlewares/auth.middleware.js';
-import { requireRole } from '../middlewares/auth.middleware.js';
+import { userController as users, authMiddleware as auth } from '../container.js';
 
 const router = Router();
 
-router.get('/stylists', getStylists);
-router.get('/me/schedule', authenticateToken, requireRole(['STYLIST']), getSchedule);
-router.put('/me/schedule', authenticateToken, requireRole(['STYLIST']), updateSchedule);
-router.get('/', authenticateToken, requireRole(['ADMIN']), getAllUsers);
-router.put('/:id', authenticateToken, requireRole(['ADMIN']), updateUser);
-router.delete('/:id', authenticateToken, requireRole(['ADMIN']), deleteUser);
+router.get('/stylists', users.handle('listStylists'));
+router.get('/me/schedule', auth.authenticate, auth.requireRole(['STYLIST']), users.handle('getSchedule'));
+router.put('/me/schedule', auth.authenticate, auth.requireRole(['STYLIST']), users.handle('updateSchedule'));
+router.get('/', auth.authenticate, auth.requireRole(['ADMIN']), users.handle('list'));
+router.post('/', auth.authenticate, auth.requireRole(['ADMIN']), users.handle('create'));
+router.put('/:id', auth.authenticate, auth.requireRole(['ADMIN']), users.handle('update'));
+router.delete('/:id', auth.authenticate, auth.requireRole(['ADMIN']), users.handle('remove'));
 
 export default router;
