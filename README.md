@@ -56,8 +56,8 @@ Todos bajo `/api`. "Auth" requiere el encabezado `Authorization: Bearer <token>`
 
 | Capa | Tecnologías |
 |------|-------------|
-| Frontend | React 19.2.5, React DOM 19.2.5, React Router DOM 7.14.1, Styled Components 6.4.0, Vite 8.0.8 |
-| Backend | Node.js 22, Express 4.22.2, Mongoose 9.9.4, jsonwebtoken 9.0.3, bcryptjs 2.4.3, Nodemailer 7.0.13, cors 2.8.6, dotenv 16.6.1 |
+| Frontend | React 19.2.5, React DOM 19.2.5, React Router DOM 7.18.4, Styled Components 6.4.0, Vite 8.0.8 |
+| Backend | Node.js 22, Express 4.22.3, Mongoose 9.9.4, jsonwebtoken 9.0.3, bcryptjs 2.4.3, Nodemailer 10.2.1, cors 2.8.6, dotenv 16.6.1 |
 | Base de datos | MongoDB Atlas |
 | Pruebas | Vitest 5.0.5, Testing Library (React 16.3.3), jsdom 29.1.1, supertest 7.3.1, mongodb-memory-server 11.3.0 |
 | Calidad y CI | ESLint 9, GitHub Actions |
