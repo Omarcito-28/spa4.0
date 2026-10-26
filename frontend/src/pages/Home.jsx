@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
+import ServicesCarousel from '../components/ServicesCarousel';
 
 const heroImages = [
   '/images/services/corte_dama.jpg',
@@ -82,6 +83,7 @@ const HeroBadge = styled.span`
   text-transform: uppercase;
   margin-bottom: 1.5rem;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
 `;
 
 const HeroTitle = styled.h1`
@@ -107,10 +109,10 @@ const HeroSubtitle = styled.p`
   font-size: 1.65rem;
   max-width: 550px;
   margin: 0 auto 2.5rem;
-  line-height: 1.8;
-  opacity: 0.9;
-  font-weight: 300;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 400;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
 `;
 
 const HeroIndicators = styled.div`
@@ -221,6 +223,20 @@ const Section = styled.section`
 const SectionHeader = styled.div`
   text-align: center;
   margin-bottom: 3rem;
+
+  /* Ornamento dorado bajo el título */
+  &::after {
+    content: '✦';
+    display: block;
+    width: 160px;
+    margin: 1.25rem auto 0;
+    color: ${theme.colors.accent};
+    font-size: 0.9rem;
+    line-height: 1;
+    background:
+      linear-gradient(90deg, transparent, rgba(201, 148, 42, 0.6)) left center / 42% 1px no-repeat,
+      linear-gradient(90deg, rgba(201, 148, 42, 0.6), transparent) right center / 42% 1px no-repeat;
+  }
 `;
 
 const SectionBadge = styled.span`
@@ -232,6 +248,7 @@ const SectionBadge = styled.span`
   text-transform: uppercase;
   margin-bottom: 0.75rem;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
 `;
 
 const SectionTitle = styled.h2`
@@ -324,6 +341,7 @@ const FeatureTitle = styled.h3`
   font-size: 1.8rem;
   margin-bottom: 0.75rem;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
   font-weight: 600;
 `;
 
@@ -333,87 +351,241 @@ const FeatureText = styled.p`
   line-height: 1.7;
 `;
 
-/* ─── CTA CARDS ─── */
-const CardContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-top: 1rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const Card = styled.div`
-  padding: 2.5rem;
-  border-radius: ${theme.borderRadius.medium};
-  transition: all ${theme.transitions.normal};
+/* ─── HIGHLIGHTS (franja bajo el hero) ─── */
+const Highlights = styled.div`
   position: relative;
+  z-index: 3;
+  max-width: 1100px;
+  margin: -3.25rem auto 0;
+  padding: 0 1.5rem;
+`;
+
+const HighlightsInner = styled.ul`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid rgba(201, 148, 42, 0.3);
+  border-radius: ${theme.borderRadius.large};
+  background: linear-gradient(145deg, #141414, #0a0a0a);
+  box-shadow: ${theme.shadows.xl};
   overflow: hidden;
-`;
 
-const DarkCard = styled(Card)`
-  background: linear-gradient(145deg, #111111, #0a0a0a);
-  color: white;
-  box-shadow: ${theme.shadows.large};
-  border: 2px solid rgba(153, 101, 21, 0.45);
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.4rem 1.5rem;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
 
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: ${theme.shadows.xl};
-    border-color: rgba(153, 101, 21, 0.75);
+  li + li {
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  i {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(201, 148, 42, 0.16);
+    color: ${theme.colors.navbarLinkHover};
+    font-size: 1rem;
+  }
+
+  strong {
+    display: block;
+    color: white;
+    font-weight: 700;
+  }
+
+  span {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+
+    li:nth-child(3) {
+      border-left: none;
+    }
+
+    li:nth-child(n + 3) {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+
+    li + li {
+      border-left: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
   }
 `;
 
-const LightCard = styled(Card)`
-  background: ${theme.colors.cardBg};
-  border: 2px solid rgba(153, 101, 21, 0.35);
-  box-shadow: ${theme.shadows.medium};
-
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: ${theme.shadows.cardHover};
-    border-color: rgba(153, 101, 21, 0.65);
-  }
+/* ─── SERVICES BAND ─── */
+const ServicesBand = styled.div`
+  position: relative;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 182, 193, 0.22), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(201, 148, 42, 0.14), transparent 40%),
+    linear-gradient(180deg, #fbf3e6 0%, #fdf9f2 100%);
+  border-top: 1px solid #efe2c9;
+  border-bottom: 1px solid #efe2c9;
 `;
 
-const CardTitle = styled.h3`
-  color: ${props => props.$isDark ? theme.colors.navbarLinkHover : theme.colors.primary};
-  margin-bottom: 1rem;
-  font-size: 2rem;
-`;
-
-const CardText = styled.p`
-  line-height: 1.7;
-  margin-bottom: 1.75rem;
-  color: ${props => props.$isDark ? 'rgba(255,255,255,0.7)' : theme.colors.textLight};
-  font-size: 1.35rem;
-`;
-
-const OutlineButton = styled(Link)`
+const CatalogLink = styled(Link)`
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.7rem 1.5rem;
-  border: 2px solid ${props => props.$isDark ? 'rgba(255,255,255,0.3)' : theme.colors.primary};
-  color: ${props => props.$isDark ? 'white' : theme.colors.primary};
-  border-radius: ${theme.borderRadius.pill};
-  text-decoration: none;
-  transition: all ${theme.transitions.normal};
-  font-weight: 600;
-  font-size: 1.15rem;
-  letter-spacing: 0.3px;
+  margin-top: 1.75rem;
+  color: ${theme.colors.primary};
+  font-size: 1.1rem;
+  font-weight: 700;
 
-  &:hover {
-    background: ${props => props.$isDark
-    ? 'linear-gradient(135deg, ' + theme.colors.primary + ', ' + theme.colors.accent + ')'
-    : 'linear-gradient(135deg, ' + theme.colors.primary + ', ' + theme.colors.accent + ')'};
-    color: white;
-    border-color: transparent;
-    text-decoration: none;
+  i {
+    font-size: 0.8em;
+    transition: transform ${theme.transitions.fast};
+  }
+
+  &:hover i {
     transform: translateX(4px);
-    box-shadow: 0 4px 15px rgba(153, 101, 21, 0.3);
+  }
+`;
+
+/* ─── CÓMO FUNCIONA ─── */
+const Steps = styled.ol`
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+
+  /* Línea dorada que une los pasos */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 36px;
+    left: 16.6%;
+    right: 16.6%;
+    height: 2px;
+    background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent}, ${theme.colors.primary});
+    opacity: 0.35;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+
+    &::before {
+      display: none;
+    }
+  }
+`;
+
+const Step = styled.li`
+  position: relative;
+  text-align: center;
+  counter-increment: step;
+
+  h3 {
+    margin-bottom: 0.5rem;
+    color: ${theme.colors.text};
+    font-size: 1.9rem;
+  }
+
+  p {
+    max-width: 300px;
+    margin: 0 auto;
+    color: ${theme.colors.textMuted};
+    font-size: 1.15rem;
+    line-height: 1.6;
+  }
+`;
+
+const StepIcon = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 1.25rem;
+  border: 2px solid rgba(201, 148, 42, 0.5);
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 6px 20px rgba(153, 101, 21, 0.15);
+  color: ${theme.colors.primary};
+  font-size: 1.5rem;
+
+  &::after {
+    content: counter(step);
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+`;
+
+/* ─── CTA BANNER ─── */
+const CtaBanner = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 3rem;
+  border: 2px solid rgba(201, 148, 42, 0.4);
+  border-radius: ${theme.borderRadius.large};
+  background:
+    linear-gradient(110deg, rgba(10, 10, 10, 0.92) 0%, rgba(10, 10, 10, 0.75) 50%, rgba(10, 10, 10, 0.35) 100%),
+    url('/images/services/peinado_evento.jpg') center / cover no-repeat;
+  box-shadow: ${theme.shadows.xl};
+  color: white;
+
+  h2 {
+    max-width: 560px;
+    margin-bottom: 0.75rem;
+    color: white;
+    font-size: 3.2rem;
+
+    span {
+      color: ${theme.colors.navbarLinkHover};
+      font-style: italic;
+    }
+  }
+
+  p {
+    max-width: 520px;
+    margin-bottom: 2rem;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 1.25rem;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 600px) {
+    padding: 2.75rem 1.5rem;
+
+    h2 {
+      font-size: 2.4rem;
+    }
   }
 `;
 
@@ -449,7 +621,7 @@ const ContactTitle = styled.h2`
 
 const ContactSubtitle = styled.p`
   text-align: center;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.78);
   margin-bottom: 2.5rem;
   font-size: 1.2rem;
 `;
@@ -485,11 +657,11 @@ const ContactIconCircle = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(153, 101, 21, 0.12);
+  background: rgba(201, 148, 42, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${theme.colors.primary};
+  color: ${theme.colors.accent};
   font-size: 1.1rem;
   flex-shrink: 0;
 `;
@@ -497,15 +669,16 @@ const ContactIconCircle = styled.div`
 const ContactCardText = styled.div`
   span {
     display: block;
-    font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: ${theme.colors.accent};
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 2px;
   }
 
   a, p {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.92);
     font-size: 1.15rem;
     margin: 0;
     text-decoration: none;
@@ -557,7 +730,7 @@ function Home({ isAuthenticated }) {
           </HeroSubtitle>
           {!isAuthenticated ? (
             <ButtonGroup>
-              <PrimaryButton to="/appointments/new">
+              <PrimaryButton to="/login?returnTo=%2Fappointments%2Fnew">
                 Agendar Cita Ahora <i className="fas fa-arrow-right" style={{ fontSize: '0.8rem' }}></i>
               </PrimaryButton>
               <SecondaryButton to="/login">Iniciar Sesión</SecondaryButton>
@@ -581,6 +754,16 @@ function Home({ isAuthenticated }) {
           </HeroIndicators>
         </HeroContent>
       </HeroSection>
+
+      {/* ── HIGHLIGHTS ── */}
+      <Highlights>
+        <HighlightsInner>
+          <li><i className="fas fa-mobile-alt" aria-hidden="true"></i><div><strong>Reserva en línea</strong><span>Cuando quieras, desde tu celular</span></div></li>
+          <li><i className="fas fa-user-check" aria-hidden="true"></i><div><strong>Elige tu estilista</strong><span>O deja que te asignemos uno</span></div></li>
+          <li><i className="fas fa-gem" aria-hidden="true"></i><div><strong>Productos premium</strong><span>Marcas de alta gama</span></div></li>
+          <li><i className="fas fa-clock" aria-hidden="true"></i><div><strong>Lun - Sáb</strong><span>9:00 AM - 7:00 PM</span></div></li>
+        </HighlightsInner>
+      </Highlights>
 
       {/* ── FEATURES ── */}
       <Section>
@@ -617,28 +800,62 @@ function Home({ isAuthenticated }) {
         </FeaturesGrid>
       </Section>
 
-      {/* ── CTA CARDS ── */}
+      {/* ── SERVICIOS ── */}
+      <ServicesBand>
+        <Section>
+          <SectionHeader>
+            <SectionBadge>Nuestros servicios</SectionBadge>
+            <SectionTitle>Tratamientos para consentirte</SectionTitle>
+            <SectionSubtitle>
+              Desliza para conocer lo que tenemos para ti y reserva tu favorito en un par de clics.
+            </SectionSubtitle>
+          </SectionHeader>
+          <ServicesCarousel isAuthenticated={isAuthenticated} />
+          <div style={{ textAlign: 'center' }}>
+            <CatalogLink to="/services">
+              Ver catálogo completo <i className="fas fa-arrow-right" aria-hidden="true"></i>
+            </CatalogLink>
+          </div>
+        </Section>
+      </ServicesBand>
+
+      {/* ── CÓMO FUNCIONA ── */}
+      <Section>
+        <SectionHeader>
+          <SectionBadge>Así de fácil</SectionBadge>
+          <SectionTitle>Reserva en tres pasos</SectionTitle>
+        </SectionHeader>
+        <Steps>
+          <Step>
+            <StepIcon aria-hidden="true"><i className="fas fa-spa"></i></StepIcon>
+            <h3>Elige tu servicio</h3>
+            <p>Explora el catálogo y escoge el tratamiento que necesitas.</p>
+          </Step>
+          <Step>
+            <StepIcon aria-hidden="true"><i className="fas fa-calendar-alt"></i></StepIcon>
+            <h3>Escoge fecha y hora</h3>
+            <p>Mira los horarios disponibles y, si quieres, elige a tu estilista.</p>
+          </Step>
+          <Step>
+            <StepIcon aria-hidden="true"><i className="fas fa-heart"></i></StepIcon>
+            <h3>Disfruta tu momento</h3>
+            <p>Llega a tu cita y déjate consentir por nuestro equipo.</p>
+          </Step>
+        </Steps>
+      </Section>
+
+      {/* ── CTA ── */}
       <Section style={{ paddingTop: 0 }}>
-        <CardContainer>
-          <DarkCard>
-            <CardTitle $isDark>Nuestros Servicios</CardTitle>
-            <CardText $isDark>
-              Explora nuestra gama de tratamientos de belleza, desde cortes de cabello y coloración hasta tratamientos faciales y masajes relajantes.
-            </CardText>
-            <OutlineButton $isDark to="/services">
-              Ver Servicios <i className="fas fa-arrow-right" style={{ fontSize: '0.75rem' }}></i>
-            </OutlineButton>
-          </DarkCard>
-          <LightCard>
-            <CardTitle>Agenda tu Cita</CardTitle>
-            <CardText>
-              ¿Lista para tu transformación? Agendar tu cita es fácil y rápido. Selecciona tu servicio, estilista y horario favorito.
-            </CardText>
-            <OutlineButton $isDark={false} to={isAuthenticated ? '/appointments/new' : '/login'}>
-              Agendar Ahora <i className="fas fa-arrow-right" style={{ fontSize: '0.75rem' }}></i>
-            </OutlineButton>
-          </LightCard>
-        </CardContainer>
+        <CtaBanner>
+          <h2>¿Lista para tu <span>transformación</span>?</h2>
+          <p>Agenda tu cita hoy y regálate un momento de belleza y bienestar en Essence De Toi.</p>
+          <ButtonGroup style={{ justifyContent: 'flex-start' }}>
+            <PrimaryButton to={isAuthenticated ? '/appointments/new' : '/login?returnTo=%2Fappointments%2Fnew'}>
+              Agendar mi cita <i className="fas fa-arrow-right" style={{ fontSize: '0.8rem' }}></i>
+            </PrimaryButton>
+            <SecondaryButton to="/services">Ver servicios</SecondaryButton>
+          </ButtonGroup>
+        </CtaBanner>
       </Section>
 
       {/* ── CONTACT ── */}

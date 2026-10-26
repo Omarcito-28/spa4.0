@@ -7,15 +7,22 @@ const Tabs = styled.nav`
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 2rem;
+  padding: 0.4rem;
+  border: 1px solid #e4dccd;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 16px rgba(60, 40, 10, 0.05);
+  width: fit-content;
+  max-width: 100%;
 
   a {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1.1rem;
-    border: 1px solid #e4dccd;
+    border: 1px solid transparent;
     border-radius: 999px;
-    background: white;
+    background: transparent;
     color: ${theme.colors.text};
     font-size: 1.05rem;
     font-weight: 600;
@@ -23,13 +30,13 @@ const Tabs = styled.nav`
   }
 
   a:hover {
-    border-color: ${theme.colors.accent};
+    background: #faf3e6;
     color: ${theme.colors.primaryDark};
   }
 
   a.active {
-    border-color: ${theme.colors.primary};
-    background: ${theme.colors.primary};
+    background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+    box-shadow: 0 3px 10px rgba(153, 101, 21, 0.28);
     color: white;
   }
 

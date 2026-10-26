@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { theme } from '../styles/theme';
 import { apiCreateUser, apiGetUsers, apiUpdateUser } from '../services/api';
 import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
@@ -38,7 +39,7 @@ const Person = styled.div`
 
   span {
     font-size: 0.95rem;
-    opacity: 0.7;
+    color: ${theme.colors.textMuted};
   }
 `;
 

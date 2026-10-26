@@ -4,6 +4,7 @@ import { JWT_SECRET } from '../config.js';
 
 import User from './models/user.model.js';
 import Service from './models/service.model.js';
+import ServiceImage from './models/service-image.model.js';
 import Appointment from './models/appointment.model.js';
 import BookingLock from './models/booking-lock.model.js';
 
@@ -16,11 +17,13 @@ import AppointmentService from './services/appointment.service.js';
 import AuthService from './services/auth.service.js';
 import UserService from './services/user.service.js';
 import ServiceCatalogService from './services/service-catalog.service.js';
+import ServiceImageService from './services/service-image.service.js';
 import BogotaClock from './utils/bogota-clock.js';
 
 import AuthController from './controllers/auth.controller.js';
 import UserController from './controllers/user.controller.js';
 import ServiceController from './controllers/service.controller.js';
+import ServiceImageController from './controllers/service-image.controller.js';
 import AppointmentController from './controllers/appointment.controller.js';
 
 import AuthMiddleware from './middlewares/auth.middleware.js';
@@ -45,6 +48,7 @@ const appointmentService = new AppointmentService({
 const authService = new AuthService({ userModel: User, passwordHasher, tokenService, emailService });
 const userService = new UserService({ userModel: User, appointmentModel: Appointment, passwordHasher });
 const serviceCatalogService = new ServiceCatalogService({ serviceModel: Service });
+const serviceImageService = new ServiceImageService({ serviceImageModel: ServiceImage });
 
 export const authMiddleware = new AuthMiddleware({ userModel: User, tokenService });
 export const errorMiddleware = new ErrorMiddleware();
@@ -52,6 +56,7 @@ export const errorMiddleware = new ErrorMiddleware();
 export const authController = new AuthController(authService);
 export const userController = new UserController(userService);
 export const serviceController = new ServiceController(serviceCatalogService);
+export const serviceImageController = new ServiceImageController(serviceImageService);
 export const appointmentController = new AppointmentController(appointmentService, availabilityService);
 
 export const databaseSeeder = new DatabaseSeeder({

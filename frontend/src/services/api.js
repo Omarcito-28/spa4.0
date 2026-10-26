@@ -88,6 +88,36 @@ export const apiUpdateService = (id, data) =>
 export const apiDeleteService = (id) =>
   apiFetch(`/services/${id}`, { method: 'DELETE' });
 
+// ─── SERVICE IMAGES ──────────────────────────────────────────────────────────
+
+// Las imágenes subidas se guardan como "/api/service-images/<id>". En producción el
+// frontend y la API viven en dominios distintos, así que esa ruta se apunta a API_BASE.
+// Las rutas de /public (por ejemplo "/images/services/x.jpg") y las URL completas no cambian.
+export const resolveImageUrl = (src, apiBase = API_BASE) => {
+  if (!src) return '';
+  return src.startsWith('/api/') ? `${apiBase}${src.slice('/api'.length)}` : src;
+};
+
+export const apiGetServiceImages = () => apiFetch('/service-images');
+
+// El archivo viaja como binario, no como JSON.
+export const apiUploadServiceImage = async (file) => {
+  const res = await fetch(`${API_BASE}/service-images`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream',
+      'X-File-Name': encodeURIComponent(file.name || ''),
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+    body: file,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'No se pudo subir la imagen.');
+  }
+  return data;
+};
+
 // ─── APPOINTMENTS ────────────────────────────────────────────────────────────
 
 // Tras un cambio exitoso avisa a las demás pestañas para que refresquen sus paneles.

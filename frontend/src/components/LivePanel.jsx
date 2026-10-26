@@ -4,11 +4,24 @@ import RefreshStatus from './RefreshStatus';
 import StatusBadge from './StatusBadge';
 
 const Section = styled.section`
+  position: relative;
   margin-bottom: 2.5rem;
-  padding: 1.5rem 1.75rem;
+  padding: 1.75rem 1.75rem 1.5rem;
+  overflow: hidden;
+  border: 1px solid #e4dccd;
   border-radius: ${theme.borderRadius.medium};
   background: white;
-  box-shadow: ${theme.shadows.small};
+  box-shadow: 0 1px 2px rgba(60, 40, 10, 0.04), 0 8px 24px rgba(60, 40, 10, 0.06);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent}, ${theme.colors.secondary});
+  }
 `;
 
 const Header = styled.div`
@@ -17,6 +30,9 @@ const Header = styled.div`
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid #eee8dc;
 
   h2 {
     margin: 0;
@@ -38,44 +54,25 @@ const Stats = styled.div`
 `;
 
 const StatBox = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 0.15rem 0.9rem;
   padding: 1.1rem 1.25rem;
-  border: 1px solid #eee8dc;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #fffdf8, #faf3e3);
-
-  .stat-icon {
-    grid-row: span 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
-    color: white;
-    font-size: 1.15rem;
-    box-shadow: 0 4px 10px rgba(153, 101, 21, 0.25);
-  }
+  border: 1px solid #efe3cc;
+  border-left: 4px solid ${theme.colors.accent};
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fdf8ef, #f8efdf);
 
   strong {
     color: ${theme.colors.primaryDark};
-    font-size: 2.7rem;
-    font-weight: 700;
-    line-height: 1;
+    font-family: ${theme.fonts.primary};
+    font-size-adjust: none;
     font-variant-numeric: lining-nums;
+    font-size: 2.6rem;
+    line-height: 1.05;
   }
 
   span {
-    color: ${theme.colors.textMuted};
-    font-size: 0.9rem;
+    color: ${theme.colors.textLight};
+    font-size: 1.02rem;
     font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    opacity: 0.75;
   }
 `;
 
@@ -90,14 +87,15 @@ const List = styled.ul`
     align-items: center;
     justify-content: space-between;
     gap: 0.4rem 1rem;
-    padding: 0.9rem 0.5rem;
+    padding: 0.8rem 0.75rem;
     border-top: 1px solid #eee8dc;
-    font-size: 1.1rem;
-    transition: background 0.15s ease;
+    border-radius: 8px;
+    font-size: 1.08rem;
+    transition: background ${theme.transitions.fast};
   }
 
   li:hover {
-    background: #fdfaf4;
+    background: #fdf8ef;
   }
 `;
 
@@ -123,7 +121,7 @@ const Muted = styled.p`
 const ListTitle = styled.h3`
   margin: 0 0 0.5rem;
   color: ${theme.colors.text};
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 `;
 
 // Tarjeta con datos en vivo de un dashboard: título, "Actualizado hace X s" y botón de refresco.

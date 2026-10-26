@@ -8,10 +8,8 @@ export const theme = {
     secondary: '#FFB6C1',     // Rosa Pálido (Fondo Principal)
     accent: '#c9942a',        // Dorado cálido (Acentos/Botones)
     text: '#1a1a2e',          // Casi negro azulado (Texto Principal)
-    textLight: '#010101ff',     // Gris muy oscuro (Texto Secundario)
-    textMuted: '#0d0d0eff',     // Gris oscuro sólido (Texto terciario)
-    border: '#9a8452',        // Borde de campos (3.6:1 sobre blanco/crema, WCAG 1.4.11)
-    placeholder: '#6b5b3a',   // Placeholder (6.3:1 sobre crema)
+    textLight: '#3a3542',     // Gris carbón (Texto Secundario)
+    textMuted: '#4f4957',     // Gris cálido (Texto terciario, contraste > 7:1 sobre blanco y crema)
     contentBgLight: '#FFFDF8', // Crema muy suave para contenido
     contentBgWarm: '#FFF9F0',  // Crema cálido
     navbarBg: '#0a0a0a',      // Negro profundo (Navbar)
@@ -25,8 +23,12 @@ export const theme = {
     overlay: 'rgba(10, 10, 10, 0.55)',
   },
   fonts: {
+    // Serif decorativa solo para títulos; el texto corrido usa una sans más legible.
     primary: "'Cormorant Garamond', Georgia, serif",
-    secondary: "'Cormorant Garamond', Georgia, serif",
+    secondary: "'Nunito Sans', 'Segoe UI', system-ui, sans-serif",
+    // Los font-size del proyecto se calibraron para Cormorant (letra x pequeña).
+    // Este ajuste fija la altura de la x de la sans para que el tamaño visual no se dispare.
+    secondaryAdjust: '0.46',
   },
   spacing: {
     xs: '0.25rem',
@@ -115,13 +117,24 @@ export const GlobalStyle = createGlobalStyle`
 
   body {
     font-family: ${theme.fonts.secondary};
+    font-size-adjust: ${theme.fonts.secondaryAdjust};
     font-size: 1.35rem;
     background-color: #FAF7F2;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(255, 182, 193, 0.18), transparent 38%),
+      radial-gradient(circle at 100% 30%, rgba(201, 148, 42, 0.1), transparent 34%),
+      radial-gradient(circle at 10% 90%, rgba(201, 148, 42, 0.08), transparent 30%);
+    background-attachment: fixed;
     color: ${theme.colors.text};
     line-height: 1.65;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  p, li, td, label {
+    overflow-wrap: break-word;
   }
 
   h1 { font-size: 3.5rem; }
@@ -133,9 +146,14 @@ export const GlobalStyle = createGlobalStyle`
 
   h1, h2, h3, h4, h5, h6 {
     font-family: ${theme.fonts.primary};
+    font-size-adjust: none;
+    /* Cormorant usa números de estilo antiguo: el 0 se confunde con la letra O. */
+    font-variant-numeric: lining-nums;
+    font-weight: 700;
     color: ${theme.colors.primary};
     margin-bottom: 0.85rem;
-    line-height: 1.25;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
   }
 
   a {
@@ -154,10 +172,33 @@ export const GlobalStyle = createGlobalStyle`
   button {
     cursor: pointer;
     font-family: ${theme.fonts.secondary};
+    font-size-adjust: ${theme.fonts.secondaryAdjust};
   }
 
   input, select, textarea {
     font-family: ${theme.fonts.secondary};
+    font-size-adjust: ${theme.fonts.secondaryAdjust};
+  }
+
+  ::placeholder {
+    color: #8a8392;
+    opacity: 1;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid rgba(201, 148, 42, 0.55);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   ::selection {

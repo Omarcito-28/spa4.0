@@ -69,6 +69,7 @@ const Title = styled.h2`
   font-size: 2.4rem;
   margin-bottom: 0.25rem;
   font-family: ${theme.fonts.primary};
+  font-size-adjust: none;
 `;
 
 const TitleSub = styled.p`
@@ -125,6 +126,7 @@ const Input = styled.input`
   background: #FAFAFA;
   color: ${theme.colors.text};
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
   font-size: 1.2rem;
   transition: all ${theme.transitions.normal};
 

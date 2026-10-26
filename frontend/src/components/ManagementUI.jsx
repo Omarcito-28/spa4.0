@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { theme } from '../styles/theme';
+import { theme, fadeInUp } from '../styles/theme';
 
 const border = theme.colors.border;
 const arrow = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1.5l6 6 6-6' fill='none' stroke='%23996515' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>\")";
@@ -83,42 +83,73 @@ const control = css`
   }
 `;
 
+const surface = css`
+  border: 1px solid ${border};
+  border-radius: ${theme.borderRadius.medium};
+  background: ${theme.colors.cardBg};
+  box-shadow: 0 1px 2px rgba(60, 40, 10, 0.04), 0 8px 24px rgba(60, 40, 10, 0.06);
+`;
+
 export const Page = styled.section`
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 1.5rem 4rem;
+  animation: ${fadeInUp} 0.45s ease-out;
 `;
 
+// Título de página con un filete dorado debajo.
 export const Title = styled.h1`
-  margin-bottom: 0.4rem;
+  position: relative;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.6rem;
   color: ${theme.colors.text};
-  font-size: 2.6rem;
+  font-size: 2.8rem;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 64px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent}, transparent);
+  }
 
   @media (max-width: 600px) {
-    font-size: 2.1rem;
+    font-size: 2.2rem;
   }
 `;
 
 export const Description = styled.p`
   max-width: 820px;
-  margin-bottom: 1.75rem;
+  margin-bottom: 2rem;
   color: ${theme.colors.textMuted};
-  font-size: 1.2rem;
-  opacity: 0.8;
+  font-size: 1.15rem;
+  line-height: 1.6;
 `;
 
 export const Card = styled.div`
+  ${surface}
+  position: relative;
   margin-bottom: 1.5rem;
   padding: 1.75rem;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: ${theme.borderRadius.medium};
-  background: ${theme.colors.cardBg};
-  box-shadow: ${theme.shadows.small};
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent}, ${theme.colors.secondary});
+  }
 
   > h2 {
     margin-bottom: 1rem;
     color: ${theme.colors.text};
-    font-size: 1.7rem;
+    font-size: 1.8rem;
   }
 `;
 
@@ -147,14 +178,26 @@ export const Field = styled.label`
   }
 `;
 
+// Campo suelto (fuera de un <Field>) con el mismo estilo que el resto del panel.
+export const Input = styled.input`
+  ${control}
+
+  &[aria-invalid='true'] {
+    border-color: #b93224;
+    box-shadow: 0 0 0 3px rgba(185, 50, 36, 0.15);
+  }
+`;
+
 export const Button = styled.button`
   margin: 0.25rem;
   padding: 0.6rem 1.2rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: ${props => props.$danger ? '#fff' : theme.colors.primary};
-  color: ${props => props.$danger ? '#b93224' : 'white'};
-  border-color: ${props => props.$danger ? '#e3b3ad' : 'transparent'};
+  background: ${props => props.$danger
+    ? '#b93224'
+    : `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent})`};
+  color: white;
+  box-shadow: ${props => props.$danger ? 'none' : '0 3px 10px rgba(153, 101, 21, 0.22)'};
   font: inherit;
   font-size: 1.05rem;
   font-weight: 600;
@@ -163,8 +206,10 @@ export const Button = styled.button`
   transition: background ${theme.transitions.fast}, transform ${theme.transitions.fast}, box-shadow ${theme.transitions.fast};
 
   &:hover:not(:disabled) {
-    background: ${props => props.$danger ? '#fbe3e0' : theme.colors.primaryDark};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    background: ${props => props.$danger
+      ? '#962719'
+      : `linear-gradient(135deg, ${theme.colors.primaryDark}, ${theme.colors.primary})`};
+    box-shadow: 0 6px 16px rgba(153, 101, 21, 0.28);
     transform: translateY(-1px);
   }
 
@@ -181,10 +226,13 @@ export const Button = styled.button`
   ${props => props.$secondary && css`
     border-color: ${border};
     background: white;
+    box-shadow: none;
     color: ${theme.colors.text};
 
     &:hover:not(:disabled) {
+      border-color: ${theme.colors.accent};
       background: #faf6ee;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
   `}
 `;
@@ -197,10 +245,8 @@ export const Toolbar = styled.div`
   gap: 0.75rem 1rem;
   margin-bottom: 1.25rem;
   padding: 1.1rem 1.25rem;
-  border: 1px solid #eee8dc;
-  border-radius: ${theme.borderRadius.medium};
-  background: linear-gradient(135deg, #fffdf8, #faf3e3);
-  box-shadow: ${theme.shadows.small};
+  ${surface}
+  background: linear-gradient(180deg, #fff, #fffcf6);
 
   > input, > select {
     ${control}
@@ -218,12 +264,10 @@ export const Toolbar = styled.div`
   label {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    color: ${theme.colors.primaryDark};
-    font-size: 0.85rem;
+    gap: 0.2rem;
+    color: ${theme.colors.textLight};
+    font-size: 0.95rem;
     font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
 
     input, select {
       ${control}
@@ -243,15 +287,12 @@ export const ResultCount = styled.p`
   margin: 0 0 0.75rem;
   color: ${theme.colors.textMuted};
   font-size: 1.05rem;
-  opacity: 0.8;
+  font-weight: 600;
 `;
 
 export const TableWrap = styled.div`
   overflow-x: auto;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: ${theme.borderRadius.medium};
-  background: white;
-  box-shadow: ${theme.shadows.small};
+  ${surface}
 `;
 
 export const Table = styled.table`
@@ -276,10 +317,11 @@ export const Table = styled.table`
   }
 
   th {
-    background: #faf6ee;
+    background: linear-gradient(180deg, #fbf5ea, #f6eddd);
+    border-bottom: 2px solid #e8d8b8;
     color: ${theme.colors.primaryDark};
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: 0.92rem;
+    font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -289,8 +331,12 @@ export const Table = styled.table`
     transition: background ${theme.transitions.fast};
   }
 
+  tbody tr:nth-child(even) {
+    background: #fffcf7;
+  }
+
   tbody tr:hover {
-    background: #fdfaf4;
+    background: #fbf3e4;
   }
 
   tbody tr:last-child td {
@@ -331,7 +377,6 @@ export const EmptyCell = styled.td`
   color: ${theme.colors.textMuted};
   text-align: center;
   font-style: italic;
-  opacity: 0.75;
 `;
 
 export const Notice = styled.p`
@@ -394,10 +439,13 @@ export const StatCard = styled.div`
   position: relative;
   padding: 1.4rem 1.5rem;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: ${theme.borderRadius.medium};
-  background: white;
-  box-shadow: ${theme.shadows.small};
+  ${surface}
+  transition: transform ${theme.transitions.normal}, box-shadow ${theme.transitions.normal};
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: ${theme.shadows.cardHover};
+  }
 
   &::before {
     content: '';
@@ -405,7 +453,7 @@ export const StatCard = styled.div`
     top: 0;
     bottom: 0;
     left: 0;
-    width: 4px;
+    width: 5px;
     background: ${props => props.$accent || theme.colors.accent};
   }
 
@@ -433,12 +481,20 @@ export const StatCard = styled.div`
     margin-top: 0.4rem;
     color: ${theme.colors.textMuted};
     font-size: 0.95rem;
-    opacity: 0.75;
   }
 `;
 
 export const SectionTitle = styled.h2`
-  margin: 2rem 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 2.25rem 0 1rem;
   color: ${theme.colors.text};
-  font-size: 1.6rem;
+  font-size: 1.8rem;
+
+  &::before {
+    content: '✦';
+    color: ${theme.colors.accent};
+    font-size: 1rem;
+  }
 `;
