@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
-import { apiCreateUser, apiGetUsers, apiUpdateUser } from '../services/api';
+import { apiCreateUser, apiDeleteUser, apiGetUsers, apiUpdateUser } from '../services/api';
+import { useAuth } from '../contexts/auth';
 import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
 import { Button, Card, Description, EmptyCell, Field, Form, Grid, Notice, Page, ResultCount, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
@@ -44,6 +45,7 @@ const Person = styled.div`
 `;
 
 function AdminUsers() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState('');
@@ -54,6 +56,8 @@ function AdminUsers() {
   const [account, setAccount] = useState(emptyAccount);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState(null);
+  // Resultado de desactivar, reactivar, eliminar o cambiar rol; se muestra junto a la tabla.
+  const [feedback, setFeedback] = useState(null);
   const pageSize = 10;
 
   const load = useCallback(async () => {
@@ -70,28 +74,39 @@ function AdminUsers() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
-  const updateRole = async (user, role) => {
+  // Tras un fallo también se recarga la lista, por si los datos en pantalla estaban desactualizados.
+  const runAction = async (user, request, successText) => {
     setBusyId(user._id);
+    setFeedback(null);
     try {
-      await apiUpdateUser(user._id, { role });
-      await load();
+      await request();
+      setFeedback({ error: false, text: successText });
     } catch (requestError) {
-      setError(requestError.message);
+      setFeedback({ error: true, text: `${user.fullName}: ${requestError.message}` });
     } finally {
+      await load();
       setBusyId('');
     }
   };
 
-  const setActive = async user => {
-    setBusyId(user._id);
-    try {
-      await apiUpdateUser(user._id, { isActive: user.isActive === false });
-      await load();
-    } catch (requestError) {
-      setError(requestError.message);
-    } finally {
-      setBusyId('');
-    }
+  const updateRole = (user, role) => runAction(
+    user,
+    () => apiUpdateUser(user._id, { role }),
+    `${user.fullName} ahora es ${ROLE_OPTIONS.find(option => option.value === role)?.label.toLowerCase()}.`
+  );
+
+  const setActive = user => {
+    const activate = user.isActive === false;
+    return runAction(
+      user,
+      () => apiUpdateUser(user._id, { isActive: activate }),
+      `Se ${activate ? 'reactivó' : 'desactivó'} la cuenta de ${user.fullName}.`
+    );
+  };
+
+  const removeUser = user => {
+    if (!window.confirm(`¿Eliminar definitivamente la cuenta de ${user.fullName}? Esta acción no se puede deshacer.`)) return;
+    return runAction(user, () => apiDeleteUser(user._id), `Se eliminó la cuenta de ${user.fullName}.`);
   };
 
   const changeAccount = event => setAccount(current => ({ ...current, [event.target.name]: event.target.value }));
@@ -165,27 +180,36 @@ function AdminUsers() {
         </select>
       </Toolbar>
       <ResultCount>{filteredUsers.length} usuarios encontrados</ResultCount>
+      {feedback && <Notice $error={feedback.error} role={feedback.error ? 'alert' : 'status'}>{feedback.text}</Notice>}
       <TableWrap><Table>
         <thead><tr><th>Usuario</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
           {visibleUsers.length === 0 && <tr><EmptyCell colSpan={6}>No hay usuarios que coincidan con la búsqueda.</EmptyCell></tr>}
-          {visibleUsers.map(user => (
-            <tr key={user._id}>
-              <td><Person><strong>{user.fullName}</strong><span>@{user.username}</span></Person></td>
-              <td>{user.email}</td><td>{user.phoneNumber || '—'}</td>
-              <td>
-                <select aria-label={`Rol de ${user.username}`} value={user.role} disabled={busyId === user._id} onChange={event => updateRole(user, event.target.value)}>
-                  {ROLE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              </td>
-              <td><AccountState $active={user.isActive !== false}>{user.isActive === false ? 'Desactivada' : 'Activa'}</AccountState></td>
-              <td>
-                <Button type="button" $danger={user.isActive !== false} $secondary={user.isActive === false} disabled={busyId === user._id} onClick={() => setActive(user)}>
-                  {user.isActive === false ? 'Reactivar' : 'Desactivar'}
-                </Button>
-              </td>
-            </tr>
-          ))}
+          {visibleUsers.map(user => {
+            // El backend no permite que el administrador se desactive, se elimine ni cambie su propio rol.
+            const isSelf = user.username === currentUser?.username;
+            const locked = isSelf || busyId === user._id;
+            return (
+              <tr key={user._id}>
+                <td><Person><strong>{user.fullName}</strong><span>@{user.username}{isSelf && ' (tú)'}</span></Person></td>
+                <td>{user.email}</td><td>{user.phoneNumber || '—'}</td>
+                <td>
+                  <select aria-label={`Rol de ${user.username}`} value={user.role} disabled={locked} onChange={event => updateRole(user, event.target.value)}>
+                    {ROLE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </td>
+                <td><AccountState $active={user.isActive !== false}>{user.isActive === false ? 'Desactivada' : 'Activa'}</AccountState></td>
+                <td>
+                  <Button type="button" $danger={user.isActive !== false} $secondary={user.isActive === false} disabled={locked} onClick={() => setActive(user)}>
+                    {user.isActive === false ? 'Reactivar' : 'Desactivar'}
+                  </Button>
+                  <Button type="button" $secondary disabled={locked} onClick={() => removeUser(user)} aria-label={`Eliminar a ${user.username}`}>
+                    <i className="fas fa-trash" aria-hidden="true"></i> Eliminar
+                  </Button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table></TableWrap>
       <Pagination page={page} pageCount={pageCount} onChange={setPage} />
