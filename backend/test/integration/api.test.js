@@ -204,4 +204,71 @@ describe('API (integración)', () => {
       expect(res.body).toEqual({ error: 'Token inválido o expirado.' });
     });
   });
+
+  describe('imágenes de servicios', () => {
+    const loginAs = async (username, password) =>
+      (await request(app).post('/api/auth/login').send({ username, password })).body.token;
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32, 1)]);
+
+    it('el ADMIN sube una imagen, la usa en un servicio y cualquiera puede verla', async () => {
+      const token = await loginAs('admin', 'admin-clave-123');
+      const upload = await request(app).post('/api/service-images')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/png')
+        .set('X-File-Name', encodeURIComponent('uñas.png'))
+        .send(png);
+      expect(upload.status).toBe(201);
+      expect(upload.body).toMatchObject({ name: 'uñas.png', contentType: 'image/png', size: png.length });
+      expect(upload.body.url).toBe(`/api/service-images/${upload.body._id}`);
+
+      const service = await request(app).post('/api/services').set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Uñas acrílicas', price: '$80.000', image: upload.body.url });
+      expect(service.status).toBe(201);
+      expect(service.body.image).toBe(upload.body.url);
+
+      const image = await request(app).get(upload.body.url);
+      expect(image.status).toBe(200);
+      expect(image.headers['content-type']).toBe('image/png');
+      expect(Buffer.compare(image.body, png)).toBe(0);
+
+      const gallery = await request(app).get('/api/service-images').set('Authorization', `Bearer ${token}`);
+      expect(gallery.status).toBe(200);
+      expect(gallery.body.map(item => item.url)).toContain(upload.body.url);
+      expect(gallery.body.every(item => !('data' in item))).toBe(true);
+    });
+
+    it('rechaza archivos que no son imágenes aunque digan serlo', async () => {
+      const token = await loginAs('admin', 'admin-clave-123');
+      const res = await request(app).post('/api/service-images')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/png')
+        .send(Buffer.from('<script>alert(1)</script>'));
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ error: 'Formato no admitido. Usa una imagen JPG, PNG o WebP.' });
+    });
+
+    it('rechaza imágenes de más de 5 MB', async () => {
+      const token = await loginAs('admin', 'admin-clave-123');
+      const res = await request(app).post('/api/service-images')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/png')
+        .send(Buffer.concat([png, Buffer.alloc(5 * 1024 * 1024)]));
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ error: 'La imagen no puede superar 5 MB.' });
+    });
+
+    it('solo el ADMIN puede subir imágenes', async () => {
+      const token = await loginAs('carla', 'clave-segura');
+      const res = await request(app).post('/api/service-images')
+        .set('Authorization', `Bearer ${token}`)
+        .set('Content-Type', 'image/png')
+        .send(png);
+      expect(res.status).toBe(403);
+    });
+
+    it('responde 404 si la imagen no existe', async () => {
+      const res = await request(app).get('/api/service-images/no-existe');
+      expect(res.status).toBe(404);
+    });
+  });
 });

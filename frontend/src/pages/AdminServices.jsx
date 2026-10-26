@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { apiCreateService, apiDeleteService, apiGetServices, apiUpdateService } from '../services/api';
+import { theme } from '../styles/theme';
+import { apiCreateService, apiDeleteService, apiGetServices, apiUpdateService, resolveImageUrl } from '../services/api';
 import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
+import ServiceImagePicker from '../components/ServiceImagePicker';
 import { Button, Card, Description, EmptyCell, Field, Form, Grid, Notice, Page, ResultCount, SectionTitle, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 
 const emptyService = { name: '', description: '', price: '', duration: 60, image: '' };
@@ -25,7 +27,7 @@ const ServiceCell = styled.div`
     display: block;
     max-width: 420px;
     font-size: 0.95rem;
-    opacity: 0.7;
+    color: ${theme.colors.textMuted};
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -110,7 +112,11 @@ function AdminServices() {
             <Field>Duración (minutos)<input name="duration" type="number" value={form.duration} onChange={change} required min={15} max={480} step={15} /></Field>
           </Grid>
           <Field>Descripción<textarea name="description" value={form.description} onChange={change} maxLength={1000} rows={3} /></Field>
-          <Field>Ruta de imagen<input name="image" value={form.image} onChange={change} placeholder="/images/services/..." /></Field>
+          <ServiceImagePicker
+            value={form.image}
+            onChange={image => setForm(current => ({ ...current, image }))}
+            usedImages={services.map(service => service.image)}
+          />
           <Button type="submit">{editingId ? 'Guardar cambios' : 'Agregar servicio'}</Button>
           {editingId && <Button type="button" $secondary onClick={() => { setEditingId(''); setForm(emptyService); }}>Cancelar edición</Button>}
         </Form>
@@ -129,7 +135,7 @@ function AdminServices() {
             <tr key={service._id}>
               <td>
                 <ServiceCell>
-                  {service.image && <img src={service.image} alt="" />}
+                  {service.image && <img src={resolveImageUrl(service.image)} alt="" />}
                   <div><strong>{service.name}</strong>{service.description && <span title={service.description}>{service.description}</span>}</div>
                 </ServiceCell>
               </td>

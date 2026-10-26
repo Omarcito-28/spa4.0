@@ -3,6 +3,7 @@ import cors from 'cors';
 
 import authRoutes from './routes/auth.routes.js';
 import servicesRoutes from './routes/services.routes.js';
+import serviceImagesRoutes from './routes/service-images.routes.js';
 import appointmentsRoutes from './routes/appointments.routes.js';
 import usersRoutes from './routes/users.routes.js';
 
@@ -22,6 +23,7 @@ export const createApp = ({ corsPolicy = CorsPolicy.fromEnv() } = {}) => {
   // Rutas
   app.use('/api/auth', authRoutes);
   app.use('/api/services', servicesRoutes);
+  app.use('/api/service-images', serviceImagesRoutes);
   app.use('/api/appointments', appointmentsRoutes);
   app.use('/api/users', usersRoutes);
 
