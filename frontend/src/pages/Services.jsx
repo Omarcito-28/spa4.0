@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { theme, fadeInUp } from '../styles/theme';
-import { apiGetServices } from '../services/api';
+import { apiGetServices, resolveImageUrl } from '../services/api';
+import BookServiceLink from '../components/BookServiceLink';
 
 const ServicesContainer = styled.div`
   max-width: 1200px;
@@ -23,6 +24,7 @@ const Badge = styled.span`
   text-transform: uppercase;
   margin-bottom: 0.75rem;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
 `;
 
 const Title = styled.h1`
@@ -54,6 +56,8 @@ const ServicesGrid = styled.div`
 `;
 
 const ServiceCard = styled.div`
+  display: flex;
+  flex-direction: column;
   background: ${theme.colors.cardBg};
   border-radius: ${theme.borderRadius.medium};
   box-shadow: ${theme.shadows.small};
@@ -102,6 +106,9 @@ const PriceTag = styled.div`
 `;
 
 const ServiceContent = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 1.5rem 1.75rem 1.75rem;
 `;
 
@@ -110,13 +117,40 @@ const ServiceName = styled.h3`
   margin-bottom: 0.5rem;
   font-size: 1.6rem;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
   font-weight: 600;
 `;
 
 const ServiceDescription = styled.p`
+  flex: 1;
+  margin-bottom: 1.5rem;
   color: ${theme.colors.textMuted};
   line-height: 1.6;
   font-size: 1.25rem;
+`;
+
+// Pie de la tarjeta: duración a la izquierda y botón de reserva a la derecha.
+const CardFooter = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid #f0e7d6;
+`;
+
+const Duration = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: ${theme.colors.textMuted};
+  font-size: 1.05rem;
+  font-weight: 600;
+
+  i {
+    color: ${theme.colors.accent};
+  }
 `;
 
 const NoServices = styled.div`
@@ -155,7 +189,7 @@ const ErrorWrapper = styled.div`
   i { margin-right: 0.5rem; }
 `;
 
-function Services() {
+function Services({ isAuthenticated = false }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -200,12 +234,18 @@ function Services() {
           {services.map((service, index) => (
             <ServiceCard key={service._id} $delay={`${index * 0.1}s`}>
               <ImageWrapper>
-                {service.image && <ServiceImage src={service.image} alt={service.name} onError={event => { event.currentTarget.hidden = true; }} />}
+                {service.image && <ServiceImage src={resolveImageUrl(service.image)} alt={service.name} onError={event => { event.currentTarget.hidden = true; }} />}
                 <PriceTag>{service.price}</PriceTag>
               </ImageWrapper>
               <ServiceContent>
                 <ServiceName>{service.name}</ServiceName>
                 <ServiceDescription>{service.description}</ServiceDescription>
+                <CardFooter>
+                  <Duration><i className="far fa-clock" aria-hidden="true"></i>{service.duration || 60} min</Duration>
+                  <BookServiceLink serviceName={service.name} isAuthenticated={isAuthenticated} solid>
+                    Reservar ahora
+                  </BookServiceLink>
+                </CardFooter>
               </ServiceContent>
             </ServiceCard>
           ))}

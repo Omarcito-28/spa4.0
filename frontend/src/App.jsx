@@ -69,7 +69,7 @@ function App() {
         <Route path="appointments/all" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminAppointments /> : <Navigate to="/login" replace />} />
         <Route path="admin/reports" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminReports /> : <Navigate to="/login" replace />} />
         <Route path="profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} />
-        <Route path="services" element={<Services />} />
+        <Route path="services" element={<Services isAuthenticated={isAuthenticated} />} />
         <Route path="contact" element={<ContactPage isAuthenticated={isAuthenticated} />} />
         <Route path="appointments/new" element={<NewAppointmentPage isAuthenticated={isAuthenticated} />} />
         <Route path="appointments/my" element={<MyAppointmentsPage isAuthenticated={isAuthenticated} />} />
