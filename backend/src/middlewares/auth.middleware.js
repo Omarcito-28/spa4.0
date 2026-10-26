@@ -1,4 +1,4 @@
-import { ForbiddenError, ServiceUnavailableError, UnauthorizedError } from '../errors/index.js';
+import { ForbiddenError, InvalidSessionError, ServiceUnavailableError, UnauthorizedError } from '../errors/index.js';
 
 export default class AuthMiddleware {
   #users;
@@ -42,7 +42,7 @@ export default class AuthMiddleware {
     try {
       decoded = this.#tokens.verify(token);
     } catch {
-      throw new ForbiddenError('Token inválido o expirado.');
+      throw new InvalidSessionError('Token inválido o expirado.');
     }
 
     let user;
@@ -51,10 +51,10 @@ export default class AuthMiddleware {
     } catch (error) {
       throw new ServiceUnavailableError('No se pudo validar la sesión.', { cause: error });
     }
-    if (!user) throw new UnauthorizedError('La cuenta asociada a la sesión no existe.');
-    if (user.isActive === false) throw new ForbiddenError('La cuenta está desactivada.');
+    if (!user) throw new InvalidSessionError('La cuenta asociada a la sesión no existe.');
+    if (user.isActive === false) throw new InvalidSessionError('La cuenta está desactivada.');
     if ((decoded.tokenVersion || 0) !== user.tokenVersion) {
-      throw new ForbiddenError('La sesión expiró. Inicia sesión nuevamente.');
+      throw new InvalidSessionError('La sesión expiró. Inicia sesión nuevamente.');
     }
     return {
       id: user._id.toString(),

@@ -4,6 +4,7 @@ import {
   BookingError,
   ConflictError,
   ForbiddenError,
+  InvalidSessionError,
   NotFoundError,
   ServiceUnavailableError,
   UnauthorizedError,
@@ -39,6 +40,13 @@ describe('Jerarquía de errores', () => {
 
   it('BookingError es un tipo de ConflictError', () => {
     expect(new BookingError('x')).toBeInstanceOf(ConflictError);
+  });
+
+  it('InvalidSessionError es un 401 que avisa al cliente que cierre la sesión', () => {
+    const error = new InvalidSessionError('La sesión expiró.');
+    expect(error).toBeInstanceOf(UnauthorizedError);
+    expect(error.status).toBe(401);
+    expect(error.toJSON()).toEqual({ error: 'La sesión expiró.', code: 'SESSION_INVALID' });
   });
 
   it('AppError.from conserva los AppError y envuelve los demás como 500', () => {

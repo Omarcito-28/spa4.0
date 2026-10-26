@@ -198,10 +198,17 @@ describe('API (integración)', () => {
       expect(cancel.status).toBe(400);
     });
 
-    it('responde 403 con un token inválido', async () => {
+    it('responde 401 con código de sesión inválida si el token no sirve', async () => {
       const res = await request(app).get('/api/users').set('Authorization', 'Bearer no-es-un-jwt');
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: 'Token inválido o expirado.', code: 'SESSION_INVALID' });
+    });
+
+    it('un 403 por permisos no lleva código de sesión inválida', async () => {
+      const client = (await request(app).post('/api/auth/login').send({ username: 'carla', password: 'clave-segura' })).body.token;
+      const res = await request(app).get('/api/users').set('Authorization', `Bearer ${client}`);
       expect(res.status).toBe(403);
-      expect(res.body).toEqual({ error: 'Token inválido o expirado.' });
+      expect(res.body.code).toBeUndefined();
     });
   });
 

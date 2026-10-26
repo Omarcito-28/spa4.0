@@ -1,11 +1,35 @@
 import { useState, useEffect } from 'react';
-import { apiLogin, apiRegister, apiGetProfile, apiUpdateProfile } from '../services/api';
+import { apiLogin, apiRegister, apiGetProfile, apiUpdateProfile, onSessionExpired, SESSION_INVALID } from '../services/api';
 import { AuthContext } from './auth';
+
+const clearStoredSession = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
+
+const readStoredUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user'));
+  } catch {
+    return null;
+  }
+};
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('token')));
+  // Motivo por el que se cerró la sesión sin que el usuario lo pidiera; lo muestra la página de login.
+  const [sessionNotice, setSessionNotice] = useState('');
+
+  // Si la API rechaza el token en cualquier petición, se cierra la sesión y las
+  // rutas protegidas redirigen al login.
+  useEffect(() => onSessionExpired(message => {
+    clearStoredSession();
+    setUser(null);
+    setIsAuthenticated(false);
+    setSessionNotice(message);
+  }), []);
 
   // Al montar la app, si hay token guardado recuperamos el perfil
   useEffect(() => {
@@ -18,11 +42,19 @@ export function AuthProvider({ children }) {
           setUser(userData);
           setIsAuthenticated(true);
         })
-        .catch(() => {
+        .catch(error => {
           if (!active) return;
-          // Token inválido o expirado — limpiamos
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          if (error.code === SESSION_INVALID) {
+            clearStoredSession();
+            return;
+          }
+          // Un fallo de red o del servidor no invalida la sesión: se usa el
+          // usuario guardado y la próxima petición confirmará el token.
+          const storedUser = readStoredUser();
+          if (storedUser) {
+            setUser(storedUser);
+            setIsAuthenticated(true);
+          }
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -40,6 +72,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       setIsAuthenticated(true);
+      setSessionNotice('');
       return { success: true, user: data.user };
     } catch (error) {
       return { success: false, error: error.message || 'Credenciales inválidas' };
@@ -55,6 +88,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(data.user));
       setUser(data.user);
       setIsAuthenticated(true);
+      setSessionNotice('');
       return { success: true, user: data.user };
     } catch (error) {
       return { success: false, error: error.message || 'Error al registrar usuario' };
@@ -76,12 +110,12 @@ export function AuthProvider({ children }) {
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    setSessionNotice('');
+    clearStoredSession();
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, updateProfile, loading, sessionNotice }}>
       {children}
     </AuthContext.Provider>
   );

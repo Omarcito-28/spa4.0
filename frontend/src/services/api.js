@@ -22,17 +22,46 @@ const authHeaders = () => ({
   ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
 });
 
+// Código con el que el backend indica que el token guardado ya no sirve
+// (vencido, revocado o de una cuenta desactivada o eliminada).
+export const SESSION_INVALID = 'SESSION_INVALID';
+
+export class ApiError extends Error {
+  constructor(message, { status, code } = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
+const sessionExpiredListeners = new Set();
+
+// El contexto de autenticación se suscribe para cerrar la sesión en cuanto la API la rechace.
+export const onSessionExpired = listener => {
+  sessionExpiredListeners.add(listener);
+  return () => sessionExpiredListeners.delete(listener);
+};
+
+const readResponse = async (res, fallbackMessage) => {
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = data.error || fallbackMessage;
+    if (data.code === SESSION_INVALID && getToken()) {
+      sessionExpiredListeners.forEach(listener => listener(message));
+    }
+    throw new ApiError(message, { status: res.status, code: data.code });
+  }
+  return data;
+};
+
 // Helper genérico para hacer fetch con manejo de errores
 const apiFetch = async (url, options = {}) => {
   const res = await fetch(`${API_BASE}${url}`, {
     headers: authHeaders(),
     ...options,
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data.error || 'Error en la petición');
-  }
-  return data;
+  return readResponse(res, 'Error en la petición');
 };
 
 // ─── AUTH ────────────────────────────────────────────────────────────────────
@@ -111,11 +140,7 @@ export const apiUploadServiceImage = async (file) => {
     },
     body: file,
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data.error || 'No se pudo subir la imagen.');
-  }
-  return data;
+  return readResponse(res, 'No se pudo subir la imagen.');
 };
 
 // ─── APPOINTMENTS ────────────────────────────────────────────────────────────

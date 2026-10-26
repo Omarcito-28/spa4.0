@@ -217,7 +217,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login } = useAuth();
+  const { login, sessionNotice } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -264,6 +264,9 @@ function Login() {
           <TitleSub>Inicia sesión en tu cuenta</TitleSub>
         </LogoArea>
         
+        {sessionNotice && !error && !success && (
+          <Alert $type="error" role="status"><i className="fas fa-clock" aria-hidden="true"></i>{sessionNotice} Vuelve a iniciar sesión para continuar.</Alert>
+        )}
         {error && <Alert $type="error"><i className="fas fa-exclamation-circle"></i>{error}</Alert>}
         {success && <Alert $type="success"><i className="fas fa-check-circle"></i>{success}</Alert>}
         
