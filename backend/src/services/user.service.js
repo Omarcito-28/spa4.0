@@ -8,11 +8,13 @@ export default class UserService {
   #users;
   #appointments;
   #hasher;
+  #clock;
 
-  constructor({ userModel, appointmentModel, passwordHasher }) {
+  constructor({ userModel, appointmentModel, passwordHasher, clock }) {
     this.#users = userModel;
     this.#appointments = appointmentModel;
     this.#hasher = passwordHasher;
+    this.#clock = clock;
   }
 
   listAll() {
@@ -116,9 +118,15 @@ export default class UserService {
         await this.#users.countDocuments({ role: 'ADMIN', isActive: { $ne: false } }) <= 1) {
       throw new ConflictError('No se puede cambiar el rol del último administrador.');
     }
+    // Solo bloquean las citas de hoy en adelante: una cita pasada que quedó
+    // pendiente ya no ocupa la agenda del estilista.
     if (existing.role === 'STYLIST' && (role && role !== 'STYLIST' || isActive === false) &&
-        await this.#appointments.exists({ stylist: existing.username, status: { $in: ['PENDING', 'CONFIRMED'] } })) {
-      throw new ConflictError('Reasigna o cancela sus citas antes de cambiar el estado o rol.');
+        await this.#appointments.exists({
+          stylist: existing.username,
+          status: { $in: ['PENDING', 'CONFIRMED'] },
+          date: { $gte: this.#clock.today() }
+        })) {
+      throw new ConflictError('El estilista tiene citas próximas. Reasígnalas o cancélalas en "Gestionar citas" antes de cambiar su estado o rol.');
     }
 
     let updated;
@@ -148,7 +156,7 @@ export default class UserService {
     if (await this.#appointments.exists({
       $or: [{ username: target.username }, { stylist: target.username }]
     })) {
-      throw new ConflictError('La cuenta tiene citas asociadas. Cancélalas o reasígnalas antes de eliminarla.');
+      throw new ConflictError('La cuenta tiene citas registradas y se conserva para no perder el historial. Desactívala en su lugar.');
     }
     await this.#users.findByIdAndDelete(id);
   }

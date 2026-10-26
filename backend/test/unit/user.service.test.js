@@ -26,7 +26,7 @@ describe('UserService', () => {
       countDocuments: vi.fn().mockResolvedValue(2)
     };
     appointmentModel = { exists: vi.fn().mockResolvedValue(null) };
-    users = new UserService({ userModel, appointmentModel });
+    users = new UserService({ userModel, appointmentModel, clock: { today: () => '2026-05-10' } });
   });
 
   describe('update (edición desde el panel de administrador)', () => {
@@ -75,7 +75,18 @@ describe('UserService', () => {
       appointmentModel.exists.mockResolvedValue({ _id: 'cita-1' });
 
       await expect(users.update('user-1', { role: 'CLIENT' }, ADMIN)).rejects.toBeInstanceOf(ConflictError);
-      expect(appointmentModel.exists).toHaveBeenCalledWith({ stylist: 'sofi', status: { $in: ['PENDING', 'CONFIRMED'] } });
+      expect(appointmentModel.exists).toHaveBeenCalledWith({
+        stylist: 'sofi',
+        status: { $in: ['PENDING', 'CONFIRMED'] },
+        date: { $gte: '2026-05-10' }
+      });
+    });
+
+    it('desactiva a un estilista sin citas próximas', async () => {
+      userModel.findById.mockResolvedValue(userDoc({ username: 'sofi', role: 'STYLIST' }));
+
+      await users.update('user-1', { isActive: false }, ADMIN);
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith('user-1', { isActive: false }, { new: true, runValidators: true });
     });
 
     it('traduce un correo duplicado a 409', async () => {
@@ -160,7 +171,7 @@ describe('UserService', () => {
     it('no borra una cuenta con citas asociadas', async () => {
       appointmentModel.exists.mockResolvedValue({ _id: 'cita-1' });
       await expect(users.delete('user-1', ADMIN))
-        .rejects.toThrow('La cuenta tiene citas asociadas. Cancélalas o reasígnalas antes de eliminarla.');
+        .rejects.toThrow('La cuenta tiene citas registradas y se conserva para no perder el historial. Desactívala en su lugar.');
       expect(userModel.findByIdAndDelete).not.toHaveBeenCalled();
     });
   });

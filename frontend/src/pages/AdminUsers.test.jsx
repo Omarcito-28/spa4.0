@@ -3,12 +3,17 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import AdminUsers from './AdminUsers';
-import { apiCreateUser, apiGetUsers } from '../services/api';
+import { apiCreateUser, apiDeleteUser, apiGetUsers, apiUpdateUser } from '../services/api';
 
 vi.mock('../services/api', () => ({
   apiGetUsers: vi.fn(),
   apiUpdateUser: vi.fn(),
   apiCreateUser: vi.fn(),
+  apiDeleteUser: vi.fn(),
+}));
+
+vi.mock('../contexts/auth', () => ({
+  useAuth: () => ({ user: { username: 'admin', role: 'ADMIN' } }),
 }));
 
 const admin = { _id: 'u1', username: 'admin', fullName: 'Administradora', email: 'admin@spa.test', role: 'ADMIN' };
@@ -62,5 +67,58 @@ describe('AdminUsers', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('El nombre de usuario ya existe.');
     expect(screen.getByLabelText('Nombre de usuario')).toHaveValue('admin');
+  });
+
+  it('desactiva una cuenta y confirma el cambio junto a la tabla', async () => {
+    const user = userEvent.setup();
+    apiGetUsers.mockResolvedValue([admin, lina]);
+    apiUpdateUser.mockResolvedValue({ ...lina, isActive: false });
+    renderUsers();
+    await screen.findByText('Lina Gómez');
+
+    apiGetUsers.mockResolvedValue([admin, { ...lina, isActive: false }]);
+    await user.click(screen.getAllByRole('button', { name: 'Desactivar' })[1]);
+
+    expect(apiUpdateUser).toHaveBeenCalledWith('u2', { isActive: false });
+    expect(await screen.findByRole('status')).toHaveTextContent('Se desactivó la cuenta de Lina Gómez.');
+    expect(screen.getByRole('button', { name: 'Reactivar' })).toBeEnabled();
+  });
+
+  it('muestra el motivo cuando el backend rechaza la desactivación', async () => {
+    const user = userEvent.setup();
+    apiGetUsers.mockResolvedValue([admin, lina]);
+    apiUpdateUser.mockRejectedValue(new Error('El estilista tiene citas próximas.'));
+    renderUsers();
+    await screen.findByText('Lina Gómez');
+
+    await user.click(screen.getAllByRole('button', { name: 'Desactivar' })[1]);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Lina Gómez: El estilista tiene citas próximas.');
+    expect(apiGetUsers).toHaveBeenCalledTimes(2);
+  });
+
+  it('elimina una cuenta tras confirmar', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    apiGetUsers.mockResolvedValue([admin, lina]);
+    apiDeleteUser.mockResolvedValue({ success: true });
+    renderUsers();
+    await screen.findByText('Lina Gómez');
+
+    apiGetUsers.mockResolvedValue([admin]);
+    await user.click(screen.getByRole('button', { name: 'Eliminar a lina' }));
+
+    expect(apiDeleteUser).toHaveBeenCalledWith('u2');
+    expect(await screen.findByRole('status')).toHaveTextContent('Se eliminó la cuenta de Lina Gómez.');
+    expect(screen.queryByText('Lina Gómez')).not.toBeInTheDocument();
+  });
+
+  it('bloquea las acciones sobre la propia cuenta del administrador', async () => {
+    renderUsers();
+    await screen.findByText('Administradora');
+
+    expect(screen.getByRole('button', { name: 'Desactivar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Eliminar a admin' })).toBeDisabled();
+    expect(screen.getByLabelText('Rol de admin')).toBeDisabled();
   });
 });

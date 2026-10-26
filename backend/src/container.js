@@ -36,6 +36,7 @@ const passwordHasher = new PasswordHasher();
 const bookingLockService = new BookingLockService({ userModel: User, bookingLockModel: BookingLock });
 
 const availabilityService = new AvailabilityService({ userModel: User, appointmentModel: Appointment });
+const clock = new BogotaClock();
 const appointmentService = new AppointmentService({
   appointmentModel: Appointment,
   serviceModel: Service,
@@ -43,10 +44,10 @@ const appointmentService = new AppointmentService({
   availabilityService,
   bookingLockService,
   emailService,
-  clock: new BogotaClock()
+  clock
 });
 const authService = new AuthService({ userModel: User, passwordHasher, tokenService, emailService });
-const userService = new UserService({ userModel: User, appointmentModel: Appointment, passwordHasher });
+const userService = new UserService({ userModel: User, appointmentModel: Appointment, passwordHasher, clock });
 const serviceCatalogService = new ServiceCatalogService({ serviceModel: Service });
 const serviceImageService = new ServiceImageService({ serviceImageModel: ServiceImage });
 
