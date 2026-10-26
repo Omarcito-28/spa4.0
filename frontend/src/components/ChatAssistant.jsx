@@ -414,21 +414,53 @@ const Planner = styled.form`
 
   label {
     display: grid;
-    gap: 0.2rem;
-    color: #604412;
-    font-weight: 600;
+    gap: 0.25rem;
+    color: #7a500f;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
   }
 
   select, input {
     width: 100%;
     min-width: 0;
-    height: 2.15rem;
-    padding: 0 0.55rem;
-    border: 1px solid #d8cbb4;
-    border-radius: 0.55rem;
-    background: #fff;
+    height: 2.4rem;
+    padding: 0 0.7rem;
+    border: 1.5px solid #9a8452;
+    border-radius: 0.7rem;
+    background: #fffaf0;
+    box-shadow: inset 0 1px 2px rgba(122, 80, 15, 0.06);
     color: #403522;
     font: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+
+  select {
+    appearance: none;
+    padding-right: 2rem;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 14 9'><path d='M1 1.5l6 6 6-6' fill='none' stroke='%23996515' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+  }
+
+  select:hover, input:hover {
+    border-color: #c9942a;
+  }
+
+  select:focus, input:focus {
+    outline: none;
+    border-color: #996515;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(201, 148, 42, 0.2);
+  }
+
+  input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.75;
+    filter: invert(36%) sepia(70%) saturate(900%) hue-rotate(10deg) brightness(90%);
   }
 
   button {

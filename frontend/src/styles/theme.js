@@ -157,14 +157,16 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: ${theme.colors.accent};
+    color: ${theme.colors.primaryDark};   /* #7a500f: 6.6:1 sobre crema (el dorado #c9942a daba 2.5:1) */
+    text-decoration: underline;
+    text-underline-offset: 3px;
     text-decoration: none;
     transition: color ${theme.transitions.normal};
   }
 
   a:hover {
-    color: ${theme.colors.primaryLight};
-    text-decoration: none;
+    color: ${theme.colors.primary};
+    text-decoration: underline;
   }
 
   button {

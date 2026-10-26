@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from '../styles/theme';
+import { shimmer, theme } from '../styles/theme';
 import RefreshStatus from './RefreshStatus';
 import StatusBadge from './StatusBadge';
 
@@ -61,7 +61,6 @@ const StatBox = styled.div`
   background: linear-gradient(135deg, #fdf8ef, #f8efdf);
 
   strong {
-    display: block;
     color: ${theme.colors.primaryDark};
     font-family: ${theme.fonts.primary};
     font-size-adjust: none;
@@ -100,6 +99,20 @@ const List = styled.ul`
   }
 `;
 
+const Skeleton = styled.div`
+  height: 76px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #f3ecdc 25%, #fbf6ea 50%, #f3ecdc 75%);
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.4s linear infinite;
+`;
+
+const SkeletonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+`;
+
 const Muted = styled.p`
   margin: 0;
   color: ${theme.colors.textMuted};
@@ -120,7 +133,12 @@ export function LivePanel({ title, live, children }) {
         <RefreshStatus lastUpdated={live.lastUpdated} refreshing={live.refreshing} onRefresh={live.refresh} />
       </Header>
       {live.error && <ErrorText role="alert">{live.error}</ErrorText>}
-      {live.loading ? <Muted role="status">Cargando…</Muted> : children}
+      {live.loading ? (
+        <div role="status" aria-label="Cargando">
+          <SkeletonGrid><Skeleton /><Skeleton /><Skeleton /><Skeleton /></SkeletonGrid>
+          <span style={{ position: 'absolute', left: '-9999px' }}>Cargando…</span>
+        </div>
+      ) : children}
     </Section>
   );
 }
@@ -128,7 +146,13 @@ export function LivePanel({ title, live, children }) {
 export function StatGrid({ stats }) {
   return (
     <Stats>
-      {stats.map(stat => <StatBox key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></StatBox>)}
+      {stats.map(stat => (
+        <StatBox key={stat.label}>
+          {stat.icon && <div className="stat-icon" aria-hidden="true"><i className={`fas ${stat.icon}`}></i></div>}
+          <strong>{stat.value}</strong>
+          <span>{stat.label}</span>
+        </StatBox>
+      ))}
     </Stats>
   );
 }

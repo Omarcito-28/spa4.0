@@ -66,7 +66,7 @@ const LogoIcon = styled.div`
 const Title = styled.h2`
   text-align: center;
   color: ${theme.colors.text};
-  font-size: 2.8rem;
+  font-size: 2.4rem;
   margin-bottom: 0.25rem;
   font-family: ${theme.fonts.primary};
   font-size-adjust: none;
@@ -95,7 +95,7 @@ const Alert = styled.div`
   ${props => props.$type === 'success' && `
     background: rgba(39, 174, 96, 0.08);
     border: 1px solid rgba(39, 174, 96, 0.2);
-    color: #27ae60;
+    color: #1e7e46;
   `}
 `;
 
@@ -121,7 +121,7 @@ const Label = styled.label`
 
 const Input = styled.input`
   padding: 0.85rem 1.1rem;
-  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  border: 1.5px solid ${theme.colors.border};
   border-radius: ${theme.borderRadius.small};
   background: #FAFAFA;
   color: ${theme.colors.text};
@@ -143,7 +143,7 @@ const Input = styled.input`
 `;
 
 const SubmitButton = styled.button`
-  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+  background: linear-gradient(135deg, ${theme.colors.primaryDark}, ${theme.colors.primary});
   color: white;
   padding: 1rem;
   border: none;

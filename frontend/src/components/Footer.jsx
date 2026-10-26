@@ -190,7 +190,7 @@ const BottomBar = styled.div`
 `;
 
 const HeartPulse = styled.span`
-  color: ${theme.colors.primary};
+  color: ${theme.colors.accent};
   display: inline-block;
   animation: ${heartPulse} 1.5s ease-in-out infinite;
   text-shadow: 0 0 6px rgba(153, 101, 21, 0.5);

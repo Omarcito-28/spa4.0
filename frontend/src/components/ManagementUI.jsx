@@ -1,30 +1,85 @@
 import styled, { css } from 'styled-components';
 import { theme, fadeInUp } from '../styles/theme';
 
-const border = '#e4dccd';
+const border = theme.colors.border;
+const arrow = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1.5l6 6 6-6' fill='none' stroke='%23996515' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>\")";
 
 // Los controles de formulario no heredan el tamaño de letra del body; se fija aquí.
 const control = css`
   min-width: 0;
-  padding: 0.6rem 0.85rem;
-  border: 1px solid ${border};
-  border-radius: 10px;
-  background: #fff;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1.5px solid ${border};
+  border-radius: 12px;
+  background: #fffaf0;
+  box-shadow: inset 0 1px 2px rgba(122, 80, 15, 0.06);
   color: ${theme.colors.text};
   font: inherit;
   font-size: 1.1rem;
   line-height: 1.3;
-  transition: border-color ${theme.transitions.fast}, box-shadow ${theme.transitions.fast};
+  transition: border-color ${theme.transitions.fast}, box-shadow ${theme.transitions.fast}, background ${theme.transitions.fast};
+
+  &::placeholder {
+    color: ${theme.colors.placeholder};
+    opacity: 1;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: ${theme.colors.accent};
+  }
 
   &:focus {
     outline: none;
-    border-color: ${theme.colors.accent};
-    box-shadow: 0 0 0 3px rgba(201, 148, 42, 0.2);
+    border-color: ${theme.colors.primary};
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(201, 148, 42, 0.2);
   }
 
   &:disabled {
     background: #f6f3ee;
     cursor: wait;
+  }
+
+  &:is(select) {
+    appearance: none;
+    padding-right: 2.4rem;
+    background-image: ${arrow};
+    background-repeat: no-repeat;
+    background-position: right 0.95rem center;
+  }
+
+  &:is(textarea) {
+    min-height: 110px;
+    resize: vertical;
+  }
+
+  &[type='date'], &[type='time'] {
+    accent-color: ${theme.colors.primary};
+    min-height: 2.9rem;
+  }
+
+  &::-webkit-calendar-picker-indicator {
+    padding: 0.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    opacity: 0.75;
+    /* tiñe el ícono nativo al dorado de la marca */
+    filter: invert(36%) sepia(70%) saturate(900%) hue-rotate(10deg) brightness(90%);
+    transition: opacity ${theme.transitions.fast}, background ${theme.transitions.fast};
+  }
+
+  &::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background: rgba(201, 148, 42, 0.18);
+  }
+
+  &[type='checkbox'] {
+    width: 1.2rem;
+    height: 1.2rem;
+    padding: 0;
+    accent-color: ${theme.colors.primary};
+    box-shadow: none;
+    cursor: pointer;
   }
 `;
 
@@ -108,14 +163,18 @@ export const Field = styled.label`
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  margin-bottom: 1rem;
-  color: ${theme.colors.text};
-  font-size: 1.1rem;
-  font-weight: 600;
+  margin-bottom: 1.1rem;
+  color: ${theme.colors.primaryDark};
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 
   input, select, textarea {
     ${control}
     font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
   }
 `;
 
@@ -195,6 +254,11 @@ export const Toolbar = styled.div`
 
   > input:not([type='date']) {
     flex: 1 1 260px;
+    width: auto;
+  }
+
+  > select {
+    width: auto;
   }
 
   label {
@@ -207,6 +271,10 @@ export const Toolbar = styled.div`
 
     input, select {
       ${control}
+      width: auto;
+      letter-spacing: normal;
+      text-transform: none;
+      font-weight: 400;
     }
   }
 
@@ -234,9 +302,18 @@ export const Table = styled.table`
   font-size: 1.12rem;
 
   th, td {
-    padding: 0.9rem 1.1rem;
+    height: 64px;
+    padding: 0.85rem 1.1rem;
     border-bottom: 1px solid #eee8dc;
     vertical-align: middle;
+  }
+
+  tbody tr:nth-child(even) {
+    background: #fffdf9;
+  }
+
+  td:last-child:has(button) {
+    white-space: nowrap;
   }
 
   th {
@@ -266,8 +343,23 @@ export const Table = styled.table`
     border-bottom: 0;
   }
 
+  input:not([type='checkbox']) {
+    ${control}
+    width: auto;
+    padding: 0.4rem 0.6rem;
+    font-size: 1rem;
+  }
+
+  input[type='checkbox'] {
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: ${theme.colors.primary};
+    cursor: pointer;
+  }
+
   select {
     ${control}
+    width: auto;
     max-width: 200px;
     padding: 0.4rem 0.6rem;
     font-size: 1rem;
@@ -295,6 +387,47 @@ export const Notice = styled.p`
   background: ${props => props.$error ? '#fbe3e0' : '#dff3e4'};
   color: ${props => props.$error ? '#8c2318' : '#1f5f33'};
   font-size: 1.08rem;
+`;
+
+// Formulario en una sola fila (por ejemplo "Reprogramar" dentro de una tabla).
+export const InlineForm = styled.form`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.9rem 1rem;
+  margin: 0.25rem 0;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid #eee8dc;
+  border-radius: ${theme.borderRadius.medium};
+  background: linear-gradient(135deg, #fffdf8, #faf3e3);
+
+  label {
+    display: flex;
+    flex: 1 1 190px;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: ${theme.colors.primaryDark};
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+
+    input, select {
+      ${control}
+      letter-spacing: normal;
+      text-transform: none;
+      font-weight: 400;
+    }
+  }
+
+  ${Button} {
+    margin: 0;
+  }
+
+  > p, > [role='alert'] {
+    flex-basis: 100%;
+    margin: 0;
+  }
 `;
 
 export const Form = styled.form`
@@ -325,17 +458,22 @@ export const StatCard = styled.div`
   }
 
   h2 {
-    margin: 0 0 0.2rem;
-    color: ${theme.colors.text};
-    font-size: 2.3rem;
-    line-height: 1.1;
+    margin: 0 0 0.3rem;
+    color: ${theme.colors.primaryDark};
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: lining-nums;
   }
 
   p {
     margin: 0;
     color: ${theme.colors.textMuted};
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    opacity: 0.75;
   }
 
   small {
