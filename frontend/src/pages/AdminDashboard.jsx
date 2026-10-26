@@ -60,7 +60,7 @@ const WelcomeCard = styled.div`
   }
 
   p {
-    opacity: 0.7;
+    opacity: 0.88;
     font-size: 1.15rem;
     margin-bottom: 0.25rem;
   }
@@ -136,6 +136,7 @@ const CardTitle = styled.h3`
   margin-bottom: 0.5rem;
   font-size: 1.35rem;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
   font-weight: 600;
 `;
 

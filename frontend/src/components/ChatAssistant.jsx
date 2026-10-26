@@ -133,12 +133,14 @@ const BrandMark = styled.div`
   background: rgba(255, 248, 230, 0.12);
   color: #f4d99f;
   font-family: ${theme.fonts.primary};
+  font-size-adjust: none;
   font-size: 1.25rem;
   font-style: italic;
 `;
 
 const HeaderTitle = styled.div`
   font-family: ${theme.fonts.primary};
+  font-size-adjust: none;
   font-size: 1.18rem;
   font-weight: 600;
   letter-spacing: 0.02em;

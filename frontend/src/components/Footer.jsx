@@ -30,7 +30,7 @@ const heartPulse = keyframes`
 
 const FooterContainer = styled.footer`
   background: linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%);
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.78);
   padding: 3.5rem 0 0;
   margin-top: auto;
   border-top: 1px solid rgba(153, 101, 21, 0.15);
@@ -60,6 +60,7 @@ const FooterGrid = styled.div`
 const FooterBrand = styled.div`
   h3 {
     font-family: ${theme.fonts.primary};
+    font-size-adjust: none;
     font-size: 2.1rem;
     margin-bottom: 1rem;
     letter-spacing: 0.5px;
@@ -81,8 +82,8 @@ const FooterBrand = styled.div`
   p {
     font-size: 1.15rem;
     line-height: 1.7;
-    max-width: 320px;
-    color: rgba(255, 255, 255, 0.5);
+    max-width: 340px;
+    color: rgba(255, 255, 255, 0.75);
 
     @media (max-width: 768px) {
       max-width: 100%;
@@ -109,8 +110,8 @@ const SocialIcon = styled.a`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${theme.colors.primary};
-  font-size: 0.85rem;
+  color: ${theme.colors.accent};
+  font-size: 0.95rem;
   transition: all ${theme.transitions.normal};
   animation: ${iconGlow} 3s ease-in-out infinite;
   animation-delay: calc(var(--i, 0) * 0.4s);
@@ -126,6 +127,7 @@ const SocialIcon = styled.a`
 const FooterColumn = styled.div`
   h4 {
     font-family: ${theme.fonts.secondary};
+    font-size-adjust: ${theme.fonts.secondaryAdjust};
     font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -149,7 +151,7 @@ const FooterColumn = styled.div`
 
 const FooterLink = styled(Link)`
   display: block;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
   font-size: 1.15rem;
   padding: 0.3rem 0;
@@ -170,14 +172,14 @@ const BottomBar = styled.div`
   align-items: center;
   padding: 1.25rem 0;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.62);
 
   span {
     transition: color 0.3s ease;
   }
 
   &:hover span {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.8);
   }
 
   @media (max-width: 768px) {
@@ -226,11 +228,11 @@ function Footer() {
 
           <FooterColumn>
             <h4>Horario</h4>
-            <p style={{ fontSize: '0.9rem', lineHeight: 1.8, color: 'rgba(255,255,255,0.5)' }}>
+            <p style={{ fontSize: '1.05rem', lineHeight: 1.8, color: 'rgba(255,255,255,0.7)' }}>
               Lunes - Viernes<br />
-              <span style={{ color: 'rgba(255,255,255,0.7)' }}>9:00 AM - 7:00 PM</span><br /><br />
+              <span style={{ color: 'rgba(255,255,255,0.92)', fontWeight: 600 }}>9:00 AM - 7:00 PM</span><br /><br />
               Sábado<br />
-              <span style={{ color: 'rgba(255,255,255,0.7)' }}>9:00 AM - 5:00 PM</span>
+              <span style={{ color: 'rgba(255,255,255,0.92)', fontWeight: 600 }}>9:00 AM - 5:00 PM</span>
             </p>
           </FooterColumn>
         </FooterGrid>

@@ -57,6 +57,7 @@ const Badge = styled.span`
   display: block;
   text-align: center;
   font-family: ${theme.fonts.secondary};
+  font-size-adjust: ${theme.fonts.secondaryAdjust};
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 4px;
