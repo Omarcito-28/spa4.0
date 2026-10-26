@@ -113,6 +113,27 @@ describe('AdminUsers', () => {
     expect(screen.queryByText('Lina Gómez')).not.toBeInTheDocument();
   });
 
+  it('vuelve a la página anterior si eliminar deja vacía la última', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const clients = Array.from({ length: 10 }, (_, index) => ({
+      _id: `c${index}`, username: `cliente${index}`, fullName: `Cliente ${index}`, email: `c${index}@spa.test`, role: 'CLIENT'
+    }));
+    apiGetUsers.mockResolvedValue([admin, ...clients]);
+    apiDeleteUser.mockResolvedValue({ success: true });
+    renderUsers();
+    await screen.findByText('Administradora');
+
+    await user.click(screen.getByRole('button', { name: /siguiente/i }));
+    expect(await screen.findByText('Cliente 9')).toBeInTheDocument();
+
+    apiGetUsers.mockResolvedValue([admin, ...clients.slice(0, 9)]);
+    await user.click(screen.getByRole('button', { name: 'Eliminar a cliente9' }));
+
+    expect(await screen.findByText('Administradora')).toBeInTheDocument();
+    expect(screen.getByText('Cliente 8')).toBeInTheDocument();
+  });
+
   it('bloquea las acciones sobre la propia cuenta del administrador', async () => {
     renderUsers();
     await screen.findByText('Administradora');

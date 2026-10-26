@@ -51,7 +51,7 @@ function AdminUsers() {
   const [busyId, setBusyId] = useState('');
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [page, setPage] = useState(1);
+  const [requestedPage, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [account, setAccount] = useState(emptyAccount);
   const [saving, setSaving] = useState(false);
@@ -133,6 +133,8 @@ function AdminUsers() {
       (!roleFilter || user.role === roleFilter);
   });
   const pageCount = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  // Si eliminar una cuenta deja vacía la última página, se muestra la anterior.
+  const page = Math.min(requestedPage, pageCount);
   const visibleUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
   const countByRole = role => users.filter(user => user.role === role).length;
 

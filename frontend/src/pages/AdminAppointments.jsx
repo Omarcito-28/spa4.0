@@ -21,18 +21,23 @@ function AdminAppointments() {
   const appointments = live.data?.appointments ?? [];
   const stylists = live.data?.stylists ?? [];
   const [actionError, setActionError] = useState('');
+  const [busyId, setBusyId] = useState('');
   const error = actionError || live.error;
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [requestedPage, setPage] = useState(1);
   const pageSize = 10;
 
+  // Los controles de la fila se bloquean mientras se guarda, para que dos cambios rápidos no se pisen.
   const update = async (id, changes) => {
+    setBusyId(id);
     try {
       await apiUpdateAppointment(id, changes);
       setActionError('');
-      await live.refresh();
     } catch (requestError) {
       setActionError(requestError.message);
+    } finally {
+      await live.refresh();
+      setBusyId('');
     }
   };
 
@@ -85,11 +90,14 @@ function AdminAppointments() {
               <td>{stylists.find(stylist => stylist.username === appointment.stylist)?.fullName || appointment.stylist || 'Por asignar'}</td>
               <td><StatusBadge status={appointment.status} /></td>
             </> : <>
-              <td><select aria-label={`Estilista de ${appointment.username}`} value={appointment.stylist || ''} onChange={event => update(appointment._id, { stylist: event.target.value })}>
+              <td><select aria-label={`Estilista de ${appointment.username}`} value={appointment.stylist || ''} disabled={busyId === appointment._id} onChange={event => update(appointment._id, { stylist: event.target.value })}>
                 <option value="">Por asignar</option>{stylists.map(stylist => <option key={stylist._id} value={stylist.username}>{stylist.fullName}</option>)}
+                {/* La lista solo trae estilistas activos: sin esta opción, una cita de un estilista desactivado aparecería "Por asignar". */}
+                {appointment.stylist && !stylists.some(stylist => stylist.username === appointment.stylist) &&
+                  <option value={appointment.stylist}>@{appointment.stylist} (no disponible)</option>}
               </select></td>
               <td><div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}><StatusBadge status={appointment.status} />
-                <select aria-label={`Estado de ${appointment.username}`} value={appointment.status} onChange={event => update(appointment._id, { status: event.target.value })}>
+                <select aria-label={`Estado de ${appointment.username}`} value={appointment.status} disabled={busyId === appointment._id} onChange={event => update(appointment._id, { status: event.target.value })}>
                   {STATUS_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select></div></td>
             </>}
