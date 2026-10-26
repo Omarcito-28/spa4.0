@@ -62,6 +62,31 @@ describe('StylistAppointments', () => {
     expect(within(row).queryByRole('button')).not.toBeInTheDocument();
   });
 
+  it('filtra por estado y muestra un mensaje cuando no hay citas en el filtro', async () => {
+    const user = userEvent.setup();
+    render(<StylistAppointments />);
+    await screen.findByText('cliente-iniciada');
+
+    await user.click(screen.getByRole('button', { name: /Por confirmar/ }));
+    expect(screen.getByText('cliente-pendiente')).toBeInTheDocument();
+    expect(screen.queryByText('cliente-iniciada')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Historial/ }));
+    expect(screen.getByText('cliente-hecha')).toBeInTheDocument();
+    expect(screen.queryByText('cliente-pendiente')).not.toBeInTheDocument();
+
+    apiGetAppointments.mockResolvedValue([appointment('hecha', { status: 'COMPLETED' })]);
+    await user.click(screen.getByRole('button', { name: 'Actualizar ahora' }));
+    await user.click(screen.getByRole('button', { name: /Confirmadas/ }));
+    expect(await screen.findByText('No hay citas en "Confirmadas".')).toBeInTheDocument();
+  });
+
+  it('avisa cuando todavía no hay citas asignadas', async () => {
+    apiGetAppointments.mockResolvedValue([]);
+    render(<StylistAppointments />);
+    expect(await screen.findByText('Todavía no tienes citas asignadas.')).toBeInTheDocument();
+  });
+
   it('muestra el error del servidor si no se puede completar', async () => {
     apiUpdateAppointmentStatus.mockRejectedValue(new Error('No puedes completar una cita que todavía no ha empezado.'));
     render(<StylistAppointments />);
