@@ -431,6 +431,7 @@ const ADMIN_MENU = [
     links: [
       { to: '/admin/users', label: 'Usuarios', icon: 'fa-users-cog' },
       { to: '/admin/services', label: 'Catálogo de servicios', icon: 'fa-concierge-bell' },
+      { to: '/admin/agenda', label: 'Agenda y cierres', icon: 'fa-calendar-times' },
     ],
   },
   {

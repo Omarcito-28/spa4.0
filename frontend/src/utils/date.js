@@ -34,6 +34,13 @@ export const formatElapsed = milliseconds => {
   return `${Math.floor(seconds / 3600)} h`;
 };
 
+// Minutos que faltan para que empiece la cita (negativo si ya empezó), con la hora de Colombia.
+export const minutesUntilAppointment = ({ date, time }, timeZone = 'America/Bogota') => {
+  const today = todayInTimeZone(timeZone);
+  const days = Math.round((Date.parse(`${date}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86400000);
+  return days * 1440 + appointmentTimeToMinutes(time) - minutesNowInTimeZone(timeZone);
+};
+
 // Misma regla que el backend: la cita empezó si su fecha y hora ya llegaron en Colombia.
 export const hasAppointmentStarted = ({ date, time }, timeZone = 'America/Bogota') => {
   const today = todayInTimeZone(timeZone);

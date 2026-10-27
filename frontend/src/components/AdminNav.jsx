@@ -50,6 +50,7 @@ const LINKS = [
   { to: '/admin/users', icon: 'fa-users-cog', label: 'Usuarios' },
   { to: '/admin/services', icon: 'fa-concierge-bell', label: 'Servicios' },
   { to: '/appointments/all', icon: 'fa-calendar-alt', label: 'Citas' },
+  { to: '/admin/agenda', icon: 'fa-calendar-times', label: 'Agenda' },
   { to: '/admin/reports', icon: 'fa-chart-line', label: 'Reportes' },
 ];
 

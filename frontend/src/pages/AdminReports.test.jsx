@@ -17,6 +17,9 @@ vi.mock('../services/api', () => ({
     { _id: 's2', name: 'Masaje Relajante', price: '$70.000' },
   ]),
   apiGetUsers: vi.fn().mockResolvedValue([{ role: 'CLIENT' }, { role: 'STYLIST' }]),
+  apiGetReviewSummary: vi.fn().mockResolvedValue({ services: [], stylists: [] }),
+  apiGetAllReviews: vi.fn().mockResolvedValue([]),
+  apiDeleteReview: vi.fn(),
 }));
 
 // Intl separa el símbolo de la cifra con un espacio duro; se normaliza para comparar.

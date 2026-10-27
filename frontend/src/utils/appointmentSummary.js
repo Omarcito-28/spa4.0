@@ -6,7 +6,7 @@ export const compareByDateTime = (a, b) =>
 
 export const countByStatus = appointments => appointments.reduce(
   (counts, appointment) => ({ ...counts, [appointment.status]: (counts[appointment.status] || 0) + 1 }),
-  { PENDING: 0, CONFIRMED: 0, COMPLETED: 0, CANCELLED: 0 }
+  { PENDING: 0, CONFIRMED: 0, COMPLETED: 0, CANCELLED: 0, NO_SHOW: 0 }
 );
 
 // Citas que siguen activas desde hoy en adelante, en orden cronológico.

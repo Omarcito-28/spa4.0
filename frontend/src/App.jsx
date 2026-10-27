@@ -17,6 +17,7 @@ import AdminAppointments from './pages/AdminAppointments';
 import StylistAppointments from './pages/StylistAppointments';
 import StylistSchedule from './pages/StylistSchedule';
 import AdminReports from './pages/AdminReports';
+import AdminAgenda from './pages/AdminAgenda';
 import PasswordRecovery from './pages/PasswordRecovery';
 import { useEffect } from 'react';
 
@@ -67,6 +68,7 @@ function App() {
         <Route path="admin/users" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminUsers /> : <Navigate to="/login" replace />} />
         <Route path="admin/services" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminServices /> : <Navigate to="/login" replace />} />
         <Route path="appointments/all" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminAppointments /> : <Navigate to="/login" replace />} />
+        <Route path="admin/agenda" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminAgenda /> : <Navigate to="/login" replace />} />
         <Route path="admin/reports" element={isAuthenticated && user?.role === 'ADMIN' ? <AdminReports /> : <Navigate to="/login" replace />} />
         <Route path="profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} />
         <Route path="services" element={<Services isAuthenticated={isAuthenticated} />} />

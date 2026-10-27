@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import AdminUsers from './AdminUsers';
@@ -132,6 +132,27 @@ describe('AdminUsers', () => {
 
     expect(await screen.findByText('Administradora')).toBeInTheDocument();
     expect(screen.getByText('Cliente 8')).toBeInTheDocument();
+  });
+
+  it('edita nombre, correo y teléfono; si falla, conserva el formulario', async () => {
+    const user = userEvent.setup();
+    apiGetUsers.mockResolvedValue([admin, lina]);
+    apiUpdateUser.mockRejectedValueOnce(new Error('Ese correo ya está asociado a otra cuenta.')).mockResolvedValue({});
+    renderUsers();
+    await screen.findByText('Lina Gómez');
+
+    await user.click(screen.getByRole('button', { name: 'Editar a lina' }));
+    const form = screen.getByRole('form', { name: 'Editar a lina' });
+    fireEvent.change(within(form).getByLabelText('Teléfono'), { target: { value: '300 555' } });
+    await user.click(within(form).getByRole('button', { name: 'Guardar cambios' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ese correo ya está asociado a otra cuenta.');
+    expect(within(screen.getByRole('form', { name: 'Editar a lina' })).getByLabelText('Teléfono')).toHaveValue('300 555');
+
+    await user.click(within(screen.getByRole('form', { name: 'Editar a lina' })).getByRole('button', { name: 'Guardar cambios' }));
+    expect(apiUpdateUser).toHaveBeenLastCalledWith('u2', { fullName: 'Lina Gómez', email: 'lina@spa.test', phoneNumber: '300 555' });
+    expect(await screen.findByRole('status')).toHaveTextContent('Se actualizaron los datos de Lina Gómez.');
+    expect(screen.queryByRole('form', { name: 'Editar a lina' })).not.toBeInTheDocument();
   });
 
   it('bloquea las acciones sobre la propia cuenta del administrador', async () => {

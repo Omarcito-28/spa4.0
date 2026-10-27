@@ -10,6 +10,7 @@ import {
   apiGetStylists,
   apiGetStylistAvailability
 } from '../services/api';
+import { downloadIcs } from '../utils/download';
 
 /* ─── Animations ─────────────────────────────────────────── */
 const shimmer = keyframes`
@@ -347,6 +348,7 @@ function BookingForm() {
   const [errors, setErrors]     = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess]       = useState(false);
+  const [createdAppointment, setCreatedAppointment] = useState(null);
   const [services, setServices] = useState([]);
   const [stylists, setStylists] = useState([]);
   const [isLoadingServices, setIsLoadingServices] = useState(true);
@@ -430,7 +432,7 @@ function BookingForm() {
     setIsSubmitting(true);
     setSubmitError('');
     try {
-      await apiCreateAppointment(formData);
+      setCreatedAppointment(await apiCreateAppointment(formData));
       setIsSuccess(true);
     } catch (error) {
       setSubmitError(error.message || 'No se pudo agendar la cita. Inténtalo de nuevo.');
@@ -453,6 +455,14 @@ function BookingForm() {
             <SuccessDetail>
               La cita quedó pendiente de confirmación. Puedes consultar su estado en «Mis citas».
             </SuccessDetail>
+            {createdAppointment?._id && (
+              <BackButton type="button" onClick={() => downloadIcs(createdAppointment, {
+                stylistName: stylists.find(stylist => stylist.username === createdAppointment.stylist)?.fullName,
+                location: import.meta.env.VITE_CONTACT_ADDRESS?.trim(),
+              })}>
+                <i className="fas fa-calendar-plus" aria-hidden="true"></i> Agregar a mi calendario
+              </BackButton>
+            )}{' '}
             <BackButton onClick={() => window.history.back()}>Volver</BackButton>
           </SuccessWrapper>
         ) : (
@@ -532,7 +542,10 @@ function BookingForm() {
                 {!formData.date && <small>Selecciona una fecha para consultar los horarios.</small>}
                 {availabilityError && <ErrorMessage role="alert">{availabilityError}</ErrorMessage>}
                 {currentAvailability && !availabilityError && !availableSchedule && (
-                  <ErrorMessage>El estilista no trabaja ese día.</ErrorMessage>
+                  <ErrorMessage>
+                    {currentAvailability.closedReason ||
+                      (formData.stylist ? 'El estilista no trabaja ese día.' : 'El spa no atiende ese día.')}
+                  </ErrorMessage>
                 )}
                 {currentAvailability && !availabilityError && availableSchedule &&
                   getTimeSlots(availableSchedule, services.find(service => service.name === formData.service)?.duration || 60).length === 0 && (

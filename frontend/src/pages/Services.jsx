@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { theme, fadeInUp } from '../styles/theme';
-import { apiGetServices, resolveImageUrl } from '../services/api';
+import { apiGetReviewSummary, apiGetServices, resolveImageUrl } from '../services/api';
+import StarRating from '../components/StarRating';
 import BookServiceLink from '../components/BookServiceLink';
 
 const ServicesContainer = styled.div`
@@ -193,8 +194,13 @@ function Services({ isAuthenticated = false }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [ratings, setRatings] = useState({});
 
   useEffect(() => {
+    // Las calificaciones son un extra: si fallan, el catálogo se muestra igual.
+    apiGetReviewSummary()
+      .then(summary => setRatings(Object.fromEntries(summary.services.map(item => [item.name, item]))))
+      .catch(() => {});
     apiGetServices()
       .then((data) => setServices(data))
       .catch(() => setError('No se pudieron cargar los servicios. Verifica que el servidor esté activo.'))
@@ -239,6 +245,7 @@ function Services({ isAuthenticated = false }) {
               </ImageWrapper>
               <ServiceContent>
                 <ServiceName>{service.name}</ServiceName>
+                {ratings[service.name] && <StarRating value={ratings[service.name].average} count={ratings[service.name].count} />}
                 <ServiceDescription>{service.description}</ServiceDescription>
                 <CardFooter>
                   <Duration><i className="far fa-clock" aria-hidden="true"></i>{service.duration || 60} min</Duration>

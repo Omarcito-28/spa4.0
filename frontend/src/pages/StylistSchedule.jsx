@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { theme } from '../styles/theme';
 import { apiGetSchedule, apiUpdateSchedule } from '../services/api';
-import { Button, Card, Description, Input, Notice, Page, Title } from '../components/ManagementUI';
+import { Button, Card, Description, Input, Notice, Page, SectionTitle, Title } from '../components/ManagementUI';
+import TimeOffManager from '../components/TimeOffManager';
+import { useAuth } from '../contexts/auth';
 
 const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const defaultSchedule = daysOfWeek.map((_, day) => ({
@@ -229,6 +231,7 @@ const Unsaved = styled.span`
 `;
 
 function StylistSchedule() {
+  const { user } = useAuth();
   const [schedule, setSchedule] = useState(defaultSchedule);
   // null mientras no exista un horario guardado: el predeterminado también se puede guardar.
   const [saved, setSaved] = useState(null);
@@ -367,6 +370,12 @@ function StylistSchedule() {
             {notice && <Notice $error={notice.error} role="status">{notice.text}</Notice>}
           </Footer>
         </form>
+      </Card>
+
+      <SectionTitle>Días libres y vacaciones</SectionTitle>
+      <Description>Bloquea las fechas en que no vas a atender. Esos días no se podrán reservar contigo; si ya tienes citas activas en ellos, pide a la administración que las reasigne primero.</Description>
+      <Card>
+        <TimeOffManager currentUsername={user?.username} />
       </Card>
     </Page>
   );

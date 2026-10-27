@@ -22,6 +22,8 @@ export default defineConfig({
     // backend/ tiene su propia configuración de Vitest.
     include: ['src/**/*.test.{js,jsx}'],
     setupFiles: ['./src/test/setup.js'],
+    // Las pruebas de páginas completas pueden pasar de 5 s en equipos o CI lentos.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{js,jsx}'],

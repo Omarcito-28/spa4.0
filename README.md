@@ -6,11 +6,11 @@ Sistema web de control operativo y agendamiento para Centros de Cuidado Personal
 
 | Rol | Qué puede hacer |
 |-----|-----------------|
-| **Cliente** (`CLIENT`) | Registrarse e iniciar sesión, recuperar su contraseña por correo, consultar el catálogo de servicios y la disponibilidad, agendar citas, reprogramarlas o cancelarlas mientras no estén completadas, ver su historial y editar su perfil. |
-| **Estilista** (`STYLIST`) | Ver su panel con las citas del día, confirmar y cancelar las citas que tiene asignadas, marcar como completadas las citas confirmadas que ya empezaron, y configurar su horario semanal de atención. |
-| **Administrador** (`ADMIN`) | Todo lo anterior sobre cualquier cita, además de crear cuentas con el rol que elija (por ejemplo, de estilista), gestionar usuarios y roles, administrar el catálogo de servicios y consultar reportes de citas e ingresos por servicios completados. |
+| **Cliente** (`CLIENT`) | Registrarse e iniciar sesión, recuperar su contraseña por correo, consultar el catálogo de servicios y la disponibilidad, agendar citas, reprogramarlas o cancelarlas con la anticipación mínima de la política de cancelación, agregarlas a su calendario (`.ics`), calificar las citas completadas, ver su historial y editar su perfil. Recibe un recordatorio por correo el día anterior a cada cita. |
+| **Estilista** (`STYLIST`) | Ver su panel con las citas del día y su agenda en lista o calendario semanal, confirmar y cancelar las citas que tiene asignadas, marcar como completadas o como inasistencia las citas que ya empezaron, escribir notas internas sobre sus clientes, configurar su horario semanal y bloquear sus días libres o vacaciones. |
+| **Administrador** (`ADMIN`) | Todo lo anterior sobre cualquier cita (incluido moverla de fecha y hora o eliminarla, y verlas en un calendario por estilista), además de crear y editar cuentas con el rol que elija, gestionar usuarios y roles, administrar el catálogo de servicios, cerrar el spa en festivos, enviar recordatorios a mano, moderar reseñas y consultar reportes de citas, ingresos, inasistencias y calificaciones, exportables a CSV. |
 
-Los estados de una cita son `PENDING`, `CONFIRMED`, `CANCELLED` y `COMPLETED`. Solo el estilista asignado o un administrador pueden completar una cita, y una cita completada ya no se puede reprogramar ni cancelar.
+Los estados de una cita son `PENDING`, `CONFIRMED`, `CANCELLED`, `COMPLETED` y `NO_SHOW` (el cliente no asistió). Solo el estilista asignado o un administrador pueden completar una cita o registrar una inasistencia, y en ambos casos la cita queda cerrada: ya no se puede reprogramar ni cancelar.
 
 ## Arquitectura
 
@@ -39,18 +39,25 @@ Todos bajo `/api`. "Auth" requiere el encabezado `Authorization: Bearer <token>`
 | Método y ruta | Acceso | Descripción |
 |---------------|--------|-------------|
 | `GET /health` | Público | Estado del servicio |
-| `POST /auth/register` · `POST /auth/login` | Público | Registro e inicio de sesión |
+| `POST /auth/register` · `POST /auth/login` | Público | Registro e inicio de sesión (tras 5 intentos fallidos del mismo usuario desde la misma IP, el login se bloquea 15 minutos) |
 | `POST /auth/password-reset/request` · `/confirm` | Público | Recuperación de contraseña por correo |
 | `GET /auth/me` · `PUT /auth/profile` | Auth | Perfil del usuario |
 | `GET /services` | Público | Catálogo de servicios |
 | `POST /services` · `PUT /services/:id` · `DELETE /services/:id` | Admin | Gestión del catálogo |
-| `GET /appointments/availability` | Público | Horarios disponibles |
+| `GET /appointments/availability` | Público | Horarios disponibles (con `closedReason` si el día está bloqueado) |
+| `GET /appointments/policy` | Público | Horas mínimas para cancelar o reprogramar |
+| `POST /appointments/reminders` | Admin | Envía ya los recordatorios de las citas de mañana |
 | `GET /appointments` · `POST /appointments` | Auth | Citas visibles para el rol y nueva reserva |
 | `PUT /appointments/:id/reschedule` · `PUT /appointments/:id/status` | Auth | Reprogramar y cambiar estado |
-| `PUT /appointments/:id` · `DELETE /appointments/:id` | Admin | Edición y eliminación |
+| `PUT /appointments/:id` · `DELETE /appointments/:id` | Admin | Edición (estado, estilista, fecha y hora) y eliminación |
 | `GET /users/stylists` | Público | Estilistas disponibles |
 | `GET /users/me/schedule` · `PUT /users/me/schedule` | Estilista | Horario semanal |
 | `GET /users` · `POST /users` · `PUT /users/:id` · `DELETE /users/:id` | Admin | Gestión de usuarios: listar, crear cuentas con cualquier rol, editar y eliminar |
+| `GET /time-off` · `POST /time-off` · `DELETE /time-off/:id` | Estilista, Admin | Días libres del estilista y cierres del spa |
+| `GET /reviews` · `GET /reviews/summary` | Público | Reseñas recientes y promedios por servicio y estilista |
+| `GET /reviews/mine` · `POST /reviews` | Cliente | Citas ya calificadas y nueva reseña de una cita completada |
+| `GET /reviews/all` · `DELETE /reviews/:id` | Admin | Moderación de reseñas |
+| `GET /client-notes/:client` · `POST /client-notes/:client` · `DELETE /client-notes/note/:id` | Estilista, Admin | Notas internas sobre un cliente |
 
 ## Tecnologías
 
@@ -103,7 +110,8 @@ Copia `backend/.env.example` a `backend/.env` y completa:
 - `JWT_SECRET`: un valor aleatorio de al menos 32 caracteres.
 - `FRONTEND_URL`: `http://localhost:5173` en desarrollo.
 - `BOOTSTRAP_ADMIN_*`: las cuatro variables, solo si la base todavía no tiene administrador. Se crea una sola vez y no se restablece en arranques posteriores.
-- `SMTP_*`: si quieres enviar correos.
+- `SMTP_*`: si quieres enviar correos (recuperación de contraseña, avisos de citas y recordatorios del día anterior).
+- `CANCELLATION_NOTICE_HOURS`: horas mínimas para que un cliente cancele o reprograme desde la página (por defecto 24; `0` desactiva la regla).
 
 Para el frontend, copia `frontend/.env.example` a `frontend/.env.local` si quieres configurar los datos de contacto y redes (`VITE_CONTACT_*`, `VITE_*_URL`), WhatsApp (`VITE_WHATSAPP_NUMBER`), medios de pago (`VITE_PAYMENT_METHODS`) o la política de cancelación (`VITE_CANCELLATION_POLICY`). Los campos vacíos no muestran datos de ejemplo. En desarrollo deja `VITE_API_URL` vacía.
 

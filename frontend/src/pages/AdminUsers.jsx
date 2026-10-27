@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
 import { apiCreateUser, apiDeleteUser, apiGetUsers, apiUpdateUser } from '../services/api';
 import { useAuth } from '../contexts/auth';
 import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
-import { Button, Card, Description, EmptyCell, Field, Form, Grid, Notice, Page, ResultCount, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
+import { Button, Card, Description, EmptyCell, Field, Form, Grid, InlineForm, Notice, Page, ResultCount, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 
 const ROLE_OPTIONS = [
   { value: 'CLIENT', label: 'Cliente' },
@@ -44,6 +44,24 @@ const Person = styled.div`
   }
 `;
 
+function EditUserForm({ user, onSave, onCancel }) {
+  const [form, setForm] = useState({ fullName: user.fullName, email: user.email, phoneNumber: user.phoneNumber || '' });
+  const change = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }));
+  const submit = event => {
+    event.preventDefault();
+    onSave(form);
+  };
+  return (
+    <InlineForm onSubmit={submit} aria-label={`Editar a ${user.username}`}>
+      <label>Nombre completo<input name="fullName" value={form.fullName} onChange={change} required maxLength={120} /></label>
+      <label>Correo electrónico<input name="email" type="email" value={form.email} onChange={change} required /></label>
+      <label>Teléfono<input name="phoneNumber" type="tel" value={form.phoneNumber} onChange={change} maxLength={30} /></label>
+      <Button type="submit">Guardar cambios</Button>
+      <Button type="button" $secondary onClick={onCancel}>Cancelar</Button>
+    </InlineForm>
+  );
+}
+
 function AdminUsers() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
@@ -58,6 +76,7 @@ function AdminUsers() {
   const [notice, setNotice] = useState(null);
   // Resultado de desactivar, reactivar, eliminar o cambiar rol; se muestra junto a la tabla.
   const [feedback, setFeedback] = useState(null);
+  const [editingId, setEditingId] = useState('');
   const pageSize = 10;
 
   const load = useCallback(async () => {
@@ -75,14 +94,17 @@ function AdminUsers() {
   }, [load]);
 
   // Tras un fallo también se recarga la lista, por si los datos en pantalla estaban desactualizados.
+  // Devuelve si la acción salió bien.
   const runAction = async (user, request, successText) => {
     setBusyId(user._id);
     setFeedback(null);
     try {
       await request();
       setFeedback({ error: false, text: successText });
+      return true;
     } catch (requestError) {
       setFeedback({ error: true, text: `${user.fullName}: ${requestError.message}` });
+      return false;
     } finally {
       await load();
       setBusyId('');
@@ -102,6 +124,13 @@ function AdminUsers() {
       () => apiUpdateUser(user._id, { isActive: activate }),
       `Se ${activate ? 'reactivó' : 'desactivó'} la cuenta de ${user.fullName}.`
     );
+  };
+
+  const saveUser = async (user, changes) => {
+    // Si falla (por ejemplo, un correo repetido) el formulario sigue abierto con lo escrito.
+    if (await runAction(user, () => apiUpdateUser(user._id, changes), `Se actualizaron los datos de ${changes.fullName}.`)) {
+      setEditingId('');
+    }
   };
 
   const removeUser = user => {
@@ -192,7 +221,8 @@ function AdminUsers() {
             const isSelf = user.username === currentUser?.username;
             const locked = isSelf || busyId === user._id;
             return (
-              <tr key={user._id}>
+              <Fragment key={user._id}>
+              <tr>
                 <td><Person><strong>{user.fullName}</strong><span>@{user.username}{isSelf && ' (tú)'}</span></Person></td>
                 <td>{user.email}</td><td>{user.phoneNumber || '—'}</td>
                 <td>
@@ -205,11 +235,19 @@ function AdminUsers() {
                   <Button type="button" $danger={user.isActive !== false} $secondary={user.isActive === false} disabled={locked} onClick={() => setActive(user)}>
                     {user.isActive === false ? 'Reactivar' : 'Desactivar'}
                   </Button>
+                  <Button type="button" $secondary disabled={busyId === user._id} aria-expanded={editingId === user._id}
+                    onClick={() => setEditingId(current => current === user._id ? '' : user._id)} aria-label={`Editar a ${user.username}`}>
+                    <i className="fas fa-pen" aria-hidden="true"></i> Editar
+                  </Button>
                   <Button type="button" $secondary disabled={locked} onClick={() => removeUser(user)} aria-label={`Eliminar a ${user.username}`}>
                     <i className="fas fa-trash" aria-hidden="true"></i> Eliminar
                   </Button>
                 </td>
               </tr>
+              {editingId === user._id && <tr><td colSpan={6}>
+                <EditUserForm user={user} onSave={changes => saveUser(user, changes)} onCancel={() => setEditingId('')} />
+              </td></tr>}
+              </Fragment>
             );
           })}
         </tbody>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
 import ServicesCarousel from '../components/ServicesCarousel';
+import Testimonials from '../components/Testimonials';
 
 const heroImages = [
   '/images/services/corte_dama.jpg',
@@ -843,6 +844,19 @@ function Home({ isAuthenticated }) {
           </Step>
         </Steps>
       </Section>
+
+      {/* ── OPINIONES ── */}
+      <Testimonials>
+        {cards => (
+          <Section style={{ paddingTop: 0 }}>
+            <SectionHeader>
+              <SectionBadge>Opiniones</SectionBadge>
+              <SectionTitle>Lo que dicen nuestros clientes</SectionTitle>
+            </SectionHeader>
+            {cards}
+          </Section>
+        )}
+      </Testimonials>
 
       {/* ── CTA ── */}
       <Section style={{ paddingTop: 0 }}>

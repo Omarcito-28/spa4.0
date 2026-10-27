@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
 import { apiGetAppointments, apiUpdateAppointmentStatus } from '../services/api';
@@ -10,6 +10,8 @@ import { isFinalStatus } from '../utils/appointmentStatus';
 import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
 import { compareByDateTime } from '../utils/appointmentSummary';
 import { hasAppointmentStarted } from '../utils/date';
+import AppointmentCalendar from '../components/AppointmentCalendar';
+import ClientNotesPanel from '../components/ClientNotesPanel';
 
 const FILTERS = [
   { id: 'all', label: 'Todas', matches: () => true },
@@ -107,10 +109,13 @@ function StylistAppointments() {
   const appointments = [...(live.data ?? [])].sort(compareByDateTime);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
+  const [view, setView] = useState('list');
+  const [notesFor, setNotesFor] = useState('');
   const active = FILTERS.find(item => item.id === filter);
   const visible = appointments.filter(active.matches);
 
   const updateStatus = async (id, status) => {
+    if (status === 'NO_SHOW' && !window.confirm('¿Registrar que el cliente no asistió? La cita quedará cerrada.')) return;
     try {
       await apiUpdateAppointmentStatus(id, status);
       setError('');
@@ -132,10 +137,16 @@ function StylistAppointments() {
             </button>
           ))}
         </Filters>
+        <Filters role="group" aria-label="Vista">
+          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><i className="fas fa-list" aria-hidden="true"></i> Lista</button>
+          <button type="button" aria-pressed={view === 'calendar'} onClick={() => setView('calendar')}><i className="fas fa-calendar-week" aria-hidden="true"></i> Calendario</button>
+        </Filters>
         <RefreshStatus lastUpdated={live.lastUpdated} refreshing={live.refreshing} onRefresh={live.refresh} />
       </Bar>
       {(error || live.error) && <Notice $error role="alert">{error || live.error}</Notice>}
-      {live.loading ? <p role="status">Cargando citas…</p> : (
+      {live.loading ? <p role="status">Cargando citas…</p> : view === 'calendar' ? (
+        <AppointmentCalendar view="week" appointments={appointments} />
+      ) : (
         <TableWrap><Table>
           <thead><tr><th>Fecha y hora</th><th>Cliente</th><th>Servicio</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody>
@@ -145,7 +156,8 @@ function StylistAppointments() {
               </EmptyCell></tr>
             )}
             {visible.map(appointment => (
-              <tr key={appointment._id}>
+              <Fragment key={appointment._id}>
+              <tr>
                 <When><strong>{appointment.date}</strong><small>{appointment.time}</small></When>
                 <td>{appointment.username}</td>
                 <ServiceCell>{appointment.service}{appointment.notes && <small title={appointment.notes}>“{appointment.notes}”</small>}</ServiceCell>
@@ -154,9 +166,17 @@ function StylistAppointments() {
                   {appointment.status === 'PENDING' && <Button type="button" onClick={() => updateStatus(appointment._id, 'CONFIRMED')}>Confirmar</Button>}
                   {appointment.status === 'CONFIRMED' && hasAppointmentStarted(appointment) &&
                     <Button type="button" onClick={() => updateStatus(appointment._id, 'COMPLETED')}>Marcar como completada</Button>}
+                  {['PENDING', 'CONFIRMED'].includes(appointment.status) && hasAppointmentStarted(appointment) &&
+                    <Button type="button" $secondary onClick={() => updateStatus(appointment._id, 'NO_SHOW')}>No asistió</Button>}
                   {!isFinalStatus(appointment.status) && <Button type="button" $danger onClick={() => updateStatus(appointment._id, 'CANCELLED')}>Cancelar</Button>}
+                  <Button type="button" $secondary aria-expanded={notesFor === appointment._id}
+                    onClick={() => setNotesFor(current => current === appointment._id ? '' : appointment._id)}>
+                    <i className="fas fa-sticky-note" aria-hidden="true"></i> Notas
+                  </Button>
                 </Actions>
               </tr>
+              {notesFor === appointment._id && <tr><td colSpan={5}><ClientNotesPanel client={appointment.username} /></td></tr>}
+              </Fragment>
             ))}
           </tbody>
         </Table></TableWrap>

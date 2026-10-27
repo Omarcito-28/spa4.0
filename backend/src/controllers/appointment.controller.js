@@ -4,16 +4,27 @@ export default class AppointmentController extends BaseController {
   static FAILURE_MESSAGES = {
     availability: 'No se pudo consultar la disponibilidad.',
     update: 'No se pudo actualizar la cita.',
-    reschedule: 'No se pudo reprogramar la cita.'
+    reschedule: 'No se pudo reprogramar la cita.',
+    sendReminders: 'No se pudieron enviar los recordatorios.'
   };
 
   #appointments;
   #availability;
+  #reminders;
 
-  constructor(appointmentService, availabilityService) {
+  constructor(appointmentService, availabilityService, reminderService) {
     super();
     this.#appointments = appointmentService;
     this.#availability = availabilityService;
+    this.#reminders = reminderService;
+  }
+
+  async policy(_req, res) {
+    res.json(this.#appointments.getPolicy());
+  }
+
+  async sendReminders(_req, res) {
+    res.json(await this.#reminders.sendDueReminders());
   }
 
   async list(req, res) {

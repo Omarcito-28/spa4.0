@@ -54,12 +54,36 @@ describe('StylistAppointments', () => {
     expect(apiGetAppointments).toHaveBeenCalledTimes(2);
   });
 
-  it('muestra la cita completada con su etiqueta y sin acciones', async () => {
+  it('registra la inasistencia solo de citas activas que ya empezaron, tras confirmar', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<StylistAppointments />);
+    await screen.findByText('cliente-iniciada');
+
+    expect(screen.getAllByRole('button', { name: 'No asistió' })).toHaveLength(2);
+    expect(within(rowOf('cliente-futura')).queryByRole('button', { name: 'No asistió' })).not.toBeInTheDocument();
+
+    await userEvent.click(within(rowOf('cliente-pendiente')).getByRole('button', { name: 'No asistió' }));
+    expect(apiUpdateAppointmentStatus).toHaveBeenCalledWith('pendiente', 'NO_SHOW');
+  });
+
+  it('muestra la cita completada con su etiqueta y solo permite ver las notas del cliente', async () => {
     render(<StylistAppointments />);
     const row = (await screen.findByText('cliente-hecha')).closest('tr');
 
     expect(within(row).getByText('Completada')).toBeInTheDocument();
-    expect(within(row).queryByRole('button')).not.toBeInTheDocument();
+    expect(within(row).getAllByRole('button').map(button => button.textContent.trim())).toEqual(['Notas']);
+  });
+
+  it('cambia a la vista de calendario semanal con las citas no canceladas', async () => {
+    render(<StylistAppointments />);
+    await screen.findByText('cliente-iniciada');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Calendario' }));
+
+    expect(screen.getByText('Semana del Lun 7/1 al Dom 13/1')).toBeInTheDocument();
+    const monday = screen.getByRole('list', { name: 'Lun 7/1' });
+    expect(within(monday).getAllByRole('listitem')).toHaveLength(4);
+    expect(within(monday).getByLabelText('3:00 PM, Corte para Dama, cliente-futura, Confirmada')).toBeInTheDocument();
   });
 
   it('filtra por estado y muestra un mensaje cuando no hay citas en el filtro', async () => {

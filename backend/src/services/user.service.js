@@ -81,8 +81,14 @@ export default class UserService {
     return user.weeklySchedule;
   }
 
-  async update(id, { role, fullName, email, isActive }, currentUser) {
+  async update(id, { role, fullName, email, phoneNumber, isActive }, currentUser) {
     const updates = {};
+    if (phoneNumber !== undefined) {
+      if (typeof phoneNumber !== 'string' || phoneNumber.trim().length > 30) {
+        throw new ValidationError('El teléfono no es válido.');
+      }
+      updates.phoneNumber = phoneNumber.trim();
+    }
     if (role !== undefined) {
       if (!UserService.ROLES.includes(role)) {
         throw new ValidationError('El rol no es válido.');

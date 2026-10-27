@@ -2,7 +2,7 @@ import connectDB from './db.js';
 import { PORT } from './config.js';
 
 import { createApp } from './src/app.js';
-import { databaseSeeder } from './src/container.js';
+import { databaseSeeder, reminderService } from './src/container.js';
 import CorsPolicy from './src/middlewares/cors.policy.js';
 
 // Conectar a MongoDB y luego iniciar el servidor
@@ -27,6 +27,8 @@ const startServer = async () => {
     server.once('error', reject);
   });
   console.log(`🚀 Servidor backend escuchando en el puerto ${PORT}`);
+  // Recordatorios del día anterior: una ronda al arrancar y luego cada 30 minutos (solo con SMTP configurado).
+  reminderService.start();
   console.log(corsPolicy.allowsAnyOrigin
     ? '⚠️ CORS acepta cualquier origen: define FRONTEND_URL para restringirlo.'
     : `🔒 CORS permitido para: ${corsPolicy.origins.join(', ')}`);

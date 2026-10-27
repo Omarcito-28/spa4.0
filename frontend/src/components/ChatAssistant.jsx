@@ -685,7 +685,9 @@ function ChatAssistant() {
           ? slots.length
             ? `Horarios disponibles para ${service?.name || 'el servicio'} el ${plannerForm.date}. Al continuar se abrirá el formulario; la cita solo queda solicitada cuando la envíes y pendiente hasta que el equipo la confirme.`
             : `No hay horarios libres para ${service?.name || 'el servicio'} el ${plannerForm.date}.`
-          : plannerForm.stylist
+          : availability.closedReason
+            ? `${availability.closedReason} Prueba con otra fecha.`
+            : plannerForm.stylist
             ? `La estilista seleccionada no trabaja el ${plannerForm.date}.`
             : `El spa no tiene atención configurada para el ${plannerForm.date}.`,
         slots: slots.map(time => ({

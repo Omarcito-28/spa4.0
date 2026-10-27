@@ -7,6 +7,13 @@ import { apiGetSchedule, apiUpdateSchedule } from '../services/api';
 vi.mock('../services/api', () => ({
   apiGetSchedule: vi.fn(),
   apiUpdateSchedule: vi.fn(),
+  apiGetTimeOff: vi.fn().mockResolvedValue([]),
+  apiCreateTimeOff: vi.fn(),
+  apiDeleteTimeOff: vi.fn(),
+}));
+
+vi.mock('../contexts/auth', () => ({
+  useAuth: () => ({ user: { username: 'sofi', role: 'STYLIST' } }),
 }));
 
 const week = () => [0, 1, 2, 3, 4, 5, 6].map(day => ({

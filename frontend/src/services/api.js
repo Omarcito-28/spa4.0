@@ -184,6 +184,44 @@ export const apiRescheduleAppointment = (id, data) =>
 export const apiDeleteAppointment = (id) =>
   changeAppointments(`/appointments/${id}`, { method: 'DELETE' });
 
+export const apiGetAppointmentPolicy = () => apiFetch('/appointments/policy');
+
+export const apiSendReminders = () => apiFetch('/appointments/reminders', { method: 'POST' });
+
+// ─── DÍAS BLOQUEADOS (días libres y cierres del spa) ─────────────────────────
+
+export const apiGetTimeOff = () => apiFetch('/time-off');
+export const apiCreateTimeOff = data =>
+  apiFetch('/time-off', { method: 'POST', body: JSON.stringify(data) });
+export const apiDeleteTimeOff = id =>
+  apiFetch(`/time-off/${id}`, { method: 'DELETE' });
+
+// ─── RESEÑAS ─────────────────────────────────────────────────────────────────
+
+export const apiGetReviews = ({ service, withComment, limit } = {}) => {
+  const params = new URLSearchParams();
+  if (service) params.set('service', service);
+  if (withComment) params.set('withComment', 'true');
+  if (limit) params.set('limit', String(limit));
+  const query = params.toString();
+  return apiFetch(`/reviews${query ? `?${query}` : ''}`);
+};
+export const apiGetReviewSummary = () => apiFetch('/reviews/summary');
+export const apiGetMyReviewedAppointments = () => apiFetch('/reviews/mine');
+export const apiGetAllReviews = () => apiFetch('/reviews/all');
+export const apiCreateReview = data =>
+  apiFetch('/reviews', { method: 'POST', body: JSON.stringify(data) });
+export const apiDeleteReview = id =>
+  apiFetch(`/reviews/${id}`, { method: 'DELETE' });
+
+// ─── NOTAS INTERNAS SOBRE CLIENTES ───────────────────────────────────────────
+
+export const apiGetClientNotes = client => apiFetch(`/client-notes/${encodeURIComponent(client)}`);
+export const apiCreateClientNote = (client, text) =>
+  apiFetch(`/client-notes/${encodeURIComponent(client)}`, { method: 'POST', body: JSON.stringify({ text }) });
+export const apiDeleteClientNote = id =>
+  apiFetch(`/client-notes/note/${id}`, { method: 'DELETE' });
+
 // ─── USERS ───────────────────────────────────────────────────────────────────
 
 export const apiGetUsers = () => apiFetch('/users');

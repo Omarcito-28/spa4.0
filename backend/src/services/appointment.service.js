@@ -3,10 +3,16 @@ import AvailabilityService from './availability.service.js';
 import { ForbiddenError, NotFoundError, BookingError, ValidationError } from '../errors/index.js';
 
 export default class AppointmentService {
-  static STATUSES = ['CONFIRMED', 'CANCELLED', 'PENDING', 'COMPLETED'];
+  static STATUSES = ['CONFIRMED', 'CANCELLED', 'PENDING', 'COMPLETED', 'NO_SHOW'];
+  // Estados que cierran la cita: ya no se cancela, reprograma ni reasigna.
+  static #FINAL_MESSAGES = {
+    COMPLETED: 'La cita ya fue completada y no se puede modificar.',
+    NO_SHOW: 'La cita se registró como inasistencia y no se puede modificar.'
+  };
   static #STATUS_MESSAGES = {
     CANCELLED: 'La cita fue cancelada.',
-    COMPLETED: 'Tu cita fue marcada como completada. ¡Gracias por visitarnos!'
+    COMPLETED: 'Tu cita fue marcada como completada. ¡Gracias por visitarnos!',
+    NO_SHOW: 'Registramos que no asististe a tu cita. Si fue un error, comunícate con el spa.'
   };
 
   #appointments;
@@ -16,8 +22,11 @@ export default class AppointmentService {
   #locks;
   #email;
   #clock;
+  #cancellationNoticeHours;
 
-  constructor({ appointmentModel, serviceModel, userModel, availabilityService, bookingLockService, emailService, clock }) {
+  // cancellationNoticeHours: horas mínimas de anticipación para que el cliente cancele o
+  // reprograme por su cuenta (0 desactiva la regla). El equipo del spa no tiene ese límite.
+  constructor({ appointmentModel, serviceModel, userModel, availabilityService, bookingLockService, emailService, clock, cancellationNoticeHours = 0 }) {
     this.#appointments = appointmentModel;
     this.#services = serviceModel;
     this.#users = userModel;
@@ -25,6 +34,11 @@ export default class AppointmentService {
     this.#locks = bookingLockService;
     this.#email = emailService;
     this.#clock = clock;
+    this.#cancellationNoticeHours = cancellationNoticeHours;
+  }
+
+  getPolicy() {
+    return { cancellationNoticeHours: this.#cancellationNoticeHours };
   }
 
   listFor(user) {
@@ -110,33 +124,33 @@ export default class AppointmentService {
     });
   }
 
-  async update(id, { status, stylist }, user) {
+  // Edición del administrador: estado, estilista y también fecha y hora, sin volver la cita a pendiente.
+  async update(id, { status, stylist, date, time }, user) {
     if (status !== undefined && !AppointmentService.STATUSES.includes(status)) {
       throw new ValidationError('El estado de la cita no es válido.');
     }
     if (stylist !== undefined && (typeof stylist !== 'string' || stylist.length > 80)) {
       throw new ValidationError('El estilista no es válido.');
     }
+    const moving = date !== undefined || time !== undefined;
+    if (moving) this.#assertFutureSlot(date, time);
     return this.#change({
       id,
-      changes: { ...(status !== undefined ? { status } : {}), ...(stylist !== undefined ? { stylist } : {}) },
+      changes: {
+        ...(status !== undefined ? { status } : {}),
+        ...(stylist !== undefined ? { stylist } : {}),
+        ...(moving ? { date, time } : {})
+      },
       user,
       reason: 'La cita fue actualizada por el equipo.'
     });
   }
 
   async reschedule(id, { date, time, stylist }, user) {
-    if (typeof date !== 'string' || typeof time !== 'string' ||
-        (stylist !== undefined && typeof stylist !== 'string')) {
+    if (stylist !== undefined && typeof stylist !== 'string') {
       throw new ValidationError('La nueva fecha, hora o estilista no son válidos.');
     }
-    if (!AppointmentTime.isValidDate(date) || !AppointmentTime.isValidTime(time)) {
-      throw new ValidationError('La fecha u hora no son válidas.');
-    }
-    const today = this.#clock.today();
-    if (date < today || (date === today && AppointmentTime.toMinutes(time) <= this.#clock.minutesNow())) {
-      throw new ValidationError('Selecciona una fecha y hora futuras en Colombia.');
-    }
+    this.#assertFutureSlot(date, time);
     return this.#change({
       id,
       changes: {
@@ -191,6 +205,7 @@ export default class AppointmentService {
           appointment.time !== nextTime;
         if (changes.status !== undefined) appointment.status = changes.status;
         if (changes.stylist !== undefined) appointment.stylist = nextStylist;
+        if (appointment.date !== nextDate || appointment.time !== nextTime) appointment.reminderSentAt = null;
         if (changes.date !== undefined) appointment.date = changes.date;
         if (changes.time !== undefined) appointment.time = changes.time;
         if (reschedule) appointment.status = 'PENDING';
@@ -214,14 +229,15 @@ export default class AppointmentService {
     if (user.role === 'STYLIST' && appointment.stylist !== user.username.toLowerCase()) {
       throw new ForbiddenError('No autorizado para modificar esta cita.');
     }
-    // Una cita completada es definitiva: no se cancela, reprograma ni reasigna.
-    if (appointment.status === 'COMPLETED') {
-      throw new ValidationError('La cita ya fue completada y no se puede modificar.');
-    }
+    // Una cita completada o con inasistencia es definitiva: no se cancela, reprograma ni reasigna.
+    const finalMessage = AppointmentService.#FINAL_MESSAGES[appointment.status];
+    if (finalMessage) throw new ValidationError(finalMessage);
     if (changes.status === 'COMPLETED') this.#assertCanComplete(appointment);
+    if (changes.status === 'NO_SHOW') this.#assertCanMarkNoShow(appointment);
     if (user.role === 'CLIENT' && appointment.status === 'CANCELLED') {
       throw new BookingError('La cita ya fue cancelada.');
     }
+    if (user.role === 'CLIENT') this.#assertCancellationNotice(appointment);
     if (user.role === 'STYLIST' &&
         (appointment.stylist !== user.username.toLowerCase() ||
           changes.status === 'PENDING' || appointment.status === 'CANCELLED')) {
@@ -237,12 +253,50 @@ export default class AppointmentService {
     if (appointment.status !== 'CONFIRMED') {
       throw new ValidationError('Solo se puede completar una cita confirmada.');
     }
-    const today = this.#clock.today();
-    const hasStarted = appointment.date < today ||
-      (appointment.date === today && AppointmentTime.toMinutes(appointment.time) <= this.#clock.minutesNow());
-    if (!hasStarted) {
+    if (!this.#hasStarted(appointment)) {
       throw new ValidationError('No puedes completar una cita que todavía no ha empezado.');
     }
+  }
+
+  // Inasistencia: una cita activa cuya hora ya llegó y el cliente no se presentó.
+  #assertCanMarkNoShow(appointment) {
+    if (!['PENDING', 'CONFIRMED'].includes(appointment.status)) {
+      throw new ValidationError('Solo se puede registrar la inasistencia de una cita pendiente o confirmada.');
+    }
+    if (!this.#hasStarted(appointment)) {
+      throw new ValidationError('No puedes registrar una inasistencia antes de la hora de la cita.');
+    }
+  }
+
+  // El cliente cancela o reprograma solo con la anticipación mínima; después debe llamar al spa.
+  #assertCancellationNotice(appointment) {
+    const hours = this.#cancellationNoticeHours;
+    if (!hours || !['PENDING', 'CONFIRMED'].includes(appointment.status)) return;
+    const minutesLeft = AppointmentTime.minutesUntil(
+      appointment.date, appointment.time, this.#clock.today(), this.#clock.minutesNow());
+    if (minutesLeft < hours * 60) {
+      throw new ValidationError(`Solo puedes cancelar o reprogramar con al menos ${hours} ${hours === 1 ? 'hora' : 'horas'} de anticipación. ` +
+        'Comunícate con el spa para cualquier cambio.');
+    }
+  }
+
+  #assertFutureSlot(date, time) {
+    if (typeof date !== 'string' || typeof time !== 'string') {
+      throw new ValidationError('La nueva fecha, hora o estilista no son válidos.');
+    }
+    if (!AppointmentTime.isValidDate(date) || !AppointmentTime.isValidTime(time)) {
+      throw new ValidationError('La fecha u hora no son válidas.');
+    }
+    const today = this.#clock.today();
+    if (date < today || (date === today && AppointmentTime.toMinutes(time) <= this.#clock.minutesNow())) {
+      throw new ValidationError('Selecciona una fecha y hora futuras en Colombia.');
+    }
+  }
+
+  #hasStarted(appointment) {
+    const today = this.#clock.today();
+    return appointment.date < today ||
+      (appointment.date === today && AppointmentTime.toMinutes(appointment.time) <= this.#clock.minutesNow());
   }
 
   // Se ejecuta en segundo plano: un fallo de correo nunca afecta la respuesta de la API.

@@ -1,19 +1,23 @@
 import AppointmentTime from '../utils/appointment-time.js';
+import TimeOffService from './time-off.service.js';
 import { BookingError, ValidationError } from '../errors/index.js';
 
 // Horarios de atención, agenda de estilistas y detección de cruces de citas.
 export default class AvailabilityService {
   static ACTIVE_STATUSES = ['PENDING', 'CONFIRMED'];
-  // Una cita completada ya ocupó su horario: tampoco se puede reservar encima.
-  static OCCUPYING_STATUSES = [...AvailabilityService.ACTIVE_STATUSES, 'COMPLETED'];
+  // Una cita completada o con inasistencia ya ocupó su horario: tampoco se puede reservar encima.
+  static OCCUPYING_STATUSES = [...AvailabilityService.ACTIVE_STATUSES, 'COMPLETED', 'NO_SHOW'];
   static DEFAULT_DURATION = 60;
 
   #users;
   #appointments;
+  #timeOff;
 
-  constructor({ userModel, appointmentModel }) {
+  // Sin timeOffService no se consultan días libres ni cierres (útil en pruebas aisladas).
+  constructor({ userModel, appointmentModel, timeOffService = null }) {
     this.#users = userModel;
     this.#appointments = appointmentModel;
+    this.#timeOff = timeOffService;
   }
 
   async getAvailability(date, stylist) {
@@ -42,6 +46,10 @@ export default class AvailabilityService {
       stylist: normalizedStylist,
       status: { $in: AvailabilityService.OCCUPYING_STATUSES }
     }).select('time duration -_id');
+    const block = await this.#timeOff?.findBlocking(date, normalizedStylist);
+    if (block) {
+      return { schedule: null, appointments, closedReason: TimeOffService.describe(block) };
+    }
     return { schedule: schedule?.enabled ? { start: schedule.start, end: schedule.end } : null, appointments };
   }
 
@@ -58,6 +66,8 @@ export default class AvailabilityService {
       if (!stylistUser) throw new BookingError('El estilista seleccionado ya no está disponible.');
       schedule = this.#workdayOf(stylistUser, weekday);
     }
+    const block = await this.#timeOff?.findBlocking(date, stylist, session);
+    if (block) throw new BookingError(TimeOffService.describe(block));
     if (!schedule?.enabled || !this.#isWithinSchedule(time, schedule.start, schedule.end, duration)) {
       throw new BookingError(stylist
         ? 'El estilista no está disponible en ese horario.'

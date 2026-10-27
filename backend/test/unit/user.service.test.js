@@ -31,11 +31,11 @@ describe('UserService', () => {
 
   describe('update (edición desde el panel de administrador)', () => {
     it('edita rol, nombre, correo y estado con los datos normalizados', async () => {
-      await users.update('user-1', { role: 'STYLIST', fullName: ' Ana P ', email: ' ANA@X.CO ', isActive: true }, ADMIN);
+      await users.update('user-1', { role: 'STYLIST', fullName: ' Ana P ', email: ' ANA@X.CO ', phoneNumber: ' 300 1 ', isActive: true }, ADMIN);
 
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user-1',
-        { role: 'STYLIST', fullName: 'Ana P', email: 'ana@x.co', isActive: true },
+        { phoneNumber: '300 1', role: 'STYLIST', fullName: 'Ana P', email: 'ana@x.co', isActive: true },
         { new: true, runValidators: true }
       );
     });
@@ -44,6 +44,7 @@ describe('UserService', () => {
       ['rol desconocido', { role: 'JEFE' }, 'El rol no es válido.'],
       ['nombre vacío', { fullName: '  ' }, 'El nombre no puede quedar vacío.'],
       ['correo inválido', { email: 'ana' }, 'El correo electrónico no es válido.'],
+      ['teléfono demasiado largo', { phoneNumber: '1'.repeat(31) }, 'El teléfono no es válido.'],
       ['estado no booleano', { isActive: 'no' }, 'El estado de la cuenta no es válido.']
     ])('rechaza %s', async (_case, data, message) => {
       await expect(users.update('user-1', data, ADMIN)).rejects.toThrow(new ValidationError(message));

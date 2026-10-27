@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import User from '../../src/models/user.model.js';
 import Appointment from '../../src/models/appointment.model.js';
+import BookingLock from '../../src/models/booking-lock.model.js';
+import BookingLockService from '../../src/services/booking-lock.service.js';
 import { createApp } from '../../src/app.js';
 import CorsPolicy from '../../src/middlewares/cors.policy.js';
 import { connectTestDatabase, disconnectTestDatabase } from '../helpers/database.js';
@@ -98,6 +100,16 @@ describe('API (integración)', () => {
       const res = await request(app).post('/api/auth/login').send({ username: 'carla', password: 'equivocada' });
       expect(res.status).toBe(401);
       expect(res.body).toEqual({ error: 'Credenciales inválidas.' });
+    });
+
+    it('responde 429 tras 5 intentos fallidos del mismo usuario', async () => {
+      const fail = () => request(app).post('/api/auth/login').send({ username: 'intruso', password: 'adivinando' });
+      for (let i = 0; i < 5; i += 1) expect((await fail()).status).toBe(401);
+
+      const blocked = await fail();
+      expect(blocked.status).toBe(429);
+      expect(blocked.headers['retry-after']).toBe('900');
+      expect(blocked.body.error).toMatch(/^Demasiados intentos fallidos/);
     });
   });
 
@@ -276,6 +288,56 @@ describe('API (integración)', () => {
     it('responde 404 si la imagen no existe', async () => {
       const res = await request(app).get('/api/service-images/no-existe');
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe('agenda: política, días bloqueados y recordatorios', () => {
+    // En producción lo hace el seeder al arrancar; un cierre del spa también bloquea la agenda sin asignar.
+    beforeAll(() => new BookingLockService({ userModel: User, bookingLockModel: BookingLock }).initialize());
+
+    const loginAs = async (username, password) =>
+      (await request(app).post('/api/auth/login').send({ username, password })).body.token;
+
+    it('GET /api/appointments/policy es público y usa 24 h por defecto', async () => {
+      const res = await request(app).get('/api/appointments/policy');
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ cancellationNoticeHours: 24 });
+    });
+
+    it('el ADMIN cierra el spa, la disponibilidad lo informa y luego lo reabre', async () => {
+      const token = await loginAs('admin', 'admin-clave-123');
+      const created = await request(app).post('/api/time-off')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ start: '2099-12-24', end: '2099-12-25', reason: 'Navidad' });
+      expect(created.status).toBe(201);
+      expect(created.body).toMatchObject({ stylist: '', start: '2099-12-24', end: '2099-12-25', reason: 'Navidad' });
+
+      const availability = await request(app).get('/api/appointments/availability?date=2099-12-24');
+      expect(availability.body).toMatchObject({ schedule: null, closedReason: 'El spa estará cerrado ese día (Navidad).' });
+
+      const list = await request(app).get('/api/time-off').set('Authorization', `Bearer ${token}`);
+      expect(list.body.map(item => item._id)).toContain(created.body._id);
+
+      const removed = await request(app).delete(`/api/time-off/${created.body._id}`).set('Authorization', `Bearer ${token}`);
+      expect(removed.status).toBe(200);
+      const reopened = await request(app).get('/api/appointments/availability?date=2099-12-24');
+      expect(reopened.body.schedule).toEqual({ start: '09:00', end: '19:00' });
+    });
+
+    it('un cliente no puede bloquear fechas ni enviar recordatorios', async () => {
+      const token = await loginAs('carla', 'clave-segura');
+      const block = await request(app).post('/api/time-off').set('Authorization', `Bearer ${token}`)
+        .send({ start: '2099-12-24', end: '2099-12-24' });
+      expect(block.status).toBe(403);
+      const reminders = await request(app).post('/api/appointments/reminders').set('Authorization', `Bearer ${token}`);
+      expect(reminders.status).toBe(403);
+    });
+
+    it('POST /api/appointments/reminders no envía nada sin SMTP', async () => {
+      const token = await loginAs('admin', 'admin-clave-123');
+      const res = await request(app).post('/api/appointments/reminders').set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ sent: 0, skipped: 'Correo no configurado.' });
     });
   });
 });

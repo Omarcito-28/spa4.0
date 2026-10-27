@@ -42,8 +42,13 @@ const appointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['CONFIRMED', 'CANCELLED', 'PENDING', 'COMPLETED'],
+    enum: ['CONFIRMED', 'CANCELLED', 'PENDING', 'COMPLETED', 'NO_SHOW'],
     default: 'CONFIRMED'
+  },
+  // Momento en que se envió el recordatorio del día anterior; se borra al reprogramar.
+  reminderSentAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true

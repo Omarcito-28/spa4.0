@@ -23,7 +23,7 @@ describe('appointmentSummary', () => {
 
   it('cuenta las citas por estado', () => {
     const counts = countByStatus([item('1'), item('2', { status: 'COMPLETED' }), item('3', { status: 'COMPLETED' })]);
-    expect(counts).toEqual({ PENDING: 1, CONFIRMED: 0, COMPLETED: 2, CANCELLED: 0 });
+    expect(counts).toEqual({ PENDING: 1, CONFIRMED: 0, COMPLETED: 2, CANCELLED: 0, NO_SHOW: 0 });
   });
 
   it('las próximas citas excluyen las pasadas, canceladas y completadas', () => {
