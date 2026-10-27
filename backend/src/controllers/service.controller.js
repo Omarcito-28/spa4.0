@@ -9,6 +9,10 @@ export default class ServiceController extends BaseController {
   }
 
   async list(_req, res) {
+    res.json(await this.#catalog.listActive());
+  }
+
+  async listAll(_req, res) {
     res.json(await this.#catalog.listAll());
   }
 

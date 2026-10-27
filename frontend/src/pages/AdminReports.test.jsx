@@ -12,7 +12,7 @@ vi.mock('../services/api', () => ({
     { _id: '4', service: 'Corte para Dama', date: '2030-01-09', status: 'CANCELLED', price: '$35.000' },
     { _id: '5', service: 'Masaje Relajante', date: '2030-01-10', status: 'PENDING', price: '$70.000' },
   ]),
-  apiGetServices: vi.fn().mockResolvedValue([
+  apiGetAllServices: vi.fn().mockResolvedValue([
     { _id: 's1', name: 'Corte para Dama', price: '$35.000' },
     { _id: 's2', name: 'Masaje Relajante', price: '$70.000' },
   ]),

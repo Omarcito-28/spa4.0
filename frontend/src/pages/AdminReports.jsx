@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { apiDeleteReview, apiGetAllReviews, apiGetAppointments, apiGetReviewSummary, apiGetServices, apiGetUsers } from '../services/api';
+import { apiDeleteReview, apiGetAllReviews, apiGetAppointments, apiGetAllServices, apiGetReviewSummary, apiGetUsers } from '../services/api';
 import StarRating from '../components/StarRating';
 import { downloadCsv } from '../utils/download';
 import AdminNav from '../components/AdminNav';
@@ -40,7 +40,7 @@ function AdminReports() {
   };
 
   useEffect(() => {
-    Promise.all([apiGetAppointments(), apiGetServices(), apiGetUsers()])
+    Promise.all([apiGetAppointments(), apiGetAllServices(), apiGetUsers()])
       .then(([appointments, services, users]) => setStats({
         appointments,
         services: services.length,

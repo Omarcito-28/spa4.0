@@ -137,6 +137,23 @@ describe('API (integración)', () => {
       expect(res.status).toBe(403);
     });
 
+    it('un servicio oculto sale del catálogo público pero el administrador lo sigue viendo', async () => {
+      const admin = await loginAs('admin', 'admin-clave-123');
+      const created = await request(app).post('/api/services').set('Authorization', `Bearer ${admin}`)
+        .send({ name: 'Masaje de temporada', price: '$90.000' });
+      const hidden = await request(app).put(`/api/services/${created.body._id}`).set('Authorization', `Bearer ${admin}`)
+        .send({ isActive: false });
+      expect(hidden.body.isActive).toBe(false);
+
+      const publicList = await request(app).get('/api/services');
+      expect(publicList.body.map(service => service.name)).not.toContain('Masaje de temporada');
+      const adminList = await request(app).get('/api/services/all').set('Authorization', `Bearer ${admin}`);
+      expect(adminList.body.map(service => service.name)).toContain('Masaje de temporada');
+
+      const client = await loginAs('carla', 'clave-segura');
+      expect((await request(app).get('/api/services/all').set('Authorization', `Bearer ${client}`)).status).toBe(403);
+    });
+
     it('GET /api/users responde 200 con token de ADMIN y no expone contraseñas', async () => {
       const token = await loginAs('admin', 'admin-clave-123');
       const res = await request(app).get('/api/users').set('Authorization', `Bearer ${token}`);

@@ -1,11 +1,20 @@
-import { NotFoundError, ValidationError } from '../errors/index.js';
+import { ConflictError, NotFoundError, ValidationError } from '../errors/index.js';
 
-// Catálogo de servicios que ofrece el spa.
+// Catálogo de servicios que ofrece el spa. Un servicio oculto (isActive: false)
+// no aparece en el catálogo público ni se puede reservar, pero conserva su historial.
 export default class ServiceCatalogService {
   #services;
+  #appointments;
+  #clock;
 
-  constructor({ serviceModel }) {
+  constructor({ serviceModel, appointmentModel, clock }) {
     this.#services = serviceModel;
+    this.#appointments = appointmentModel;
+    this.#clock = clock;
+  }
+
+  listActive() {
+    return this.#services.find({ isActive: { $ne: false } });
   }
 
   listAll() {
@@ -19,18 +28,31 @@ export default class ServiceCatalogService {
     return this.#services.create({ name: name.trim(), description, price: price.trim(), image, duration });
   }
 
-  async update(id, { name, description, price, image, duration }) {
+  async update(id, { name, description, price, image, duration, isActive }) {
+    if (isActive !== undefined && typeof isActive !== 'boolean') {
+      throw new ValidationError('El estado del servicio no es válido.');
+    }
     const updated = await this.#services.findByIdAndUpdate(
       id,
-      { name, description, price, image, duration },
+      { name, description, price, image, duration, isActive },
       { new: true, runValidators: true }
     );
     if (!updated) throw new NotFoundError('Servicio no encontrado.');
     return updated;
   }
 
+  // Las citas guardan el nombre del servicio, así que borrarlo no pierde el
+  // historial; solo se impide si todavía hay citas por atender.
   async delete(id) {
-    const deleted = await this.#services.findByIdAndDelete(id);
-    if (!deleted) throw new NotFoundError('Servicio no encontrado.');
+    const service = await this.#services.findById(id);
+    if (!service) throw new NotFoundError('Servicio no encontrado.');
+    if (await this.#appointments.exists({
+      service: service.name,
+      status: { $in: ['PENDING', 'CONFIRMED'] },
+      date: { $gte: this.#clock.today() }
+    })) {
+      throw new ConflictError('El servicio tiene citas próximas. Ocúltalo del catálogo para que no se reserve más, o cancela esas citas antes de eliminarlo.');
+    }
+    await this.#services.findByIdAndDelete(id);
   }
 }

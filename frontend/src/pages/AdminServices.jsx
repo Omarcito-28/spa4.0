@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
-import { apiCreateService, apiDeleteService, apiGetServices, apiUpdateService, resolveImageUrl } from '../services/api';
+import { apiCreateService, apiDeleteService, apiGetAllServices, apiUpdateService, resolveImageUrl } from '../services/api';
 import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
 import ServiceImagePicker from '../components/ServiceImagePicker';
@@ -49,7 +49,7 @@ function AdminServices() {
 
   const load = useCallback(async () => {
     try {
-      setServices(await apiGetServices());
+      setServices(await apiGetAllServices());
     } catch (error) {
       setNotice({ error: true, text: error.message });
     }
@@ -92,6 +92,18 @@ function AdminServices() {
     }
   };
 
+  // Ocultar retira el servicio del catálogo y de las reservas sin borrar su historial.
+  const toggleActive = async service => {
+    const hide = service.isActive !== false;
+    try {
+      await apiUpdateService(service._id, { isActive: !hide });
+      setNotice({ error: false, text: hide ? `"${service.name}" ya no aparece en el catálogo.` : `"${service.name}" volvió al catálogo.` });
+      await load();
+    } catch (error) {
+      setNotice({ error: true, text: error.message });
+    }
+  };
+
   const change = event => setForm(current => ({ ...current, [event.target.name]: event.target.value }));
   const filteredServices = services.filter(service =>
     `${service.name} ${service.description || ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
@@ -102,7 +114,7 @@ function AdminServices() {
     <Page>
       <AdminNav />
       <Title>Gestionar servicios</Title>
-      <Description>Los servicios publicados aparecen en el catálogo y en el formulario de reservas.</Description>
+      <Description>Los servicios publicados aparecen en el catálogo y en el formulario de reservas. Oculta un servicio para dejar de ofrecerlo sin perder su historial.</Description>
       <Card>
         <h2>{editingId ? 'Editar servicio' : 'Nuevo servicio'}</h2>
         <Form onSubmit={submit}>
@@ -128,9 +140,9 @@ function AdminServices() {
       </Toolbar>
       <ResultCount>{filteredServices.length} servicios encontrados</ResultCount>
       <TableWrap><Table>
-        <thead><tr><th>Servicio</th><th>Precio</th><th>Duración</th><th>Acciones</th></tr></thead>
+        <thead><tr><th>Servicio</th><th>Precio</th><th>Duración</th><th>Estado</th><th>Acciones</th></tr></thead>
         <tbody>
-          {visibleServices.length === 0 && <tr><EmptyCell colSpan={4}>No hay servicios que coincidan con la búsqueda.</EmptyCell></tr>}
+          {visibleServices.length === 0 && <tr><EmptyCell colSpan={5}>No hay servicios que coincidan con la búsqueda.</EmptyCell></tr>}
           {visibleServices.map(service => (
             <tr key={service._id}>
               <td>
@@ -140,7 +152,14 @@ function AdminServices() {
                 </ServiceCell>
               </td>
               <td>{service.price}</td><td>{service.duration || 60} min</td>
-              <Actions><Button type="button" $secondary onClick={() => edit(service)}>Editar</Button><Button type="button" $danger onClick={() => remove(service)}>Eliminar</Button></Actions>
+              <td>{service.isActive === false ? 'Oculto' : 'Publicado'}</td>
+              <Actions>
+                <Button type="button" $secondary onClick={() => edit(service)}>Editar</Button>
+                <Button type="button" $secondary onClick={() => toggleActive(service)} aria-label={`${service.isActive === false ? 'Publicar' : 'Ocultar'} ${service.name}`}>
+                  {service.isActive === false ? 'Publicar' : 'Ocultar'}
+                </Button>
+                <Button type="button" $danger onClick={() => remove(service)}>Eliminar</Button>
+              </Actions>
             </tr>
           ))}
         </tbody>

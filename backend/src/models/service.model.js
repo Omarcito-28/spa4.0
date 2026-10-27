@@ -24,6 +24,10 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     default: '',
     trim: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   }
 }, {
   timestamps: true

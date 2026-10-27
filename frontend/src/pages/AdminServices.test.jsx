@@ -3,10 +3,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import AdminServices from './AdminServices';
-import { apiCreateService, apiGetServiceImages, apiGetServices, apiUploadServiceImage } from '../services/api';
+import { apiCreateService, apiGetAllServices, apiGetServiceImages, apiUpdateService, apiUploadServiceImage } from '../services/api';
 
 vi.mock('../services/api', () => ({
-  apiGetServices: vi.fn(),
+  apiGetAllServices: vi.fn(),
   apiCreateService: vi.fn(),
   apiUpdateService: vi.fn(),
   apiDeleteService: vi.fn(),
@@ -27,7 +27,7 @@ const fillService = () => {
 describe('AdminServices', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    apiGetServices.mockResolvedValue([masaje]);
+    apiGetAllServices.mockResolvedValue([masaje]);
     apiGetServiceImages.mockResolvedValue([]);
     apiCreateService.mockResolvedValue({});
   });
@@ -86,5 +86,23 @@ describe('AdminServices', () => {
 
     await user.upload(screen.getByLabelText('Subir imagen del servicio'), new File(['x'], 'big.jpg', { type: 'image/jpeg' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('La imagen no puede superar 5 MB.');
+  });
+
+  it('oculta un servicio del catálogo y permite volver a publicarlo', async () => {
+    const user = userEvent.setup();
+    apiUpdateService.mockResolvedValue({});
+    renderServices();
+    await screen.findByText('Masaje');
+    expect(screen.getByText('Publicado')).toBeInTheDocument();
+
+    apiGetAllServices.mockResolvedValue([{ ...masaje, isActive: false }]);
+    await user.click(screen.getByRole('button', { name: 'Ocultar Masaje' }));
+
+    expect(apiUpdateService).toHaveBeenCalledWith('s1', { isActive: false });
+    expect(await screen.findByText('"Masaje" ya no aparece en el catálogo.')).toBeInTheDocument();
+    expect(screen.getByText('Oculto')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Publicar Masaje' }));
+    expect(apiUpdateService).toHaveBeenLastCalledWith('s1', { isActive: true });
   });
 });

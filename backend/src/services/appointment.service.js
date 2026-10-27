@@ -73,7 +73,7 @@ export default class AppointmentService {
       throw new ValidationError('Las notas no pueden superar 1000 caracteres.');
     }
     const serviceRecord = await this.#services.findOne({ name: service.trim() });
-    if (!serviceRecord) {
+    if (!serviceRecord || serviceRecord.isActive === false) {
       throw new ValidationError('El servicio seleccionado no está disponible.');
     }
     if (date === today && AppointmentTime.toMinutes(time) <= this.#clock.minutesNow()) {

@@ -69,7 +69,7 @@ const appointmentService = new AppointmentService({
 });
 const authService = new AuthService({ userModel: User, passwordHasher, tokenService, emailService });
 const userService = new UserService({ userModel: User, appointmentModel: Appointment, passwordHasher, clock });
-const serviceCatalogService = new ServiceCatalogService({ serviceModel: Service });
+const serviceCatalogService = new ServiceCatalogService({ serviceModel: Service, appointmentModel: Appointment, clock });
 const serviceImageService = new ServiceImageService({ serviceImageModel: ServiceImage });
 const reviewService = new ReviewService({ reviewModel: Review, appointmentModel: Appointment, userModel: User });
 const clientNoteService = new ClientNoteService({ clientNoteModel: ClientNote, userModel: User, appointmentModel: Appointment });

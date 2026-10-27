@@ -42,8 +42,8 @@ Todos bajo `/api`. "Auth" requiere el encabezado `Authorization: Bearer <token>`
 | `POST /auth/register` · `POST /auth/login` | Público | Registro e inicio de sesión (tras 5 intentos fallidos del mismo usuario desde la misma IP, el login se bloquea 15 minutos) |
 | `POST /auth/password-reset/request` · `/confirm` | Público | Recuperación de contraseña por correo |
 | `GET /auth/me` · `PUT /auth/profile` | Auth | Perfil del usuario |
-| `GET /services` | Público | Catálogo de servicios |
-| `POST /services` · `PUT /services/:id` · `DELETE /services/:id` | Admin | Gestión del catálogo |
+| `GET /services` | Público | Catálogo de servicios publicados |
+| `GET /services/all` · `POST /services` · `PUT /services/:id` · `DELETE /services/:id` | Admin | Gestión del catálogo, incluidos los servicios ocultos (`isActive: false`). No se puede borrar un servicio con citas próximas |
 | `GET /appointments/availability` | Público | Horarios disponibles (con `closedReason` si el día está bloqueado) |
 | `GET /appointments/policy` | Público | Horas mínimas para cancelar o reprogramar |
 | `POST /appointments/reminders` | Admin | Envía ya los recordatorios de las citas de mañana |

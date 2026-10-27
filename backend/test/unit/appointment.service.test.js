@@ -144,6 +144,12 @@ describe('AppointmentService', () => {
       await expect(book(ana, { date: SUNDAY, time: '10:00 AM' })).rejects.toBeInstanceOf(BookingError);
     });
 
+    it('rechaza un servicio oculto del catálogo', async () => {
+      await Service.create({ name: 'Masaje retirado', price: '$1', duration: 60, isActive: false });
+      await expect(book(ana, { service: 'Masaje retirado', time: '10:00 AM' }))
+        .rejects.toThrow(new ValidationError('El servicio seleccionado no está disponible.'));
+    });
+
     it('rechaza un estilista inexistente', async () => {
       await expect(book(ana, { time: '10:00 AM', stylist: 'pepe' }))
         .rejects.toThrow(new BookingError('El estilista seleccionado ya no está disponible.'));

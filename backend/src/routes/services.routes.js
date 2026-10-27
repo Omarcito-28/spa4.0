@@ -4,6 +4,7 @@ import { serviceController as services, authMiddleware as auth } from '../contai
 const router = Router();
 
 router.get('/', services.handle('list'));
+router.get('/all', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('listAll'));
 router.post('/', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('create'));
 router.put('/:id', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('update'));
 router.delete('/:id', auth.authenticate, auth.requireRole(['ADMIN']), services.handle('remove'));

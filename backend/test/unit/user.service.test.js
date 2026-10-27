@@ -83,6 +83,24 @@ describe('UserService', () => {
       });
     });
 
+    it('impide desactivar a un cliente con citas próximas', async () => {
+      appointmentModel.exists.mockResolvedValue({ _id: 'cita-1' });
+
+      await expect(users.update('user-1', { isActive: false }, ADMIN))
+        .rejects.toThrow(new ConflictError('El cliente tiene citas próximas. Cancélalas en "Gestionar citas" antes de desactivar su cuenta.'));
+      expect(appointmentModel.exists).toHaveBeenCalledWith({
+        username: 'ana',
+        status: { $in: ['PENDING', 'CONFIRMED'] },
+        date: { $gte: '2026-05-10' }
+      });
+      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('desactiva a un cliente sin citas próximas', async () => {
+      await users.update('user-1', { isActive: false }, ADMIN);
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith('user-1', { isActive: false }, { new: true, runValidators: true });
+    });
+
     it('desactiva a un estilista sin citas próximas', async () => {
       userModel.findById.mockResolvedValue(userDoc({ username: 'sofi', role: 'STYLIST' }));
 

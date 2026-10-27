@@ -134,6 +134,16 @@ export default class UserService {
         })) {
       throw new ConflictError('El estilista tiene citas próximas. Reasígnalas o cancélalas en "Gestionar citas" antes de cambiar su estado o rol.');
     }
+    // Un cliente desactivado ya no puede entrar a cancelar sus citas, que seguirían
+    // ocupando la agenda: primero hay que cancelarlas.
+    if (existing.role === 'CLIENT' && isActive === false &&
+        await this.#appointments.exists({
+          username: existing.username,
+          status: { $in: ['PENDING', 'CONFIRMED'] },
+          date: { $gte: this.#clock.today() }
+        })) {
+      throw new ConflictError('El cliente tiene citas próximas. Cancélalas en "Gestionar citas" antes de desactivar su cuenta.');
+    }
 
     let updated;
     try {

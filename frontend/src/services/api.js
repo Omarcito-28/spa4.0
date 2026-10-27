@@ -102,6 +102,9 @@ export const apiResetPassword = (token, password) =>
 
 export const apiGetServices = () => apiFetch('/services');
 
+// Incluye los servicios ocultos del catálogo (solo administrador).
+export const apiGetAllServices = () => apiFetch('/services/all');
+
 export const apiCreateService = (data) =>
   apiFetch('/services', {
     method: 'POST',
