@@ -14,49 +14,42 @@ const renderNavbar = (props, route = '/') => render(
 const admin = { username: 'admin', fullName: 'Administradora', role: 'ADMIN' };
 
 describe('Navbar', () => {
-  it('agrupa las secciones de administración en el menú Gestión sin repetir enlaces', async () => {
+  it('no muestra accesos de gestión en el sitio público y ofrece el panel desde el menú de la cuenta', async () => {
     const user = userEvent.setup();
     renderNavbar({ isAuthenticated: true, user: admin });
 
-    expect(screen.getByRole('link', { name: 'Panel' })).toHaveAttribute('href', '/admin/dashboard');
-    expect(screen.getByRole('link', { name: 'Citas' })).toHaveAttribute('href', '/appointments/all');
+    expect(screen.queryByRole('button', { name: /Gestión/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Usuarios' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Panel de Administración' })).not.toBeInTheDocument();
 
-    const gestion = screen.getByRole('button', { name: /Gestión/ });
-    expect(gestion).toHaveAttribute('aria-expanded', 'false');
-    await user.click(gestion);
-    expect(gestion).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('link', { name: 'Usuarios' })).toHaveAttribute('href', '/admin/users');
-    expect(screen.getByRole('link', { name: 'Catálogo de servicios' })).toHaveAttribute('href', '/admin/services');
-    expect(screen.getByRole('link', { name: 'Reportes' })).toHaveAttribute('href', '/admin/reports');
+    const cuenta = screen.getByRole('button', { name: 'Menú de admin' });
+    await user.click(cuenta);
+    expect(screen.getByRole('link', { name: 'Panel de Administración' })).toHaveAttribute('href', '/admin');
   });
 
-  it('abre un solo menú a la vez y lo cierra con un clic fuera o con Escape', async () => {
+  it('cierra el menú de la cuenta con un clic fuera, con Escape o al navegar', async () => {
     const user = userEvent.setup();
     renderNavbar({ isAuthenticated: true, user: admin });
-    const gestion = screen.getByRole('button', { name: /Gestión/ });
     const cuenta = screen.getByRole('button', { name: 'Menú de admin' });
 
-    await user.click(gestion);
     await user.click(cuenta);
-    expect(gestion).toHaveAttribute('aria-expanded', 'false');
-    expect(cuenta).toHaveAttribute('aria-expanded', 'true');
-
     await user.click(screen.getByRole('button', { name: 'Fuera del menú' }));
     expect(cuenta).toHaveAttribute('aria-expanded', 'false');
 
-    await user.click(gestion);
+    await user.click(cuenta);
     await user.keyboard('{Escape}');
-    expect(gestion).toHaveAttribute('aria-expanded', 'false');
+    expect(cuenta).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(cuenta);
+    await user.click(screen.getByRole('link', { name: 'Mi Perfil' }));
+    expect(cuenta).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('cierra el menú al navegar a una sección', async () => {
+  it('el panel de administración solo aparece para el administrador', async () => {
     const user = userEvent.setup();
-    renderNavbar({ isAuthenticated: true, user: admin });
-    const gestion = screen.getByRole('button', { name: /Gestión/ });
-    await user.click(gestion);
-    await user.click(screen.getByRole('link', { name: 'Reportes' }));
-    expect(gestion).toHaveAttribute('aria-expanded', 'false');
+    renderNavbar({ isAuthenticated: true, user: { username: 'luis', fullName: 'Luis', role: 'CLIENT' } });
+    await user.click(screen.getByRole('button', { name: 'Menú de luis' }));
+    expect(screen.queryByRole('link', { name: 'Panel de Administración' })).not.toBeInTheDocument();
   });
 
   it('el menú de la cuenta muestra el rol y cierra sesión', async () => {
@@ -71,8 +64,8 @@ describe('Navbar', () => {
   });
 
   it('marca como activa la sección actual', () => {
-    renderNavbar({ isAuthenticated: true, user: admin }, '/appointments/all');
-    expect(screen.getByRole('link', { name: 'Citas' })).toHaveClass('active');
+    renderNavbar({ isAuthenticated: true, user: admin }, '/services');
+    expect(screen.getByRole('link', { name: 'Servicios' })).toHaveClass('active');
     expect(screen.getByRole('link', { name: 'Inicio' })).not.toHaveClass('active');
   });
 

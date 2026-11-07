@@ -63,7 +63,7 @@ describe('Login', () => {
   });
 
   it.each([
-    ['ADMIN', '/admin/dashboard'],
+    ['ADMIN', '/admin'],
     ['STYLIST', '/stylist/dashboard'],
     ['CLIENT', '/dashboard']
   ])('confirma el ingreso y redirige al panel de %s', async (role, target) => {

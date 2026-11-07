@@ -266,10 +266,10 @@ const Dropdown = styled.li`
 
 const DropdownButton = styled.button`
   ${linkStyles}
-  background: ${props => props.$active ? 'rgba(153, 101, 21, 0.12)' : 'none'};
+  background: none;
   border: none;
   cursor: pointer;
-  color: ${props => props.$active ? theme.colors.navbarLinkHover : theme.colors.navbarText};
+  color: ${theme.colors.navbarText};
 
   .caret {
     font-size: 0.7em;
@@ -353,20 +353,6 @@ const DropdownContent = styled.div`
   }
 `;
 
-const MenuSection = styled.p`
-  margin: 0;
-  padding: 0.55rem 1.25rem 0.3rem;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-
-  & + a {
-    margin-top: 0.1rem;
-  }
-`;
-
 const MenuDivider = styled.hr`
   margin: 0.4rem 0;
   border: none;
@@ -393,7 +379,8 @@ const UserCard = styled.div`
 
 const ROLE_LABELS = { ADMIN: 'Administrador', STYLIST: 'Estilista', CLIENT: 'Cliente' };
 
-// Enlaces principales según el rol. Lo que no cabe aquí va en el menú "Gestión" (admin) o en el del usuario.
+// Enlaces principales según el rol. El administrador gestiona el salón desde su
+// propio panel (/admin); aquí solo ve el sitio público y un acceso en su menú.
 const PRIMARY_LINKS = {
   GUEST: [
     { to: '/', label: 'Inicio', end: true },
@@ -419,29 +406,9 @@ const PRIMARY_LINKS = {
   ADMIN: [
     { to: '/', label: 'Inicio', end: true },
     { to: '/services', label: 'Servicios' },
-    { to: '/admin/dashboard', label: 'Panel', icon: 'fa-gauge' },
-    { to: '/appointments/all', label: 'Citas', icon: 'fa-calendar-alt' },
+    { to: '/contact', label: 'Contáctanos' },
   ],
 };
-
-// Secciones del menú "Gestión" del administrador.
-const ADMIN_MENU = [
-  {
-    title: 'Administrar',
-    links: [
-      { to: '/admin/users', label: 'Usuarios', icon: 'fa-users-cog' },
-      { to: '/admin/services', label: 'Catálogo de servicios', icon: 'fa-concierge-bell' },
-      { to: '/admin/agenda', label: 'Agenda y cierres', icon: 'fa-calendar-times' },
-    ],
-  },
-  {
-    title: 'Análisis',
-    links: [
-      { to: '/admin/reports', label: 'Reportes', icon: 'fa-chart-line' },
-    ],
-  },
-];
-const ADMIN_MENU_PATHS = ADMIN_MENU.flatMap(section => section.links.map(link => link.to));
 
 function Navbar({ isAuthenticated = false, user = null, onLogout }) {
   const [openMenu, setOpenMenu] = useState(null);
@@ -490,7 +457,6 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
   const toggleMenu = name => setOpenMenu(current => (current === name ? null : name));
   const role = isAuthenticated && user ? user.role : 'GUEST';
   const links = PRIMARY_LINKS[role] ?? PRIMARY_LINKS.CLIENT;
-  const adminSectionActive = ADMIN_MENU_PATHS.includes(location.pathname);
   const displayName = user?.fullName || user?.username || '';
 
   return (
@@ -518,36 +484,6 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
             </li>
           ))}
 
-          {role === 'ADMIN' && (
-            <Dropdown>
-              <DropdownButton
-                type="button"
-                $open={openMenu === 'admin'}
-                $active={adminSectionActive}
-                aria-haspopup="true"
-                aria-expanded={openMenu === 'admin'}
-                onClick={() => toggleMenu('admin')}
-              >
-                <i className="fas fa-shield-alt" aria-hidden="true"></i>
-                Gestión
-                <i className="fas fa-chevron-down caret" aria-hidden="true"></i>
-              </DropdownButton>
-              <DropdownContent $isOpen={openMenu === 'admin'}>
-                {ADMIN_MENU.map((section, index) => (
-                  <div key={section.title}>
-                    {index > 0 && <MenuDivider />}
-                    <MenuSection>{section.title}</MenuSection>
-                    {section.links.map(link => (
-                      <RouterNavLink key={link.to} to={link.to}>
-                        <i className={`fas ${link.icon}`} aria-hidden="true"></i>{link.label}
-                      </RouterNavLink>
-                    ))}
-                  </div>
-                ))}
-              </DropdownContent>
-            </Dropdown>
-          )}
-
           {role === 'GUEST' && (
             <li><LoginButton to="/login">Iniciar Sesión</LoginButton></li>
           )}
@@ -573,6 +509,9 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                     <strong>{displayName}</strong>
                     <span>{ROLE_LABELS[user.role] ?? user.role}</span>
                   </UserCard>
+                  {role === 'ADMIN' && (
+                    <Link to="/admin"><i className="fas fa-gauge-high" aria-hidden="true"></i>Panel de Administración</Link>
+                  )}
                   <RouterNavLink to="/profile"><i className="fas fa-user-edit" aria-hidden="true"></i>Mi Perfil</RouterNavLink>
                   <MenuDivider />
                   <button type="button" onClick={onLogout}>

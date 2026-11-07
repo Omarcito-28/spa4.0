@@ -21,6 +21,16 @@ export const theme = {
     success: '#27ae60',
     cardBg: '#ffffff',
     overlay: 'rgba(10, 10, 10, 0.55)',
+    border: '#9a8452',        // Borde de campos (3.6:1 sobre blanco/crema, WCAG 1.4.11)
+    placeholder: '#6b5b3a',   // Placeholder (6.3:1 sobre crema)
+    // Panel de administración: sidebar oscuro de la marca y área de trabajo clara.
+    adminBg: '#f6f2ea',
+    adminCardBorder: '#ebe3d3',
+    sidebarBg: '#0d0b08',
+    sidebarBgEnd: '#1a140b',
+    sidebarText: 'rgba(255, 255, 255, 0.74)',
+    sidebarMuted: 'rgba(255, 255, 255, 0.5)',
+    sidebarBorder: 'rgba(201, 148, 42, 0.16)',
   },
   fonts: {
     // Serif decorativa solo para títulos; el texto corrido usa una sans más legible.

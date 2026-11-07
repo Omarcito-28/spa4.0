@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { theme } from '../styles/theme';
 import { apiCreateUser, apiDeleteUser, apiGetUsers, apiUpdateUser } from '../services/api';
 import { useAuth } from '../contexts/auth';
-import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
 import { Button, Card, Description, EmptyCell, Field, Form, Grid, InlineForm, Notice, Page, ResultCount, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 
@@ -169,7 +168,6 @@ function AdminUsers() {
 
   return (
     <Page $wide>
-      <AdminNav />
       <Title>Gestionar usuarios</Title>
       <Description>Administra las cuentas, crea cuentas nuevas para estilistas o administradores y asigna roles con acceso controlado.</Description>
       {error && <Notice $error role="alert">{error}</Notice>}

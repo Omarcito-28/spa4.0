@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import AdminReports from './AdminReports';
@@ -55,11 +55,5 @@ describe('AdminReports', () => {
     const cells = name => [...screen.getByRole('cell', { name }).closest('tr').children].map(cell => cell.textContent.replace(/\s/g, ' '));
     expect(cells('Corte para Dama')).toEqual(['Corte para Dama', '3', '1', '$ 35.000']);
     expect(cells('Masaje Relajante')).toEqual(['Masaje Relajante', '2', '1', '$ 70.000']);
-  });
-
-  it('muestra los accesos a las demás secciones de administración', async () => {
-    renderReports();
-    const nav = await screen.findByRole('navigation', { name: 'Secciones de administración' });
-    expect(within(nav).getByRole('link', { name: /Servicios/ })).toHaveAttribute('href', '/admin/services');
   });
 });

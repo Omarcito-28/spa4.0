@@ -238,7 +238,7 @@ function Login() {
           }
           // Redirigir según el rol
           if (result.user.role === 'ADMIN') {
-            navigate('/admin/dashboard');
+            navigate('/admin');
           } else if (result.user.role === 'STYLIST') {
             navigate('/stylist/dashboard');
           } else {

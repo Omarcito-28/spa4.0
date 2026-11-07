@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { apiGetAppointmentPolicy, apiGetStylists, apiSendReminders } from '../services/api';
-import AdminNav from '../components/AdminNav';
 import TimeOffManager from '../components/TimeOffManager';
 import { Button, Card, Description, Notice, Page, SectionTitle, Title } from '../components/ManagementUI';
 
@@ -44,7 +43,6 @@ function AdminAgenda() {
 
   return (
     <Page $wide>
-      <AdminNav />
       <Title>Agenda del spa</Title>
       <Description>Cierra el spa en festivos o días especiales, bloquea fechas de un estilista y revisa las reglas que se aplican a las reservas.</Description>
       {error && <Notice $error role="alert">{error}</Notice>}

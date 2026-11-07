@@ -4,7 +4,6 @@ import { apiDeleteAppointment, apiGetAppointments, apiGetStylists, apiGetUsers, 
 import RefreshStatus from '../components/RefreshStatus';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
-import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
 import AppointmentCalendar from '../components/AppointmentCalendar';
 import ClientNotesPanel from '../components/ClientNotesPanel';
@@ -136,7 +135,6 @@ function AdminAppointments() {
 
   return (
     <Page $wide>
-      <AdminNav />
       <Title>Todas las citas</Title>
       <Description>Confirma las solicitudes, asigna un estilista, mueve citas de horario y marca como completadas las ya atendidas.</Description>
       <RefreshStatus lastUpdated={live.lastUpdated} refreshing={live.refreshing} onRefresh={live.refresh} />

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { apiDeleteReview, apiGetAllReviews, apiGetAppointments, apiGetAllServices, apiGetReviewSummary, apiGetUsers } from '../services/api';
 import StarRating from '../components/StarRating';
 import { downloadCsv } from '../utils/download';
-import AdminNav from '../components/AdminNav';
 import { Button, Description, EmptyCell, Grid, Notice, Page, SectionTitle, StatCard, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 import { APPOINTMENT_STATUSES, STATUS_OPTIONS, statusLabel } from '../utils/appointmentStatus';
 
@@ -108,7 +107,6 @@ function AdminReports() {
 
   return (
     <Page $wide>
-      <AdminNav />
       <Title>Resumen del negocio</Title>
       <Description>Filtra las citas por período, estado o servicio. Los ingresos se calculan con el precio de cada cita: los de citas completadas corresponden a servicios ya atendidos y el valor confirmado es una proyección; ninguno es un registro de pagos.</Description>
       {error && <Notice $error role="alert">{error}</Notice>}

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { theme } from '../styles/theme';
 import { apiCreateService, apiDeleteService, apiGetAllServices, apiUpdateService, resolveImageUrl } from '../services/api';
-import AdminNav from '../components/AdminNav';
 import Pagination from '../components/Pagination';
 import ServiceImagePicker from '../components/ServiceImagePicker';
 import { Button, Card, Description, EmptyCell, Field, Form, Grid, Notice, Page, ResultCount, SectionTitle, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
@@ -108,7 +107,6 @@ function AdminServices() {
 
   return (
     <Page $wide>
-      <AdminNav />
       <Title>Gestionar servicios</Title>
       <Description>Los servicios publicados aparecen en el catálogo y en el formulario de reservas. Oculta un servicio para dejar de ofrecerlo sin perder su historial.</Description>
       <Card>
