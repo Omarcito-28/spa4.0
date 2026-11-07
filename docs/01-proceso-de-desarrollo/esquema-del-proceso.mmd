@@ -1,0 +1,21 @@
+flowchart TB
+  subgraph F1["1. Inicio"]
+    A1["Entrevista y observación<br/>del negocio"] --> A2["Propuesta y<br/>documento de requerimientos"]
+  end
+  subgraph F2["2. Planeación"]
+    B1["Historias de usuario<br/>con criterios de aceptación"] --> B2["Pila del producto<br/>priorizada y estimada"]
+  end
+  subgraph F3["3. Sprint (iterativo, 6 sprints)"]
+    direction LR
+    C1["Planeación del sprint<br/>(lista de tareas)"] --> C2["Diseño<br/>(SAD, UML, prototipo)"]
+    C2 --> C3["Codificación en rama<br/>(Git + issues)"]
+    C3 --> C4["Pruebas unitarias e<br/>integración + lint"]
+    C4 --> C5["Pull request,<br/>revisión y CI"]
+    C5 --> C6["Revisión del sprint<br/>con el Product Owner"]
+    C6 --> C7["Retrospectiva"]
+    C7 -. "siguiente sprint" .-> C1
+  end
+  subgraph F4["4. Cierre"]
+    D1["Despliegue en la nube<br/>(Vercel + Render + Atlas)"] --> D2["Sustentación e<br/>INNOVASOFT"]
+  end
+  F1 --> F2 --> F3 --> F4

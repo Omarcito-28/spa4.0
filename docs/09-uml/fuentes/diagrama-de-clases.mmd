@@ -1,0 +1,229 @@
+classDiagram
+direction LR
+class BaseController {
+  <<abstract>>
+  +DEFAULT_FAILURE_MESSAGE$ string
+  +FAILURE_MESSAGES$ object
+  +handle(action) Function
+}
+class AuthController { -AuthService auth
+  +register(req,res)
+  +login(req,res)
+  +getProfile(req,res)
+  +updateProfile(req,res)
+  +requestPasswordReset(req,res)
+  +resetPassword(req,res) }
+class UserController { -UserService users
+  +list(req,res)
+  +create(req,res)
+  +listStylists(req,res)
+  +getSchedule(req,res)
+  +updateSchedule(req,res)
+  +update(req,res)
+  +remove(req,res) }
+class ServiceController { -ServiceCatalogService catalog
+  +list(req,res)
+  +listAll(req,res)
+  +create(req,res)
+  +update(req,res)
+  +remove(req,res) }
+class ServiceImageController { -ServiceImageService images
+  +list(req,res)
+  +upload(req,res)
+  +show(req,res) }
+class AppointmentController { -AppointmentService appointments
+  -AvailabilityService availability
+  -ReminderService reminders
+  +policy(req,res)
+  +sendReminders(req,res)
+  +list(req,res)
+  +availability(req,res)
+  +create(req,res)
+  +reschedule(req,res)
+  +updateStatus(req,res)
+  +update(req,res)
+  +remove(req,res) }
+class TimeOffController { -TimeOffService timeOff
+  +list(req,res)
+  +create(req,res)
+  +remove(req,res) }
+class ReviewController { -ReviewService reviews
+  +list(req,res)
+  +summary(req,res)
+  +mine(req,res)
+  +listAll(req,res)
+  +create(req,res)
+  +remove(req,res) }
+class ClientNoteController { -ClientNoteService notes
+  +list(req,res)
+  +create(req,res)
+  +remove(req,res) }
+
+BaseController <|-- AuthController
+BaseController <|-- UserController
+BaseController <|-- ServiceController
+BaseController <|-- ServiceImageController
+BaseController <|-- AppointmentController
+BaseController <|-- TimeOffController
+BaseController <|-- ReviewController
+BaseController <|-- ClientNoteController
+
+class AuthService { +RESET_TOKEN_TTL_MS$ int
+  +register(data) Session
+  +login(credentials) Session
+  +getProfile(user)
+  +updateProfile(user, data) Session
+  +requestPasswordReset(email)
+  +resetPassword(data)
+  +toPublicUser(user)$
+  -session(user) }
+class UserService { +ROLES$ string[]
+  +listAll()
+  +create(data)
+  +listStylists()
+  +getSchedule(userId)
+  +updateSchedule(userId, days)
+  +update(id, data, currentUser)
+  +delete(id, currentUser)
+  -isValidWeek(days) bool }
+class ServiceCatalogService {
+  +listActive()
+  +listAll()
+  +create(data)
+  +update(id, data)
+  +delete(id)
+  -hasUpcomingAppointments(name) bool }
+class ServiceImageService { +MAX_BYTES$ int
+  +URL_PREFIX$ string
+  +detectType(bytes)$ string
+  +urlFor(id)$ string
+  +upload(bytes, name)
+  +list()
+  +get(id) }
+class AppointmentService { +STATUSES$ string[]
+  -int cancellationNoticeHours
+  +getPolicy()
+  +listFor(user)
+  +create(user, data)
+  +updateStatus(id, status, user)
+  +update(id, data, user)
+  +reschedule(id, data, user)
+  +delete(id)
+  -change(options)
+  -assertCanChange(appointment, changes, user)
+  -assertCanComplete(appointment)
+  -assertCanMarkNoShow(appointment)
+  -assertCancellationNotice(appointment)
+  -notify(appointment, message) }
+class AvailabilityService { +OCCUPYING_STATUSES$ string[]
+  +DEFAULT_DURATION$ int
+  +getAvailability(date, stylist)
+  +assertSlotAvailable(slot)
+  -workdayOf(stylist, weekday)
+  -overlaps(a, b) bool }
+class TimeOffService { +MAX_DAYS$ int
+  +list(user)
+  +create(user, data)
+  +delete(id, user)
+  +findBlocking(date, stylist, session)
+  +describe(block)$ string }
+class ReminderService { +INTERVAL_MS$ int
+  +sendDueReminders()
+  +start(intervalMs)
+  +stop()
+  -send(appointment) }
+class ReviewService { +MAX_COMMENT$ int
+  +shortName(fullName)$ string
+  +create(user, data)
+  +listPublic(filters)
+  +summary()
+  +reviewedAppointmentIds(user)
+  +listAll()
+  +delete(id) }
+class ClientNoteService { +MAX_LENGTH$ int
+  +list(user, client)
+  +create(user, client, data)
+  +delete(id, user)
+  -assertAccess(user, client) }
+class BookingLockService { +initialize()
+  +lock(session, stylists) }
+class EmailService { +isConfigured() bool
+  +send(message)
+  +sendBestEffort(message) }
+class TokenService { -string secret
+  +sign(user) string
+  +verify(token) object }
+class PasswordHasher { -int rounds
+  +hash(password) string
+  +compare(password, hash) bool }
+class BogotaClock { +today() string
+  +minutesNow() int }
+
+AuthController --> AuthService
+UserController --> UserService
+ServiceController --> ServiceCatalogService
+ServiceImageController --> ServiceImageService
+AppointmentController --> AppointmentService
+AppointmentController --> AvailabilityService
+AppointmentController --> ReminderService
+TimeOffController --> TimeOffService
+ReviewController --> ReviewService
+ClientNoteController --> ClientNoteService
+
+AuthService --> PasswordHasher
+AuthService --> TokenService
+AuthService --> EmailService
+UserService --> PasswordHasher
+AppointmentService --> AvailabilityService
+AppointmentService --> BookingLockService
+AppointmentService --> EmailService
+AppointmentService --> BogotaClock
+AvailabilityService --> TimeOffService
+TimeOffService --> BookingLockService
+ReminderService --> EmailService
+ReminderService --> BogotaClock
+ServiceCatalogService --> BogotaClock
+
+class AuthMiddleware { +authenticate(req,res,next)
+  +requireRole(roles) Function
+  -resolveUser(authorization) }
+class LoginRateLimiter { -int maxFailures
+  -int windowMs
+  +handle(req,res,next)
+  -record(key)
+  -retryAfter(key, limit) int }
+class ErrorMiddleware { +handle(error,req,res,next) }
+class CorsPolicy { +fromEnv(env)$ CorsPolicy
+  +isAllowed(origin) bool
+  +toOptions() object }
+class DatabaseSeeder { +DEFAULT_SERVICES$ object[]
+  +run() }
+AuthMiddleware --> TokenService
+DatabaseSeeder --> PasswordHasher
+DatabaseSeeder --> BookingLockService
+
+class AppError { -int status
+  +status() int
+  +toJSON() object
+  +from(error, message)$ AppError }
+class ValidationError
+class UnauthorizedError
+class InvalidSessionError
+class ForbiddenError
+class NotFoundError
+class ConflictError
+class BookingError
+class ServiceUnavailableError
+class TooManyAttemptsError
+AppError <|-- ValidationError
+AppError <|-- UnauthorizedError
+UnauthorizedError <|-- InvalidSessionError
+AppError <|-- ForbiddenError
+AppError <|-- NotFoundError
+AppError <|-- ConflictError
+ConflictError <|-- BookingError
+AppError <|-- ServiceUnavailableError
+AppError <|-- TooManyAttemptsError
+ErrorMiddleware ..> AppError : responde con status y toJSON
+LoginRateLimiter ..> TooManyAttemptsError : lanza
+AvailabilityService ..> BookingError : lanza

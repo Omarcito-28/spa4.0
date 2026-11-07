@@ -2,6 +2,10 @@
 
 Sistema web de control operativo y agendamiento para Centros de Cuidado Personal. Permite a los clientes reservar servicios con un estilista en un horario disponible, a los estilistas gestionar su agenda y sus citas, y al administrador controlar usuarios, servicios, citas y reportes del centro.
 
+Proyecto final de **Ingeniería de Software Orientada a Objetos**, programa de Ingeniería de Software de la Universidad Surcolombiana. Docente: Eduardo Martínez Vidal. Repositorio: https://github.com/Omarcito-28/spa4.0.
+
+Los entregables del curso (propuesta, requerimientos, historias de usuario, SAD, UML, etc.) están en [`docs/`](docs/README.md).
+
 ## Roles
 
 | Rol | Qué puede hacer |
@@ -26,8 +30,8 @@ Navegador ──► Frontend React (Vercel) ──HTTP/JSON──► API REST Ex
 - **Backend** (`backend/`): API Express organizada en capas orientadas a objetos:
   - `routes/` define los endpoints y aplica el `AuthMiddleware` (token y rol).
   - `controllers/` traduce peticiones HTTP a llamadas de servicio.
-  - `services/` contiene las reglas de negocio (citas, disponibilidad, autenticación, usuarios, catálogo, correo).
-  - `models/` son los esquemas de Mongoose (`User`, `Service`, `Appointment`, `BookingLock`).
+  - `services/` contiene las reglas de negocio: citas, disponibilidad, días libres y cierres, recordatorios, reseñas, notas de clientes, autenticación, usuarios, catálogo, imágenes y correo.
+  - `models/` son los esquemas de Mongoose: `User`, `Service`, `ServiceImage`, `Appointment`, `BookingLock`, `TimeOff`, `Review` y `ClientNote`.
   - `errors/` define la jerarquía `AppError` que el `ErrorMiddleware` convierte en respuestas JSON con su código HTTP.
   - `container.js` crea e inyecta todas las dependencias, y `database/database-seeder.js` siembra el catálogo inicial y el administrador.
   - Las reservas usan transacciones de MongoDB y bloqueos por estilista y fecha para evitar citas superpuestas.
@@ -44,6 +48,8 @@ Todos bajo `/api`. "Auth" requiere el encabezado `Authorization: Bearer <token>`
 | `GET /auth/me` · `PUT /auth/profile` | Auth | Perfil del usuario |
 | `GET /services` | Público | Catálogo de servicios publicados |
 | `GET /services/all` · `POST /services` · `PUT /services/:id` · `DELETE /services/:id` | Admin | Gestión del catálogo, incluidos los servicios ocultos (`isActive: false`). No se puede borrar un servicio con citas próximas |
+| `GET /service-images/:id` | Público | Imagen de un servicio guardada en la base |
+| `GET /service-images` · `POST /service-images` | Admin | Listar y subir imágenes de servicios (JPEG, PNG o WebP) |
 | `GET /appointments/availability` | Público | Horarios disponibles (con `closedReason` si el día está bloqueado) |
 | `GET /appointments/policy` | Público | Horas mínimas para cancelar o reprogramar |
 | `POST /appointments/reminders` | Admin | Envía ya los recordatorios de las citas de mañana |
@@ -135,7 +141,36 @@ Abre http://localhost:5173. Vite redirige `/api` al backend en el puerto 5000; p
 
 El asistente del sitio consulta los servicios, duraciones, horarios y disponibilidad del backend y guía a la persona al formulario de reserva, pero no crea reservas desde el chat.
 
-### 4. Comprobar
+### 4. Cargar datos de prueba (opcional)
+
+Para recorrer todas las funciones sin crear todo a mano:
+
+```bash
+npm run seed:test
+```
+
+El script `backend/scripts/seedTestData.js` crea:
+
+- **Usuarios de cada rol**, todos con la contraseña `Prueba123*`:
+
+  | Rol | Usuarios |
+  |-----|----------|
+  | Administrador | `admin_prueba` |
+  | Estilista | `laura_estilista` (lunes a viernes, 9:00 a 18:00), `camila_estilista` (martes a sábado, 10:00 a 19:00), `sofia_estilista` (horario general del spa), `paula_inactiva` (desactivada) |
+  | Cliente | `ana_cliente`, `juan_cliente`, `valentina_cliente`, `carlos_cliente`, `mariana_cliente`, `daniel_cliente`, `isabella_cliente`, `cliente_inactivo` (desactivado) y `cliente01` a `cliente12` para probar la paginación |
+
+- **Citas en los cinco estados**, pasadas, de hoy, de mañana (para probar los recordatorios) y de las próximas semanas, algunas sin estilista asignado. Las horas respetan el horario y los días libres de cada estilista y no se cruzan.
+- **Reseñas** de 2 a 5 estrellas, y citas completadas sin reseña para calificarlas desde la cuenta del cliente.
+- **Notas internas** sobre clientes, **días libres** de estilistas y un **cierre del spa** por festivo.
+- **Tres servicios extra**, uno de ellos oculto. Si faltan los seis servicios base, también los crea.
+
+Se puede ejecutar varias veces: cada corrida borra primero solo lo que creó la anterior (usuarios con correo `@prueba.essencedetoi.com` y todo lo asociado a ellos) y no toca el administrador ni los clientes reales.
+
+Escribe en la base de `MONGODB_URI`, así que úsalo con una base de desarrollo, no con la del sitio publicado. El script se niega a correr si `NODE_ENV=production`. Los correos de prueba no existen: con SMTP configurado, los avisos a esas cuentas fallarán.
+
+Para restaurar solo el catálogo de servicios a los seis servicios base existe `node scripts/resetServices.js` (desde `backend/`); este sí borra todos los servicios actuales.
+
+### 5. Comprobar
 
 Desde la raíz:
 
@@ -158,7 +193,7 @@ npx vitest               # modo observación mientras desarrollas
 npm run test:coverage    # reporte de cobertura en frontend/coverage/
 ```
 
-**Backend** (`backend/`). Las pruebas unitarias cubren los servicios (`AuthService`, `AppointmentService`, `AvailabilityService`, `ServiceCatalogService`, `UserService`), las utilidades de fecha y hora, la jerarquía de errores y el controlador base. Las de integración llaman a la API con supertest:
+**Backend** (`backend/`). Las pruebas unitarias cubren los servicios (`AuthService`, `AppointmentService`, `AvailabilityService`, `ServiceCatalogService`, `UserService`, `ReviewService`, `ClientNoteService`), la agenda (días libres y cierres, inasistencias, política de cancelación y recordatorios), las utilidades de fecha y hora, la política de CORS, el límite de intentos de inicio de sesión, la jerarquía de errores y el controlador base. Las de integración llaman a la API con supertest:
 
 ```bash
 cd backend
@@ -183,9 +218,11 @@ El backend se publica en Render (`render.yaml`) y el frontend en Vercel (`fronte
 
 ## Equipo
 
-| Integrante | Rol en el proyecto | Contacto |
-|------------|--------------------|----------|
-| Lauren Dayanna Villanueva Camero | Desarrolladora | u20241220012@usco.edu.co |
-| _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
-| _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
-| _Nombre completo_ | _Rol_ | _Correo o usuario de GitHub_ |
+| Integrante | Código | Rol en el proyecto | Correo |
+|------------|--------|--------------------|--------|
+| Lauren Dayanna Villanueva Camero | 20241220012 | Desarrolladora frontend y apoyo en documentación | u20241220012@usco.edu.co |
+| Omar Gabriel Viana Sepúlveda | 20232218083 | Scrum Master, arquitecto de software y desarrollador backend | u20232218083@usco.edu.co |
+| Carlos Esteban Castro Caicedo | 20231213568 | Product Owner y analista de requerimientos | u20231213568@usco.edu.co |
+| Carlos David Neira Vega | 20232215447 | Desarrollador backend, pruebas y despliegue | u20232215447@usco.edu.co |
+
+Docente: Eduardo Martínez Vidal, Universidad Surcolombiana.

@@ -1,0 +1,82 @@
+erDiagram
+  USER ||--o{ APPOINTMENT : "reserva (username)"
+  USER ||--o{ APPOINTMENT : "atiende (stylist)"
+  SERVICE ||--o{ APPOINTMENT : "se copia (nombre, duración, precio)"
+  APPOINTMENT ||--o| REVIEW : "se califica (appointment)"
+  USER ||--o{ TIME_OFF : "bloquea agenda (stylist)"
+  USER ||--o{ CLIENT_NOTE : "es descrito (client)"
+  USER ||--o{ CLIENT_NOTE : "escribe (author)"
+  SERVICE_IMAGE ||--o{ SERVICE : "ilustra (image = URL)"
+  USER ||--o| BOOKING_LOCK : "serializa reservas (_id = username)"
+  USER {
+    ObjectId _id PK
+    string username UK "minúsculas"
+    string password "hash bcrypt"
+    string fullName
+    string email UK
+    string phoneNumber
+    enum role "ADMIN | CLIENT | STYLIST"
+    bool isActive
+    array weeklySchedule "day, enabled, start, end"
+    int tokenVersion
+    string passwordResetTokenHash
+    date passwordResetExpiresAt
+  }
+  SERVICE {
+    ObjectId _id PK
+    string name
+    string description
+    string price
+    int duration "15 a 480 min"
+    string image
+    bool isActive
+  }
+  APPOINTMENT {
+    ObjectId _id PK
+    string username FK
+    string service
+    int duration
+    string price
+    string stylist FK
+    string date "YYYY-MM-DD"
+    string time "HH:mm"
+    string notes
+    enum status "PENDING | CONFIRMED | CANCELLED | COMPLETED | NO_SHOW"
+    date reminderSentAt
+  }
+  REVIEW {
+    ObjectId _id PK
+    ObjectId appointment FK,UK
+    string username
+    string authorName
+    string service
+    string stylist
+    int rating "1 a 5"
+    string comment "máx. 500"
+  }
+  TIME_OFF {
+    ObjectId _id PK
+    string stylist FK "vacío = cierre del spa"
+    string start
+    string end
+    string reason "máx. 120"
+    string createdBy
+  }
+  CLIENT_NOTE {
+    ObjectId _id PK
+    string client FK
+    string author FK
+    string authorName
+    string text "máx. 1000"
+  }
+  SERVICE_IMAGE {
+    ObjectId _id PK
+    binary data
+    enum contentType "jpeg | png | webp"
+    int size
+    string name
+  }
+  BOOKING_LOCK {
+    string _id PK
+    int version
+  }
