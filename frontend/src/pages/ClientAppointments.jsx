@@ -96,7 +96,7 @@ function ClientAppointments() {
   };
 
   return (
-    <Page>
+    <Page $wide>
       <Title>Mis citas</Title>
       <Description>
         Consulta el estado de tus reservas y cancela las que ya no necesites.

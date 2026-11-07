@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react';
+import styled from 'styled-components';
 import { apiDeleteAppointment, apiGetAppointments, apiGetStylists, apiGetUsers, apiUpdateAppointment } from '../services/api';
 import RefreshStatus from '../components/RefreshStatus';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
@@ -17,6 +18,32 @@ const loadAgenda = async () => {
   const [appointments, stylists, users] = await Promise.all([apiGetAppointments(), apiGetStylists(), apiGetUsers()]);
   return { appointments, stylists, users };
 };
+
+// Una nota larga (o una palabra sin espacios) no debe ensanchar la tabla y empujar
+// los botones de acción fuera del recuadro: se ajusta y se recorta a tres líneas.
+const NotesCell = styled.td`
+  min-width: 10rem;
+  max-width: 18rem;
+  overflow-wrap: anywhere;
+
+  span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+`;
+
+const RowActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+
+  button {
+    margin: 0;
+  }
+`;
 
 const EMPTY_FILTERS = { search: '', status: '', service: '', from: '', to: '' };
 // Una cita completada o con inasistencia es definitiva: se muestra sin controles de edición.
@@ -108,7 +135,7 @@ function AdminAppointments() {
   ], filteredAppointments);
 
   return (
-    <Page>
+    <Page $wide>
       <AdminNav />
       <Title>Todas las citas</Title>
       <Description>Confirma las solicitudes, asigna un estilista, mueve citas de horario y marca como completadas las ya atendidas.</Description>
@@ -174,15 +201,15 @@ function AdminAppointments() {
                           {STATUS_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                         </select></div></td>
                     </>}
-                    <td>{appointment.notes || '—'}</td>
-                    <td style={{ whiteSpace: 'nowrap' }}>
+                    <NotesCell title={appointment.notes || undefined}><span>{appointment.notes || '—'}</span></NotesCell>
+                    <td><RowActions>
                       {!isLocked(appointment.status) &&
                         <Button type="button" $secondary disabled={busy} aria-expanded={open === 'move'} onClick={() => toggle(appointment._id, 'move')}>Mover</Button>}
                       <Button type="button" $secondary aria-expanded={open === 'notes'} onClick={() => toggle(appointment._id, 'notes')}>Notas</Button>
                       <Button type="button" $danger disabled={busy} onClick={() => remove(appointment)} aria-label={`Eliminar cita de ${appointment.username} del ${appointment.date}`}>
                         <i className="fas fa-trash" aria-hidden="true"></i>
                       </Button>
-                    </td>
+                    </RowActions></td>
                   </tr>
                   {open === 'move' && <tr><td colSpan={7}>
                     <RescheduleForm

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { theme } from '../styles/theme';
 import { APPOINTMENT_STATUSES, statusLabel } from '../utils/appointmentStatus';
 import { appointmentTimeToMinutes, todayInTimeZone } from '../utils/date';
-import { Button } from './ManagementUI';
+import { Button, control } from './ManagementUI';
 
 const PX_PER_MINUTE = 1.1;
 const DEFAULT_START = 8 * 60;
@@ -38,6 +38,14 @@ const Nav = styled.div`
 
   ${Button} {
     margin: 0;
+  }
+
+  input[type='date'] {
+    ${control}
+    width: auto;
+    min-height: 0;
+    padding: 0.5rem 0.8rem;
+    font-size: 1rem;
   }
 `;
 

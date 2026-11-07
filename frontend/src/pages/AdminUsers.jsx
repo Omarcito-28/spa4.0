@@ -168,7 +168,7 @@ function AdminUsers() {
   const countByRole = role => users.filter(user => user.role === role).length;
 
   return (
-    <Page>
+    <Page $wide>
       <AdminNav />
       <Title>Gestionar usuarios</Title>
       <Description>Administra las cuentas, crea cuentas nuevas para estilistas o administradores y asigna roles con acceso controlado.</Description>

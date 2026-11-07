@@ -100,10 +100,6 @@ const ServiceCell = styled.td`
   }
 `;
 
-const Actions = styled.td`
-  white-space: nowrap;
-`;
-
 function StylistAppointments() {
   const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
   const appointments = [...(live.data ?? [])].sort(compareByDateTime);
@@ -126,7 +122,7 @@ function StylistAppointments() {
   };
 
   return (
-    <Page>
+    <Page $wide>
       <Title>Mis citas asignadas</Title>
       <Description>Gestiona las reservas que la administración asignó a tu agenda.</Description>
       <Bar>
@@ -162,7 +158,7 @@ function StylistAppointments() {
                 <td>{appointment.username}</td>
                 <ServiceCell>{appointment.service}{appointment.notes && <small title={appointment.notes}>“{appointment.notes}”</small>}</ServiceCell>
                 <td><StatusBadge status={appointment.status} /></td>
-                <Actions>
+                <td>
                   {appointment.status === 'PENDING' && <Button type="button" onClick={() => updateStatus(appointment._id, 'CONFIRMED')}>Confirmar</Button>}
                   {appointment.status === 'CONFIRMED' && hasAppointmentStarted(appointment) &&
                     <Button type="button" onClick={() => updateStatus(appointment._id, 'COMPLETED')}>Marcar como completada</Button>}
@@ -173,7 +169,7 @@ function StylistAppointments() {
                     onClick={() => setNotesFor(current => current === appointment._id ? '' : appointment._id)}>
                     <i className="fas fa-sticky-note" aria-hidden="true"></i> Notas
                   </Button>
-                </Actions>
+                </td>
               </tr>
               {notesFor === appointment._id && <tr><td colSpan={5}><ClientNotesPanel client={appointment.username} /></td></tr>}
               </Fragment>

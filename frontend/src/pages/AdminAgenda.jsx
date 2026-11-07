@@ -43,7 +43,7 @@ function AdminAgenda() {
   const hours = policy?.cancellationNoticeHours;
 
   return (
-    <Page>
+    <Page $wide>
       <AdminNav />
       <Title>Agenda del spa</Title>
       <Description>Cierra el spa en festivos o días especiales, bloquea fechas de un estilista y revisa las reglas que se aplican a las reservas.</Description>

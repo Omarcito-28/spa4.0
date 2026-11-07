@@ -32,6 +32,15 @@ export default class ServiceCatalogService {
     if (isActive !== undefined && typeof isActive !== 'boolean') {
       throw new ValidationError('El estado del servicio no es válido.');
     }
+    // Las citas y reseñas guardan el nombre del servicio: renombrarlo con citas por
+    // atender las dejaría apuntando a un servicio que ya no existe.
+    if (typeof name === 'string') {
+      const current = await this.#services.findById(id);
+      if (!current) throw new NotFoundError('Servicio no encontrado.');
+      if (current.name !== name.trim() && await this.#hasUpcomingAppointments(current.name)) {
+        throw new ConflictError('El servicio tiene citas próximas. Espera a que se atiendan o cancélalas antes de cambiarle el nombre.');
+      }
+    }
     const updated = await this.#services.findByIdAndUpdate(
       id,
       { name, description, price, image, duration, isActive },
@@ -46,13 +55,17 @@ export default class ServiceCatalogService {
   async delete(id) {
     const service = await this.#services.findById(id);
     if (!service) throw new NotFoundError('Servicio no encontrado.');
-    if (await this.#appointments.exists({
-      service: service.name,
-      status: { $in: ['PENDING', 'CONFIRMED'] },
-      date: { $gte: this.#clock.today() }
-    })) {
+    if (await this.#hasUpcomingAppointments(service.name)) {
       throw new ConflictError('El servicio tiene citas próximas. Ocúltalo del catálogo para que no se reserve más, o cancela esas citas antes de eliminarlo.');
     }
     await this.#services.findByIdAndDelete(id);
+  }
+
+  #hasUpcomingAppointments(serviceName) {
+    return this.#appointments.exists({
+      service: serviceName,
+      status: { $in: ['PENDING', 'CONFIRMED'] },
+      date: { $gte: this.#clock.today() }
+    });
   }
 }

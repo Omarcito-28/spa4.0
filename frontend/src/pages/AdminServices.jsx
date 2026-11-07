@@ -24,18 +24,14 @@ const ServiceCell = styled.div`
   }
 
   span {
-    display: block;
-    max-width: 420px;
+    display: -webkit-box;
+    max-width: 480px;
     font-size: 0.95rem;
     color: ${theme.colors.textMuted};
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
-`;
-
-const Actions = styled.td`
-  white-space: nowrap;
 `;
 
 function AdminServices() {
@@ -111,7 +107,7 @@ function AdminServices() {
   const visibleServices = filteredServices.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <Page>
+    <Page $wide>
       <AdminNav />
       <Title>Gestionar servicios</Title>
       <Description>Los servicios publicados aparecen en el catálogo y en el formulario de reservas. Oculta un servicio para dejar de ofrecerlo sin perder su historial.</Description>
@@ -153,13 +149,13 @@ function AdminServices() {
               </td>
               <td>{service.price}</td><td>{service.duration || 60} min</td>
               <td>{service.isActive === false ? 'Oculto' : 'Publicado'}</td>
-              <Actions>
+              <td>
                 <Button type="button" $secondary onClick={() => edit(service)}>Editar</Button>
                 <Button type="button" $secondary onClick={() => toggleActive(service)} aria-label={`${service.isActive === false ? 'Publicar' : 'Ocultar'} ${service.name}`}>
                   {service.isActive === false ? 'Publicar' : 'Ocultar'}
                 </Button>
                 <Button type="button" $danger onClick={() => remove(service)}>Eliminar</Button>
-              </Actions>
+              </td>
             </tr>
           ))}
         </tbody>

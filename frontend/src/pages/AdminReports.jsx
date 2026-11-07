@@ -107,7 +107,7 @@ function AdminReports() {
   const attendedOrMissed = completed.length + noShows.length;
 
   return (
-    <Page>
+    <Page $wide>
       <AdminNav />
       <Title>Resumen del negocio</Title>
       <Description>Filtra las citas por período, estado o servicio. Los ingresos se calculan con el precio de cada cita: los de citas completadas corresponden a servicios ya atendidos y el valor confirmado es una proyección; ninguno es un registro de pagos.</Description>

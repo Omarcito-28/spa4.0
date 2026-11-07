@@ -74,7 +74,21 @@ describe('ServiceCatalogService', () => {
       expect(serviceModel.findByIdAndUpdate).not.toHaveBeenCalled();
     });
 
+    it('impide renombrar un servicio con citas próximas', async () => {
+      appointmentModel.exists.mockResolvedValue({ _id: 'cita-1' });
+      await expect(catalog.update('svc-1', { name: 'Corte Nuevo' })).rejects.toBeInstanceOf(ConflictError);
+      expect(appointmentModel.exists).toHaveBeenCalledWith(expect.objectContaining({ service: 'Corte' }));
+      expect(serviceModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('permite editar otros campos aunque haya citas próximas si el nombre no cambia', async () => {
+      appointmentModel.exists.mockResolvedValue({ _id: 'cita-1' });
+      serviceModel.findByIdAndUpdate.mockResolvedValue({ _id: 'svc-1', name: 'Corte' });
+      await expect(catalog.update('svc-1', { name: ' Corte ', price: '$60.000' })).resolves.toMatchObject({ name: 'Corte' });
+    });
+
     it('responde 404 si el servicio no existe', async () => {
+      serviceModel.findById.mockResolvedValue(null);
       serviceModel.findByIdAndUpdate.mockResolvedValue(null);
       await expect(catalog.update('nada', { name: 'X' })).rejects.toThrow(new NotFoundError('Servicio no encontrado.'));
     });

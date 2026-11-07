@@ -5,7 +5,7 @@ const border = theme.colors.border;
 const arrow = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'><path d='M1 1.5l6 6 6-6' fill='none' stroke='%23996515' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>\")";
 
 // Los controles de formulario no heredan el tamaño de letra del body; se fija aquí.
-const control = css`
+export const control = css`
   min-width: 0;
   width: 100%;
   padding: 0.7rem 1rem;
@@ -90,8 +90,10 @@ const surface = css`
   box-shadow: 0 1px 2px rgba(60, 40, 10, 0.04), 0 8px 24px rgba(60, 40, 10, 0.06);
 `;
 
+// Las páginas con tablas usan $wide: aprovechan el ancho de la pantalla para que
+// todas las columnas quepan sin tener que desplazarse a los lados.
 export const Page = styled.section`
-  max-width: 1200px;
+  max-width: ${props => props.$wide ? '1680px' : '1200px'};
   margin: 0 auto;
   padding: 3rem 1.5rem 4rem;
   animation: ${fadeInUp} 0.45s ease-out;
@@ -299,11 +301,11 @@ export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 1.12rem;
+  font-size: 1.02rem;
 
   th, td {
-    height: 64px;
-    padding: 0.85rem 1.1rem;
+    height: 60px;
+    padding: 0.7rem 0.8rem;
     border-bottom: 1px solid #eee8dc;
     vertical-align: middle;
   }
@@ -312,8 +314,10 @@ export const Table = styled.table`
     background: #fffdf9;
   }
 
+  /* Los botones de acción pasan a una segunda línea si no caben, en vez de
+     ensanchar la tabla y obligar a desplazarse. */
   td:last-child:has(button) {
-    white-space: nowrap;
+    min-width: 9rem;
   }
 
   th {
@@ -366,8 +370,10 @@ export const Table = styled.table`
   }
 
   td ${Button} {
-    padding: 0.45rem 0.95rem;
-    font-size: 0.98rem;
+    margin: 0.15rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
   }
 `;
 
