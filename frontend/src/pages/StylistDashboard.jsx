@@ -1,47 +1,34 @@
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../styles/theme';
 import { apiGetAppointments } from '../services/api';
-import { AppointmentList, LivePanel, StatGrid } from '../components/LivePanel';
+import { AppointmentList, LivePanel } from '../components/LivePanel';
+import { Page } from '../components/ManagementUI';
+import KpiGrid from '../components/dashboard/KpiGrid';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
-import { appointmentsOn, readyToComplete, upcomingAppointments } from '../utils/appointmentSummary';
+import { appointmentsOn, compareByDateTime, readyToComplete, upcomingAppointments } from '../utils/appointmentSummary';
 import { todayInTimeZone } from '../utils/date';
 
-const slideUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-const DashboardContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-  animation: ${slideUp} 0.5s ease-out;
-`;
-
-const Title = styled.h1`
-  color: ${theme.colors.text};
-  margin-bottom: 0.25rem;
-  font-size: 2.8rem;
-`;
-
-const Subtitle = styled.p`
-  color: ${theme.colors.textMuted};
-  font-size: 1.15rem;
-  margin-bottom: 2rem;
-`;
-
-const WelcomeCard = styled.div`
-  background: linear-gradient(135deg, #0a0a0a, #1a1a2e);
-  padding: 2rem 2.5rem;
-  border-radius: ${theme.borderRadius.medium};
-  box-shadow: ${theme.shadows.large};
-  margin-bottom: 2.5rem;
-  color: white;
+const Banner = styled.header`
   position: relative;
+  margin-bottom: 1.75rem;
+  padding: 1.75rem 2rem;
   overflow: hidden;
-  border-left: 4px solid ${theme.colors.accent};
+  border-radius: ${theme.borderRadius.medium};
+  background: linear-gradient(135deg, ${theme.colors.sidebarBg} 0%, ${theme.colors.sidebarBgEnd} 100%);
+  box-shadow: 0 12px 32px rgba(26, 20, 11, 0.18);
+  color: rgba(255, 255, 255, 0.82);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background: linear-gradient(180deg, ${theme.colors.navbarLinkHover}, ${theme.colors.primary});
+  }
 
   &::after {
     content: '✂';
@@ -49,102 +36,124 @@ const WelcomeCard = styled.div`
     right: 2rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 3.5rem;
-    opacity: 0.1;
+    color: ${theme.colors.accent};
+    font-size: 4rem;
+    opacity: 0.12;
   }
 
-  h2 {
+  h1 {
+    margin-bottom: 0.4rem;
     color: ${theme.colors.navbarLinkHover};
-    margin-bottom: 0.5rem;
-    font-size: 1.8rem;
+    font-size: 2.4rem;
   }
 
   p {
-    opacity: 0.88;
-    font-size: 1.15rem;
-    margin-bottom: 0.25rem;
+    margin: 0;
+    font-size: 1.1rem;
   }
 
   strong {
     color: ${theme.colors.navbarLinkHover};
-  }
-`;
-
-const CardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-`;
-
-const Card = styled(Link)`
-  background: ${theme.colors.cardBg};
-  padding: 2rem;
-  border-radius: ${theme.borderRadius.medium};
-  box-shadow: ${theme.shadows.small};
-  transition: all ${theme.transitions.normal};
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  text-decoration: none;
-  display: block;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, ${theme.colors.primary}, ${theme.colors.accent});
-    transform: scaleX(0);
-    transition: transform ${theme.transitions.normal};
+    letter-spacing: 0.5px;
   }
 
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: ${theme.shadows.cardHover};
-    text-decoration: none;
+  @media (max-width: 600px) {
+    padding: 1.4rem 1.25rem;
 
-    &::before {
-      transform: scaleX(1);
+    h1 {
+      font-size: 2rem;
     }
   }
 `;
 
-const CardIcon = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(153, 101, 21, 0.1), rgba(201, 148, 42, 0.1));
-  display: flex;
+const RoleBadge = styled.span`
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 1.25rem;
-  color: ${theme.colors.primary};
-  font-size: 1.1rem;
-  transition: all ${theme.transitions.normal};
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid rgba(201, 148, 42, 0.4);
+  border-radius: 999px;
+  background: rgba(201, 148, 42, 0.12);
+  color: ${theme.colors.accent};
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+`;
 
-  ${Card}:hover & {
-    background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
-    color: white;
-    box-shadow: 0 4px 12px rgba(153, 101, 21, 0.3);
+const SectionHeading = styled.h2`
+  margin: 0 0 1rem;
+  color: ${theme.colors.text};
+  font-size: 1.7rem;
+`;
+
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+`;
+
+const QuickCard = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.4rem 1.4rem 1.3rem;
+  border: 1px solid ${theme.colors.dashboardCardBorder};
+  border-radius: ${theme.borderRadius.medium};
+  background: white;
+  box-shadow: 0 1px 2px rgba(60, 40, 10, 0.04), 0 8px 24px rgba(60, 40, 10, 0.05);
+  text-decoration: none;
+  transition: transform ${theme.transitions.fast}, box-shadow ${theme.transitions.fast}, border-color ${theme.transitions.fast};
+
+  i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0.6rem;
+    border-radius: 12px;
+    background: rgba(201, 148, 42, 0.12);
+    color: ${theme.colors.primary};
+    font-size: 1.1rem;
+    transition: background ${theme.transitions.fast}, color ${theme.transitions.fast};
+  }
+
+  strong {
+    color: ${theme.colors.text};
+    font-size: 1.2rem;
+  }
+
+  span {
+    color: ${theme.colors.textMuted};
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: rgba(201, 148, 42, 0.45);
+    box-shadow: ${theme.shadows.cardHover};
+    text-decoration: none;
+
+    i {
+      background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+      color: white;
+    }
   }
 `;
 
-const CardTitle = styled.h3`
-  color: ${theme.colors.text};
-  margin-bottom: 0.5rem;
-  font-size: 1.35rem;
-  font-family: ${theme.fonts.secondary};
-  font-size-adjust: ${theme.fonts.secondaryAdjust};
-  font-weight: 600;
-`;
+const QUICK_LINKS = [
+  { to: '/stylist/appointments', icon: 'fa-calendar-check', title: 'Mis citas', text: 'Confirma, completa o cancela las citas que tienes asignadas.' },
+  { to: '/stylist/schedule', icon: 'fa-business-time', title: 'Mi horario', text: 'Configura tu disponibilidad y horarios de trabajo.' },
+  { to: '/stylist/history', icon: 'fa-clock-rotate-left', title: 'Historial de citas', text: 'Revisa las citas que ya atendiste o se cerraron.' },
+  { to: '/stylist/profile', icon: 'fa-user-pen', title: 'Mi perfil', text: 'Actualiza tu información de contacto y contraseña.' },
+];
 
-const CardText = styled.p`
-  color: ${theme.colors.textMuted};
-  line-height: 1.6;
-  font-size: 1.1rem;
-`;
+const longDate = date => new Intl.DateTimeFormat('es-CO', {
+  weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC',
+}).format(new Date(`${date}T00:00:00Z`));
 
 function StylistSummary() {
   const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
@@ -153,15 +162,15 @@ function StylistSummary() {
   const todays = appointmentsOn(appointments, today);
   return (
     <LivePanel title="Tu agenda de hoy" live={live}>
-      <StatGrid stats={[
-        { icon: 'fa-calendar-day', label: 'Citas hoy', value: todays.length },
+      <KpiGrid kpis={[
+        { icon: 'fa-calendar-day', label: 'Citas hoy', value: todays.length, highlight: true },
         { icon: 'fa-hourglass-half', label: 'Por confirmar', value: upcomingAppointments(appointments, today).filter(item => item.status === 'PENDING').length },
         { icon: 'fa-clipboard-check', label: 'Listas para completar', value: readyToComplete(appointments).length },
         { icon: 'fa-circle-check', label: 'Completadas hoy', value: todays.filter(item => item.status === 'COMPLETED').length },
       ]} />
       <AppointmentList
         title="Citas de hoy"
-        appointments={todays}
+        appointments={[...todays].sort(compareByDateTime)}
         empty="No tienes citas para hoy."
         describe={item => item.username}
       />
@@ -171,44 +180,28 @@ function StylistSummary() {
 
 function StylistDashboard({ user }) {
   return (
-    <DashboardContainer>
-      <Title>Dashboard de Estilista</Title>
-      <Subtitle>Gestiona tus citas y horarios de atención</Subtitle>
-      
-      <WelcomeCard>
-        <h2>Hola, {user?.fullName || user?.username} ✨</h2>
-        <p>Conectado como <strong>ESTILISTA</strong></p>
-        <p>Gestiona tus citas y horarios de atención desde aquí.</p>
-      </WelcomeCard>
+    <Page $wide>
+      <Banner>
+        <RoleBadge><i className="fas fa-scissors" aria-hidden="true"></i>Estilista</RoleBadge>
+        <h1>Hola, {user?.fullName || user?.username} ✨</h1>
+        <p>Conectado como <strong>ESTILISTA</strong> · Hoy es {longDate(todayInTimeZone())}.</p>
+      </Banner>
 
       <StylistSummary />
 
-      <CardGrid>
-        <Card to="/stylist/appointments">
-          <CardIcon><i className="fas fa-calendar-check"></i></CardIcon>
-          <CardTitle>Mis Citas</CardTitle>
-          <CardText>Ver y gestionar tus citas programadas</CardText>
-        </Card>
-        
-        <Card to="/stylist/schedule">
-          <CardIcon><i className="fas fa-clock"></i></CardIcon>
-          <CardTitle>Mi Horario</CardTitle>
-          <CardText>Configura tu disponibilidad y horarios de trabajo</CardText>
-        </Card>
-        
-        <Card to="/stylist/appointments">
-          <CardIcon><i className="fas fa-history"></i></CardIcon>
-          <CardTitle>Historial de Citas</CardTitle>
-          <CardText>Revisa tus citas anteriores</CardText>
-        </Card>
-        
-        <Card to="/profile">
-          <CardIcon><i className="fas fa-id-badge"></i></CardIcon>
-          <CardTitle>Mi Perfil</CardTitle>
-          <CardText>Actualiza tu información profesional</CardText>
-        </Card>
-      </CardGrid>
-    </DashboardContainer>
+      <section aria-labelledby="stylist-shortcuts">
+        <SectionHeading id="stylist-shortcuts">Accesos rápidos</SectionHeading>
+        <CardGrid>
+          {QUICK_LINKS.map(link => (
+            <QuickCard key={link.to} to={link.to}>
+              <i className={`fas ${link.icon}`} aria-hidden="true"></i>
+              <strong>{link.title}</strong>
+              <span>{link.text}</span>
+            </QuickCard>
+          ))}
+        </CardGrid>
+      </section>
+    </Page>
   );
 }
 

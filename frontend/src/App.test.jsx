@@ -21,7 +21,7 @@ const renderAt = (route, user) => {
   return render(<MemoryRouter initialEntries={[route]}><App /></MemoryRouter>);
 };
 
-describe('Rutas del panel de administración', () => {
+describe('Rutas de los paneles de trabajo', () => {
   it('un cliente que entra a /admin es enviado al login', () => {
     renderAt('/admin/users', { username: 'luis', role: 'CLIENT' });
     expect(screen.queryByRole('navigation', { name: 'Secciones de administración' })).not.toBeInTheDocument();
@@ -32,5 +32,16 @@ describe('Rutas del panel de administración', () => {
     renderAt('/admin', null);
     expect(screen.queryByRole('navigation', { name: 'Secciones de administración' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Iniciar Sesión/i })).toBeInTheDocument();
+  });
+
+  it('un cliente que entra al panel de estilista es enviado al login', () => {
+    renderAt('/stylist/schedule', { username: 'luis', role: 'CLIENT' });
+    expect(screen.queryByRole('navigation', { name: 'Secciones del panel de estilista' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Iniciar Sesión/i })).toBeInTheDocument();
+  });
+
+  it('un administrador no entra al panel de estilista', () => {
+    renderAt('/stylist', { username: 'admin', role: 'ADMIN' });
+    expect(screen.queryByRole('navigation', { name: 'Secciones del panel de estilista' })).not.toBeInTheDocument();
   });
 });

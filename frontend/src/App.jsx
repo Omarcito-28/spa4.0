@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/auth';
 import Layout from './components/Layout';
-import AdminLayout from './components/admin/AdminLayout';
+import DashboardLayout from './components/dashboard/DashboardLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -54,11 +54,12 @@ function App() {
   if (loading) return <div role="status" style={{ padding: '3rem', textAlign: 'center' }}>Cargando tu cuenta…</div>;
 
   const isAdmin = isAuthenticated && user?.role === 'ADMIN';
+  const isStylist = isAuthenticated && user?.role === 'STYLIST';
 
   return (
     <Routes>
-      {/* El panel de administración tiene su propio layout (sidebar), sin Navbar ni Footer públicos. */}
-      <Route path="/admin" element={isAdmin ? <AdminLayout user={user} onLogout={logout} /> : <Navigate to="/login" replace />}>
+      {/* Los paneles de administrador y estilista tienen su propio layout (sidebar), sin Navbar ni Footer públicos. */}
+      <Route path="/admin" element={isAdmin ? <DashboardLayout user={user} onLogout={logout} /> : <Navigate to="/login" replace />}>
         <Route index element={<AdminDashboard user={user} />} />
         <Route path="dashboard" element={<Navigate to="/admin" replace />} />
         <Route path="appointments" element={<AdminAppointments />} />
@@ -69,16 +70,23 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
+      <Route path="/stylist" element={isStylist ? <DashboardLayout user={user} onLogout={logout} /> : <Navigate to="/login" replace />}>
+        <Route index element={<StylistDashboard user={user} />} />
+        <Route path="dashboard" element={<Navigate to="/stylist" replace />} />
+        {/* La key separa el estado de ambas vistas aunque usen el mismo componente. */}
+        <Route path="appointments" element={<StylistAppointments key="appointments" />} />
+        <Route path="history" element={<StylistAppointments key="history" initialFilter="history" />} />
+        <Route path="schedule" element={<StylistSchedule />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="*" element={<Navigate to="/stylist" replace />} />
+      </Route>
       <Route path="/" element={<Layout isAuthenticated={isAuthenticated} user={user} onLogout={logout} />}>
         <Route index element={<Home isAuthenticated={isAuthenticated} />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<PasswordRecovery />} />
         <Route path="reset-password" element={<PasswordRecovery />} />
-        <Route path="dashboard" element={!isAuthenticated ? <Navigate to="/login" replace /> : user?.role === 'ADMIN' ? <Navigate to="/admin" replace /> : user?.role === 'STYLIST' ? <Navigate to="/stylist/dashboard" replace /> : <Dashboard user={user} />} />
-        <Route path="stylist/dashboard" element={isAuthenticated && user?.role === 'STYLIST' ? <StylistDashboard user={user} /> : <Navigate to="/login" replace />} />
-        <Route path="stylist/appointments" element={isAuthenticated && user?.role === 'STYLIST' ? <StylistAppointments /> : <Navigate to="/login" replace />} />
-        <Route path="stylist/schedule" element={isAuthenticated && user?.role === 'STYLIST' ? <StylistSchedule /> : <Navigate to="/login" replace />} />
+        <Route path="dashboard" element={!isAuthenticated ? <Navigate to="/login" replace /> : user?.role === 'ADMIN' ? <Navigate to="/admin" replace /> : user?.role === 'STYLIST' ? <Navigate to="/stylist" replace /> : <Dashboard user={user} />} />
         {/* Ruta anterior de la lista de citas del administrador. */}
         <Route path="appointments/all" element={isAdmin ? <Navigate to="/admin/appointments" replace /> : <Navigate to="/login" replace />} />
         <Route path="profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} />

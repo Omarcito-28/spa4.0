@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink as RouterNavLink, useLocation } from 'react-router-dom';
 import styled, { css, keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
+import { WORKSPACES } from './dashboard/workspaces';
 
 const MOBILE = '992px';
 
@@ -379,8 +380,8 @@ const UserCard = styled.div`
 
 const ROLE_LABELS = { ADMIN: 'Administrador', STYLIST: 'Estilista', CLIENT: 'Cliente' };
 
-// Enlaces principales según el rol. El administrador gestiona el salón desde su
-// propio panel (/admin); aquí solo ve el sitio público y un acceso en su menú.
+// Enlaces principales según el rol. El administrador y el estilista trabajan desde
+// su propio panel (/admin, /stylist); aquí solo ven el sitio público y un acceso en su menú.
 const PRIMARY_LINKS = {
   GUEST: [
     { to: '/', label: 'Inicio', end: true },
@@ -399,9 +400,7 @@ const PRIMARY_LINKS = {
   STYLIST: [
     { to: '/', label: 'Inicio', end: true },
     { to: '/services', label: 'Servicios' },
-    { to: '/stylist/dashboard', label: 'Mi Panel', icon: 'fa-gauge' },
-    { to: '/stylist/appointments', label: 'Mis Citas', icon: 'fa-calendar-check' },
-    { to: '/stylist/schedule', label: 'Mi Horario', icon: 'fa-clock' },
+    { to: '/contact', label: 'Contáctanos' },
   ],
   ADMIN: [
     { to: '/', label: 'Inicio', end: true },
@@ -458,6 +457,7 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
   const role = isAuthenticated && user ? user.role : 'GUEST';
   const links = PRIMARY_LINKS[role] ?? PRIMARY_LINKS.CLIENT;
   const displayName = user?.fullName || user?.username || '';
+  const workspace = WORKSPACES[role];
 
   return (
     <NavbarContainer $scrolled={scrolled} ref={navRef} aria-label="Navegación principal">
@@ -509,8 +509,8 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                     <strong>{displayName}</strong>
                     <span>{ROLE_LABELS[user.role] ?? user.role}</span>
                   </UserCard>
-                  {role === 'ADMIN' && (
-                    <Link to="/admin"><i className="fas fa-gauge-high" aria-hidden="true"></i>Panel de Administración</Link>
+                  {workspace && (
+                    <Link to={workspace.root}><i className={`fas ${workspace.linkIcon}`} aria-hidden="true"></i>{workspace.linkLabel}</Link>
                   )}
                   <RouterNavLink to="/profile"><i className="fas fa-user-edit" aria-hidden="true"></i>Mi Perfil</RouterNavLink>
                   <MenuDivider />

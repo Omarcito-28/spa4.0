@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { GlobalStyle, theme } from '../../styles/theme';
-import AdminSidebar, { ADMIN_MOBILE } from './AdminSidebar';
+import DashboardSidebar, { DASHBOARD_MOBILE } from './DashboardSidebar';
+import { WORKSPACES } from './workspaces';
 
-// Layout propio del panel de administración: sin Navbar ni Footer del sitio público.
+// Layout de los paneles de trabajo (administrador y estilista): sidebar lateral
+// según el rol, sin Navbar ni Footer del sitio público.
 const Shell = styled.div`
   display: flex;
   align-items: flex-start;
   min-height: 100vh;
-  background: ${theme.colors.adminBg};
+  background: ${theme.colors.dashboardBg};
 `;
 
 const Main = styled.div`
@@ -46,7 +48,7 @@ const Topbar = styled.header`
     white-space: nowrap;
   }
 
-  @media (max-width: ${ADMIN_MOBILE}) {
+  @media (max-width: ${DASHBOARD_MOBILE}) {
     display: flex;
   }
 `;
@@ -67,7 +69,7 @@ const MenuButton = styled.button`
 const Backdrop = styled.div`
   display: none;
 
-  @media (max-width: ${ADMIN_MOBILE}) {
+  @media (max-width: ${DASHBOARD_MOBILE}) {
     display: block;
     position: fixed;
     inset: 0;
@@ -77,7 +79,8 @@ const Backdrop = styled.div`
   }
 `;
 
-function AdminLayout({ user, onLogout }) {
+function DashboardLayout({ user, onLogout }) {
+  const workspace = WORKSPACES[user?.role] ?? WORKSPACES.STYLIST;
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const [lastPath, setLastPath] = useState(location.pathname);
@@ -106,20 +109,20 @@ function AdminLayout({ user, onLogout }) {
     <>
       <GlobalStyle />
       <Shell>
-        <AdminSidebar user={user} onLogout={onLogout} open={menuOpen} onClose={() => setMenuOpen(false)} />
+        <DashboardSidebar user={user} onLogout={onLogout} open={menuOpen} onClose={() => setMenuOpen(false)} />
         {menuOpen && <Backdrop aria-hidden="true" onClick={() => setMenuOpen(false)} />}
         <Main>
           <Topbar>
             <MenuButton
               type="button"
-              aria-label="Abrir menú de administración"
+              aria-label="Abrir menú del panel"
               aria-expanded={menuOpen}
-              aria-controls="admin-sidebar"
+              aria-controls="dashboard-sidebar"
               onClick={() => setMenuOpen(true)}
             >
               <i className="fas fa-bars" aria-hidden="true"></i>
             </MenuButton>
-            <Link to="/admin">✦ Essence De Toi</Link>
+            <Link to={workspace.root}>✦ Essence De Toi</Link>
           </Topbar>
           <Content>
             <Outlet />
@@ -130,4 +133,4 @@ function AdminLayout({ user, onLogout }) {
   );
 }
 
-export default AdminLayout;
+export default DashboardLayout;

@@ -45,6 +45,18 @@ describe('Navbar', () => {
     expect(cuenta).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('el estilista no ve sus secciones en el sitio público y accede a su panel desde el menú', async () => {
+    const user = userEvent.setup();
+    renderNavbar({ isAuthenticated: true, user: { username: 'johan', fullName: 'Johan Cuellar', role: 'STYLIST' } });
+
+    ['Mi Panel', 'Mis Citas', 'Mi Horario'].forEach(name => {
+      expect(screen.queryByRole('link', { name })).not.toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: 'Menú de johan' }));
+    expect(screen.getByRole('link', { name: 'Mi Panel' })).toHaveAttribute('href', '/stylist');
+    expect(screen.queryByRole('link', { name: 'Panel de Administración' })).not.toBeInTheDocument();
+  });
+
   it('el panel de administración solo aparece para el administrador', async () => {
     const user = userEvent.setup();
     renderNavbar({ isAuthenticated: true, user: { username: 'luis', fullName: 'Luis', role: 'CLIENT' } });

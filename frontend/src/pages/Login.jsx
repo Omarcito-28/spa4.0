@@ -240,7 +240,7 @@ function Login() {
           if (result.user.role === 'ADMIN') {
             navigate('/admin');
           } else if (result.user.role === 'STYLIST') {
-            navigate('/stylist/dashboard');
+            navigate('/stylist');
           } else {
             navigate('/dashboard');
           }

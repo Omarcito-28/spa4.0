@@ -44,6 +44,15 @@ describe('StylistAppointments', () => {
     expect(within(rowOf('cliente-pendiente')).queryByRole('button', { name: 'Marcar como completada' })).not.toBeInTheDocument();
   });
 
+  it('la vista de historial abre filtrada en las citas cerradas', async () => {
+    render(<StylistAppointments initialFilter="history" />);
+    await screen.findByText('cliente-hecha');
+
+    expect(screen.getByRole('heading', { name: 'Historial de citas' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Historial/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByText('cliente-pendiente')).not.toBeInTheDocument();
+  });
+
   it('marca la cita como completada y recarga la lista', async () => {
     render(<StylistAppointments />);
     await screen.findByText('cliente-iniciada');

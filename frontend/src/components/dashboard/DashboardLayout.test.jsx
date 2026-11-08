@@ -2,24 +2,31 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import AdminLayout from './AdminLayout';
+import DashboardLayout from './DashboardLayout';
 
 const admin = { username: 'admin', fullName: 'Administradora', role: 'ADMIN' };
 
-const renderLayout = (route = '/admin', onLogout = vi.fn()) => render(
+const stylist = { username: 'johan', fullName: 'Johan Cuellar', role: 'STYLIST' };
+
+const renderLayout = (route = '/admin', onLogout = vi.fn(), account = admin) => render(
   <MemoryRouter initialEntries={[route]}>
     <Routes>
-      <Route path="/admin" element={<AdminLayout user={admin} onLogout={onLogout} />}>
+      <Route path="/admin" element={<DashboardLayout user={account} onLogout={onLogout} />}>
         <Route index element={<h1>Vista dashboard</h1>} />
         <Route path="users" element={<h1>Vista usuarios</h1>} />
         <Route path="reports" element={<h1>Vista reportes</h1>} />
+      </Route>
+      <Route path="/stylist" element={<DashboardLayout user={account} onLogout={onLogout} />}>
+        <Route index element={<h1>Vista panel estilista</h1>} />
+        <Route path="history" element={<h1>Vista historial</h1>} />
+        <Route path="profile" element={<h1>Vista perfil</h1>} />
       </Route>
       <Route path="/" element={<h1>Sitio público</h1>} />
     </Routes>
   </MemoryRouter>
 );
 
-describe('AdminLayout', () => {
+describe('DashboardLayout', () => {
   it('muestra el sidebar con todas las secciones y sin la navegación pública', () => {
     renderLayout();
     const nav = screen.getByRole('navigation', { name: 'Secciones de administración' });
@@ -30,7 +37,6 @@ describe('AdminLayout', () => {
       'Catálogo de servicios': '/admin/services',
       Usuarios: '/admin/users',
       Reportes: '/admin/reports',
-      'Mi perfil': '/admin/profile',
     };
     Object.entries(expected).forEach(([name, href]) => {
       expect(within(nav).getByRole('link', { name })).toHaveAttribute('href', href);
@@ -52,6 +58,7 @@ describe('AdminLayout', () => {
     renderLayout('/admin', onLogout);
 
     expect(screen.getByText('Administradora')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Mi perfil' })).toHaveAttribute('href', '/admin/profile');
     await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
     expect(onLogout).toHaveBeenCalledTimes(1);
 
@@ -63,7 +70,7 @@ describe('AdminLayout', () => {
     const user = userEvent.setup();
     renderLayout();
     // En escritorio la barra superior está oculta con CSS; jsdom no aplica la media query.
-    const toggle = screen.getByLabelText('Abrir menú de administración');
+    const toggle = screen.getByLabelText('Abrir menú del panel');
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -78,5 +85,32 @@ describe('AdminLayout', () => {
     await user.click(toggle);
     await user.click(screen.getByLabelText('Cerrar menú'));
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('para el estilista muestra solo sus secciones operativas y su perfil', async () => {
+    const user = userEvent.setup();
+    renderLayout('/stylist', vi.fn(), stylist);
+    const nav = screen.getByRole('navigation', { name: 'Secciones del panel de estilista' });
+    const expected = {
+      'Mi panel': '/stylist',
+      'Mis citas': '/stylist/appointments',
+      'Historial de citas': '/stylist/history',
+      'Mi horario': '/stylist/schedule',
+    };
+    expect(within(nav).getAllByRole('link')).toHaveLength(Object.keys(expected).length);
+    Object.entries(expected).forEach(([name, href]) => {
+      expect(within(nav).getByRole('link', { name })).toHaveAttribute('href', href);
+    });
+    expect(screen.queryByRole('link', { name: 'Usuarios' })).not.toBeInTheDocument();
+    expect(screen.getByText('Johan Cuellar')).toBeInTheDocument();
+    expect(screen.getByText('Estilista')).toBeInTheDocument();
+
+    await user.click(within(nav).getByRole('link', { name: 'Historial de citas' }));
+    expect(screen.getByRole('heading', { name: 'Vista historial' })).toBeInTheDocument();
+    expect(within(nav).getByRole('link', { name: 'Historial de citas' })).toHaveClass('active');
+    expect(within(nav).getByRole('link', { name: 'Mi panel' })).not.toHaveClass('active');
+
+    await user.click(screen.getByRole('link', { name: 'Mi perfil' }));
+    expect(screen.getByRole('heading', { name: 'Vista perfil' })).toBeInTheDocument();
   });
 });

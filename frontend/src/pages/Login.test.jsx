@@ -64,7 +64,7 @@ describe('Login', () => {
 
   it.each([
     ['ADMIN', '/admin'],
-    ['STYLIST', '/stylist/dashboard'],
+    ['STYLIST', '/stylist'],
     ['CLIENT', '/dashboard']
   ])('confirma el ingreso y redirige al panel de %s', async (role, target) => {
     const login = vi.fn().mockResolvedValue({ success: true, user: { role } });

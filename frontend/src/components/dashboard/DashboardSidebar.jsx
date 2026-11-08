@@ -1,45 +1,10 @@
 import { Link, NavLink } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 import { theme } from '../../styles/theme';
+import { WORKSPACES } from './workspaces';
 
 export const SIDEBAR_WIDTH = '272px';
-export const ADMIN_MOBILE = '992px';
-
-// Secciones del panel. `end` evita que "Dashboard" (/admin) quede activo en las subrutas.
-const ADMIN_SECTIONS = [
-  {
-    title: 'General',
-    links: [
-      { to: '/admin', label: 'Dashboard', icon: 'fa-gauge-high', end: true },
-    ],
-  },
-  {
-    title: 'Operación',
-    links: [
-      { to: '/admin/appointments', label: 'Citas y reservas', icon: 'fa-calendar-check' },
-      { to: '/admin/agenda', label: 'Agenda y cierres', icon: 'fa-calendar-xmark' },
-    ],
-  },
-  {
-    title: 'Gestión',
-    links: [
-      { to: '/admin/services', label: 'Catálogo de servicios', icon: 'fa-spa' },
-      { to: '/admin/users', label: 'Usuarios', icon: 'fa-users' },
-    ],
-  },
-  {
-    title: 'Análisis',
-    links: [
-      { to: '/admin/reports', label: 'Reportes', icon: 'fa-chart-line' },
-    ],
-  },
-  {
-    title: 'Cuenta',
-    links: [
-      { to: '/admin/profile', label: 'Mi perfil', icon: 'fa-user-pen' },
-    ],
-  },
-];
+export const DASHBOARD_MOBILE = '992px';
 
 const Aside = styled.aside`
   position: sticky;
@@ -55,7 +20,7 @@ const Aside = styled.aside`
   border-right: 1px solid ${theme.colors.sidebarBorder};
   color: ${theme.colors.sidebarText};
 
-  @media (max-width: ${ADMIN_MOBILE}) {
+  @media (max-width: ${DASHBOARD_MOBILE}) {
     position: fixed;
     left: 0;
     width: min(${SIDEBAR_WIDTH}, 85vw);
@@ -75,7 +40,7 @@ const Header = styled.div`
   padding: 1.25rem 1.4rem 1.1rem;
   border-bottom: 1px solid ${theme.colors.sidebarBorder};
 
-  @media (max-width: ${ADMIN_MOBILE}) {
+  @media (max-width: ${DASHBOARD_MOBILE}) {
     padding-inline: 1rem;
   }
 `;
@@ -119,7 +84,7 @@ const BrandText = styled.span`
     letter-spacing: 0.3px;
     white-space: nowrap;
 
-    @media (max-width: ${ADMIN_MOBILE}) {
+    @media (max-width: ${DASHBOARD_MOBILE}) {
       font-size: 1.35rem;
     }
   }
@@ -145,7 +110,7 @@ const CloseButton = styled.button`
   color: ${theme.colors.sidebarText};
   font-size: 1.05rem;
 
-  @media (max-width: ${ADMIN_MOBILE}) {
+  @media (max-width: ${DASHBOARD_MOBILE}) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -268,7 +233,7 @@ const UserCard = styled.div`
     white-space: nowrap;
   }
 
-  span {
+  div span {
     color: ${theme.colors.accent};
     font-size: 0.82rem;
     font-weight: 700;
@@ -293,6 +258,10 @@ const FooterLink = styled(Link)`
   ${itemStyles}
 `;
 
+const FooterItem = styled(Item)`
+  margin-bottom: 0.15rem;
+`;
+
 const LogoutButton = styled.button`
   display: inline-flex;
   align-items: center;
@@ -314,17 +283,19 @@ const LogoutButton = styled.button`
   }
 `;
 
-function AdminSidebar({ user, onLogout, open = false, onClose }) {
-  const displayName = user?.fullName || user?.username || 'Administrador';
+// Sidebar del panel de trabajo: el menú sale de la configuración del rol (ADMIN o STYLIST).
+function DashboardSidebar({ user, onLogout, open = false, onClose }) {
+  const workspace = WORKSPACES[user?.role] ?? WORKSPACES.STYLIST;
+  const displayName = user?.fullName || user?.username || workspace.roleLabel;
 
   return (
-    <Aside id="admin-sidebar" $open={open} aria-label="Menú de administración">
+    <Aside id="dashboard-sidebar" $open={open} aria-label={`Menú · ${workspace.area}`}>
       <Header>
-        <Brand to="/admin" aria-label="Essence De Toi · Panel de administración">
+        <Brand to={workspace.root} aria-label={`Essence De Toi · ${workspace.area}`}>
           <BrandMark aria-hidden="true">✦</BrandMark>
           <BrandText>
             <strong>Essence De Toi</strong>
-            <span>Administración</span>
+            <span>{workspace.area}</span>
           </BrandText>
         </Brand>
         <CloseButton type="button" aria-label="Cerrar menú" onClick={onClose}>
@@ -332,8 +303,8 @@ function AdminSidebar({ user, onLogout, open = false, onClose }) {
         </CloseButton>
       </Header>
 
-      <Nav aria-label="Secciones de administración">
-        {ADMIN_SECTIONS.map(section => (
+      <Nav aria-label={workspace.navLabel}>
+        {workspace.sections.map(section => (
           <Section key={section.title}>
             <SectionTitle>{section.title}</SectionTitle>
             <NavList>
@@ -355,12 +326,15 @@ function AdminSidebar({ user, onLogout, open = false, onClose }) {
           <Avatar aria-hidden="true">{displayName.charAt(0)}</Avatar>
           <div>
             <strong>{displayName}</strong>
-            <span>Administrador</span>
+            <span>{workspace.roleLabel}</span>
           </div>
           <LogoutButton type="button" onClick={onLogout} aria-label="Cerrar sesión" title="Cerrar sesión">
             <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
           </LogoutButton>
         </UserCard>
+        <FooterItem to={workspace.profile}>
+          <i className="fas fa-user-pen" aria-hidden="true"></i>Mi perfil
+        </FooterItem>
         <FooterLink to="/">
           <i className="fas fa-arrow-left" aria-hidden="true"></i>Volver al sitio público
         </FooterLink>
@@ -369,4 +343,4 @@ function AdminSidebar({ user, onLogout, open = false, onClose }) {
   );
 }
 
-export default AdminSidebar;
+export default DashboardSidebar;

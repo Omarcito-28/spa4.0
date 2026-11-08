@@ -100,11 +100,12 @@ const ServiceCell = styled.td`
   }
 `;
 
-function StylistAppointments() {
+// `initialFilter` permite abrir la vista directamente en un filtro (p. ej. el historial).
+function StylistAppointments({ initialFilter = 'all' }) {
   const live = useAutoRefresh(apiGetAppointments, { subscribe: subscribeAppointmentsChanged });
   const appointments = [...(live.data ?? [])].sort(compareByDateTime);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState(initialFilter);
   const [view, setView] = useState('list');
   const [notesFor, setNotesFor] = useState('');
   const active = FILTERS.find(item => item.id === filter);
@@ -123,8 +124,17 @@ function StylistAppointments() {
 
   return (
     <Page $wide>
-      <Title>Mis citas asignadas</Title>
-      <Description>Gestiona las reservas que la administración asignó a tu agenda.</Description>
+      {initialFilter === 'history' ? (
+        <>
+          <Title>Historial de citas</Title>
+          <Description>Citas que ya atendiste, se cancelaron o quedaron sin asistencia.</Description>
+        </>
+      ) : (
+        <>
+          <Title>Mis citas asignadas</Title>
+          <Description>Gestiona las reservas que la administración asignó a tu agenda.</Description>
+        </>
+      )}
       <Bar>
         <Filters role="group" aria-label="Filtrar citas">
           {FILTERS.map(item => (
