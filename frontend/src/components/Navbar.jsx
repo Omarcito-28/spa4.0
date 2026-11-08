@@ -267,10 +267,10 @@ const Dropdown = styled.li`
 
 const DropdownButton = styled.button`
   ${linkStyles}
-  background: none;
+  background: ${props => props.$active ? 'rgba(153, 101, 21, 0.12)' : 'none'};
   border: none;
   cursor: pointer;
-  color: ${theme.colors.navbarText};
+  color: ${props => props.$active ? theme.colors.navbarLinkHover : theme.colors.navbarText};
 
   .caret {
     font-size: 0.7em;
@@ -380,8 +380,8 @@ const UserCard = styled.div`
 
 const ROLE_LABELS = { ADMIN: 'Administrador', STYLIST: 'Estilista', CLIENT: 'Cliente' };
 
-// Enlaces principales según el rol. El administrador y el estilista trabajan desde
-// su propio panel (/admin, /stylist); aquí solo ven el sitio público y un acceso en su menú.
+// Enlaces principales según el rol: el Navbar solo navega por el sitio público.
+// Lo propio de cada cuenta vive en el menú del usuario (ACCOUNT_LINKS).
 const PRIMARY_LINKS = {
   GUEST: [
     { to: '/', label: 'Inicio', end: true },
@@ -392,9 +392,6 @@ const PRIMARY_LINKS = {
   CLIENT: [
     { to: '/', label: 'Inicio', end: true },
     { to: '/services', label: 'Servicios' },
-    { to: '/dashboard', label: 'Mi Panel', icon: 'fa-gauge' },
-    { to: '/appointments/my', label: 'Mis Citas', icon: 'fa-calendar-check' },
-    { to: '/appointments/new', label: 'Agendar Cita', icon: 'fa-plus' },
     { to: '/contact', label: 'Contáctanos' },
   ],
   STYLIST: [
@@ -407,6 +404,26 @@ const PRIMARY_LINKS = {
     { to: '/services', label: 'Servicios' },
     { to: '/contact', label: 'Contáctanos' },
   ],
+};
+
+// Menú de la cuenta. El administrador y el estilista trabajan desde su propio panel
+// (/admin, /stylist); el cliente gestiona sus citas dentro del sitio público.
+const CLIENT_ACCOUNT_LINKS = [
+  { to: '/dashboard', label: 'Mi Panel', icon: 'fa-gauge-high' },
+  { to: '/appointments/my', label: 'Mis Citas', icon: 'fa-calendar-check' },
+  { to: '/appointments/new', label: 'Agendar Cita', icon: 'fa-calendar-plus' },
+];
+const PROFILE_LINK = { to: '/profile', label: 'Mi Perfil', icon: 'fa-user-edit' };
+
+const accountLinksFor = role => {
+  const workspace = WORKSPACES[role];
+  if (workspace) {
+    return [
+      { to: workspace.root, label: workspace.linkLabel, icon: workspace.linkIcon },
+      { ...PROFILE_LINK, to: workspace.profile },
+    ];
+  }
+  return [...CLIENT_ACCOUNT_LINKS, PROFILE_LINK];
 };
 
 function Navbar({ isAuthenticated = false, user = null, onLogout }) {
@@ -457,7 +474,9 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
   const role = isAuthenticated && user ? user.role : 'GUEST';
   const links = PRIMARY_LINKS[role] ?? PRIMARY_LINKS.CLIENT;
   const displayName = user?.fullName || user?.username || '';
-  const workspace = WORKSPACES[role];
+  const accountLinks = accountLinksFor(role);
+  // El botón de la cuenta se resalta cuando la página actual es una de sus opciones.
+  const accountActive = accountLinks.some(link => link.to === location.pathname);
 
   return (
     <NavbarContainer $scrolled={scrolled} ref={navRef} aria-label="Navegación principal">
@@ -495,6 +514,7 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                 <DropdownButton
                   type="button"
                   $open={openMenu === 'user'}
+                  $active={accountActive}
                   aria-haspopup="true"
                   aria-expanded={openMenu === 'user'}
                   aria-label={`Menú de ${user.username}`}
@@ -509,10 +529,11 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
                     <strong>{displayName}</strong>
                     <span>{ROLE_LABELS[user.role] ?? user.role}</span>
                   </UserCard>
-                  {workspace && (
-                    <Link to={workspace.root}><i className={`fas ${workspace.linkIcon}`} aria-hidden="true"></i>{workspace.linkLabel}</Link>
-                  )}
-                  <RouterNavLink to="/profile"><i className="fas fa-user-edit" aria-hidden="true"></i>Mi Perfil</RouterNavLink>
+                  {accountLinks.map(link => (
+                    <RouterNavLink key={link.to} to={link.to}>
+                      <i className={`fas ${link.icon}`} aria-hidden="true"></i>{link.label}
+                    </RouterNavLink>
+                  ))}
                   <MenuDivider />
                   <button type="button" onClick={onLogout}>
                     <i className="fas fa-sign-out-alt" aria-hidden="true"></i>Cerrar Sesión

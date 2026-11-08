@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/auth';
 import Layout from './components/Layout';
 import DashboardLayout from './components/dashboard/DashboardLayout';
+import ClientAccountLayout from './components/account/ClientAccountLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -86,14 +87,17 @@ function App() {
         <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<PasswordRecovery />} />
         <Route path="reset-password" element={<PasswordRecovery />} />
-        <Route path="dashboard" element={!isAuthenticated ? <Navigate to="/login" replace /> : user?.role === 'ADMIN' ? <Navigate to="/admin" replace /> : user?.role === 'STYLIST' ? <Navigate to="/stylist" replace /> : <Dashboard user={user} />} />
         {/* Ruta anterior de la lista de citas del administrador. */}
         <Route path="appointments/all" element={isAdmin ? <Navigate to="/admin/appointments" replace /> : <Navigate to="/login" replace />} />
-        <Route path="profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} />
+        {/* "Mi cuenta": las páginas del cliente comparten un menú lateral dentro del sitio público. */}
+        <Route element={<ClientAccountLayout user={user} />}>
+          <Route path="dashboard" element={!isAuthenticated ? <Navigate to="/login" replace /> : user?.role === 'ADMIN' ? <Navigate to="/admin" replace /> : user?.role === 'STYLIST' ? <Navigate to="/stylist" replace /> : <Dashboard user={user} />} />
+          <Route path="appointments/new" element={<NewAppointmentPage isAuthenticated={isAuthenticated} />} />
+          <Route path="appointments/my" element={<MyAppointmentsPage isAuthenticated={isAuthenticated} />} />
+          <Route path="profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" replace />} />
+        </Route>
         <Route path="services" element={<Services isAuthenticated={isAuthenticated} />} />
         <Route path="contact" element={<ContactPage isAuthenticated={isAuthenticated} />} />
-        <Route path="appointments/new" element={<NewAppointmentPage isAuthenticated={isAuthenticated} />} />
-        <Route path="appointments/my" element={<MyAppointmentsPage isAuthenticated={isAuthenticated} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

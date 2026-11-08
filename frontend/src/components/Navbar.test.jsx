@@ -57,6 +57,29 @@ describe('Navbar', () => {
     expect(screen.queryByRole('link', { name: 'Panel de Administración' })).not.toBeInTheDocument();
   });
 
+  it('el cliente ve un Navbar limpio y gestiona sus citas desde el menú de la cuenta', async () => {
+    const user = userEvent.setup();
+    renderNavbar({ isAuthenticated: true, user: { username: 'ana', fullName: 'Ana Pérez', role: 'CLIENT' } });
+
+    const cuenta = screen.getByRole('button', { name: 'Menú de ana' });
+    const bar = screen.getByRole('list');
+    expect(within(bar).getAllByRole('link').map(link => link.textContent)).toEqual(['Inicio', 'Servicios', 'Contáctanos']);
+
+    await user.click(cuenta);
+    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
+    expect(screen.getByText('Cliente')).toBeInTheDocument();
+    const expected = {
+      'Mi Panel': '/dashboard',
+      'Mis Citas': '/appointments/my',
+      'Agendar Cita': '/appointments/new',
+      'Mi Perfil': '/profile',
+    };
+    Object.entries(expected).forEach(([name, href]) => {
+      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
+    });
+    expect(screen.getByRole('button', { name: 'Cerrar Sesión' })).toBeInTheDocument();
+  });
+
   it('el panel de administración solo aparece para el administrador', async () => {
     const user = userEvent.setup();
     renderNavbar({ isAuthenticated: true, user: { username: 'luis', fullName: 'Luis', role: 'CLIENT' } });

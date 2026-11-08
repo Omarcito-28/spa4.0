@@ -2,7 +2,8 @@ import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../styles/theme';
 import { apiGetAppointments } from '../services/api';
-import { AppointmentList, LivePanel, StatGrid } from '../components/LivePanel';
+import { AppointmentList, LivePanel } from '../components/LivePanel';
+import KpiGrid from '../components/dashboard/KpiGrid';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
 import { countByStatus, upcomingAppointments } from '../utils/appointmentSummary';
@@ -147,8 +148,8 @@ function ClientSummary() {
   const counts = countByStatus(appointments);
   return (
     <LivePanel title="Tus citas" live={live}>
-      <StatGrid stats={[
-        { icon: 'fa-calendar-check', label: 'Próximas', value: upcoming.length },
+      <KpiGrid kpis={[
+        { icon: 'fa-calendar-check', label: 'Próximas', value: upcoming.length, highlight: true },
         { icon: 'fa-hourglass-half', label: 'Por confirmar', value: upcoming.filter(item => item.status === 'PENDING').length },
         { icon: 'fa-circle-check', label: 'Completadas', value: counts.COMPLETED },
       ]} />

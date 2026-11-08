@@ -46,36 +46,6 @@ const ErrorText = styled.p`
   color: #b93224;
 `;
 
-const Stats = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-`;
-
-const StatBox = styled.div`
-  padding: 1.1rem 1.25rem;
-  border: 1px solid #efe3cc;
-  border-left: 4px solid ${theme.colors.accent};
-  border-radius: 12px;
-  background: linear-gradient(135deg, #fdf8ef, #f8efdf);
-
-  strong {
-    color: ${theme.colors.primaryDark};
-    font-family: ${theme.fonts.primary};
-    font-size-adjust: none;
-    font-variant-numeric: lining-nums;
-    font-size: 2.6rem;
-    line-height: 1.05;
-  }
-
-  span {
-    color: ${theme.colors.textLight};
-    font-size: 1.02rem;
-    font-weight: 700;
-  }
-`;
-
 const List = styled.ul`
   margin: 0;
   padding: 0;
@@ -140,20 +110,6 @@ export function LivePanel({ title, live, children }) {
         </div>
       ) : children}
     </Section>
-  );
-}
-
-export function StatGrid({ stats }) {
-  return (
-    <Stats>
-      {stats.map(stat => (
-        <StatBox key={stat.label}>
-          {stat.icon && <div className="stat-icon" aria-hidden="true"><i className={`fas ${stat.icon}`}></i></div>}
-          <strong>{stat.value}</strong>
-          <span>{stat.label}</span>
-        </StatBox>
-      ))}
-    </Stats>
   );
 }
 
