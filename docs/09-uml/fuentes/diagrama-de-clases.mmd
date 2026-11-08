@@ -60,6 +60,13 @@ class ClientNoteController { -ClientNoteService notes
   +list(req,res)
   +create(req,res)
   +remove(req,res) }
+class HeroSlideController { -HeroSlideService slides
+  +list(req,res)
+  +listAll(req,res)
+  +create(req,res)
+  +update(req,res)
+  +reorder(req,res)
+  +remove(req,res) }
 
 BaseController <|-- AuthController
 BaseController <|-- UserController
@@ -69,6 +76,7 @@ BaseController <|-- AppointmentController
 BaseController <|-- TimeOffController
 BaseController <|-- ReviewController
 BaseController <|-- ClientNoteController
+BaseController <|-- HeroSlideController
 
 class AuthService { +RESET_TOKEN_TTL_MS$ int
   +register(data) Session
@@ -149,6 +157,15 @@ class ClientNoteService { +MAX_LENGTH$ int
   +create(user, client, data)
   +delete(id, user)
   -assertAccess(user, client) }
+class HeroSlideService { +MAX_SLIDES$ int
+  +MAX_ALT_LENGTH$ int
+  +IMAGE_PATTERN$ RegExp
+  +listPublic()
+  +listAll()
+  +create(data)
+  +update(id, data)
+  +reorder(ids)
+  +remove(id) }
 class BookingLockService { +initialize()
   +lock(session, stylists) }
 class EmailService { +isConfigured() bool
@@ -176,6 +193,7 @@ AppointmentController --> ReminderService
 TimeOffController --> TimeOffService
 ReviewController --> ReviewService
 ClientNoteController --> ClientNoteService
+HeroSlideController --> HeroSlideService
 
 AuthService --> PasswordHasher
 AuthService --> TokenService

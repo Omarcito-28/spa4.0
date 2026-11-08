@@ -28,4 +28,5 @@ npm run test:coverage         # en cada carpeta, genera el reporte de cobertura
   - Las pruebas de integración comprueban `/api/auth/providers`, la respuesta 503 sin Client ID y el índice único de `googleId`.
   - En el frontend: `GoogleSignInButton.test.jsx`, `Profile.test.jsx`, `sessionRedirect.test.js` y los flujos de Google en `Login.test.jsx` y `Register.test.jsx`.
   - `excel.test.js` genera el archivo, lo vuelve a leer y comprueba formatos, colores de estado, totales, anchos de columna y que el texto no se ejecute como fórmula.
+- Cobertura del frontend (corrida del 08/11/2026, 196 pruebas en 36 archivos): 74,3 % de líneas, 72,67 % de sentencias, 62,62 % de ramas y 64,61 % de funciones. La del backend necesita MongoDB en memoria; su última medición registrada es 86,64 % de líneas.
 - [Pendiente: captura de la pestaña Actions de GitHub y del reporte de cobertura para la sustentación.]

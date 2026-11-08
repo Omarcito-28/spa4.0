@@ -1,0 +1,20 @@
+flowchart TB
+  subgraph PRES["Presentación"]
+    SPA["SPA React 19<br/>páginas, componentes,<br/>hooks"] --> APIJS["services/api.js<br/>cliente HTTP único"]
+    SPA -. "import diferido" .-> XL["ExcelJS<br/>exportes .xlsx"]
+  end
+  subgraph NEG["Negocio: API REST"]
+    RM["Rutas y middlewares<br/>AuthMiddleware,<br/>CorsPolicy"] --> CTRL["Controladores<br/>BaseController y subclases"]
+    CTRL --> SERV["Servicios<br/>reglas de negocio"]
+    SERV --> MOD["Modelos Mongoose"]
+  end
+  subgraph DAT["Datos y servicios externos"]
+    DB[("MongoDB Atlas")]
+    SMTP["Servidor SMTP"]
+    GID["Google Identity<br/>Services"]
+  end
+  APIJS -- "HTTPS + JSON + JWT" --> RM
+  MOD --> DB
+  SERV --> SMTP
+  SPA -- "ID token" --> GID
+  SERV -- "verifica el ID token" --> GID

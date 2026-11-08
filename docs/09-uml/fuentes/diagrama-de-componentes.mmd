@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph NAV["Navegador"]
+    P["Páginas y componentes<br/>React"] --> AC["AuthContext"]
+    P --> AR["useAutoRefresh"]
+    P --> GB["GoogleSignInButton"]
+    P -. "import diferido" .-> XL["utils/excel.js<br/>(ExcelJS)"]
+    P --> API["services/api.js"]
+    AR --> API
+    GB --> API
+  end
+  GIS["Google Identity Services"]
+  GB -- "botón e ID token" --> GIS
+  API -- "HTTPS JSON con JWT" --> R
+  subgraph SRV["API REST en Render"]
+    R["Rutas /api<br/>(incluye /auth/google y /hero-slides)"] --> MW["AuthMiddleware,<br/>CorsPolicy y LoginRateLimiter"]
+    MW --> C["Controladores<br/>(incluye HeroSlideController)"]
+    CT["container.js"] -. "crea e inyecta" .-> C
+    CT -. "crea e inyecta" .-> SV
+    C --> SV["Servicios<br/>(incluye HeroSlideService)"]
+    C -. "errores" .-> EM["ErrorMiddleware"]
+    SV --> GIDS["GoogleIdentityService"]
+    SV --> M["Modelos Mongoose<br/>(incluye HeroSlide)"]
+  end
+  M -- "driver de MongoDB" --> DB[("MongoDB Atlas")]
+  SV -- "SMTP" --> MAIL["Servidor de correo"]
+  GIDS -- "verifica el ID token<br/>con google-auth-library" --> GK["Claves públicas<br/>de Google"]

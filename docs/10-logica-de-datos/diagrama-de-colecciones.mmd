@@ -27,8 +27,8 @@ erDiagram
   HERO_SLIDE {
     ObjectId _id PK
     string image "/images/... o /api/service-images/:id"
-    string alt "descripción para lectores de pantalla"
-    int position
+    string alt "texto alternativo; máx. 140"
+    int position "orden en el carrusel"
     bool isActive
   }
   SERVICE {

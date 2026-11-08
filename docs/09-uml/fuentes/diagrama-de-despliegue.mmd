@@ -1,0 +1,25 @@
+flowchart LR
+  U["Dispositivo del usuario<br/>navegador web<br/>PC o celular"]
+  GH["GitHub<br/>repositorio y Actions"]
+  subgraph RENDER["Render"]
+    API["API Express<br/>backend/index.js<br/>health check /api/health"]
+  end
+  subgraph VERCEL["Vercel"]
+    WEB["Sitio estático<br/>frontend/dist<br/>vercel.json"]
+  end
+  subgraph ATLAS["MongoDB Atlas"]
+    DB[("users, services, serviceimages,<br/>heroslides, appointments,<br/>bookinglocks, timeoffs,<br/>reviews, clientnotes")]
+  end
+  subgraph GOOGLE["Google"]
+    GIS["Google Identity Services<br/>botón y ventana emergente"]
+    GK["Claves públicas<br/>de Google"]
+  end
+  SMTP["Servidor SMTP"]
+  U -- "HTTPS JSON con JWT" --> API
+  U -- "HTTPS" --> WEB
+  U -- "HTTPS: ID token" --> GIS
+  API -- "TLS, driver MongoDB" --> DB
+  API -- "SMTP" --> SMTP
+  API -- "HTTPS: verifica el ID token" --> GK
+  GH -. "despliegue" .-> API
+  GH -. "despliegue" .-> WEB
