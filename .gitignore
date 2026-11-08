@@ -29,3 +29,6 @@ coverage
 
 # Archivos temporales de Office
 ~$*
+
+# Datos exportados de la base (usuarios con correos y hashes): no se versionan
+backend/data/

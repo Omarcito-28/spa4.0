@@ -35,7 +35,7 @@ Busca `[Pendiente` dentro de los documentos. Solo quedan los que necesitan evide
 
 - Evidencias de la entrevista o encuesta al salón (Propuesta y SAD).
 - Aporte del docente en la sesión de QAW y la medición con usuarios del tiempo de reserva (SAD).
-- Borrar `backend/data/*.json` del repositorio y cambiar la contraseña de MongoDB Atlas y el `JWT_SECRET`; después, publicar en Render y Vercel y poner la URL en la Propuesta.
+- Publicar en Render y Vercel y poner la URL en la Propuesta.
 - Archivo del pendón para INNOVASOFT (Propuesta).
 - Captura de la pestaña Actions de GitHub para la sustentación ([`pruebas.md`](pruebas.md)).
 
