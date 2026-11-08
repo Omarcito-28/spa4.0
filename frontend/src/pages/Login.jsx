@@ -294,7 +294,8 @@ function Login() {
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder="Ingresa tu contraseña"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

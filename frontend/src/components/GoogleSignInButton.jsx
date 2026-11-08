@@ -32,7 +32,8 @@ const Hint = styled.p`
 // entrega un token de identidad que se envía al backend con `onCredential`.
 // Si el backend no tiene Google configurado, no se muestra nada.
 // text: 'continue_with' | 'signin_with' | 'signup_with'.
-function GoogleSignInButton({ onCredential, text = 'continue_with', disabled = false, hint }) {
+// `after` se muestra debajo solo cuando hay botón (por ejemplo un separador "o…").
+function GoogleSignInButton({ onCredential, text = 'continue_with', disabled = false, hint, after = null }) {
   const slotRef = useRef(null);
   const callbackRef = useRef(onCredential);
   const [status, setStatus] = useState('loading');
@@ -81,11 +82,14 @@ function GoogleSignInButton({ onCredential, text = 'continue_with', disabled = f
   if (status === 'unavailable') return null;
 
   return (
-    <Wrapper>
-      <Slot ref={slotRef} $disabled={disabled} aria-busy={status === 'loading' || undefined} data-testid="google-signin" />
-      {status === 'error' && <Hint role="status">No se pudo cargar el acceso con Google. Usa tu usuario y contraseña.</Hint>}
-      {status === 'ready' && hint && <Hint>{hint}</Hint>}
-    </Wrapper>
+    <>
+      <Wrapper>
+        <Slot ref={slotRef} $disabled={disabled} aria-busy={status === 'loading' || undefined} data-testid="google-signin" />
+        {status === 'error' && <Hint role="status">No se pudo cargar el acceso con Google. Usa tu usuario y contraseña.</Hint>}
+        {status === 'ready' && hint && <Hint>{hint}</Hint>}
+      </Wrapper>
+      {status !== 'error' && after}
+    </>
   );
 }
 

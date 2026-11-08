@@ -17,11 +17,11 @@ const fill = async values => {
   const user = userEvent.setup();
   const labels = {
     username: 'Usuario',
-    fullName: 'Nombre Completo',
-    email: 'Correo Electrónico',
+    fullName: 'Nombre completo',
+    email: 'Correo electrónico',
     password: 'Contraseña',
-    confirmPassword: 'Confirmar',
-    phoneNumber: 'Teléfono (Opcional)'
+    confirmPassword: 'Confirmar contraseña',
+    phoneNumber: 'Teléfono (opcional)'
   };
   for (const [field, value] of Object.entries(values)) {
     await user.type(screen.getByLabelText(labels[field]), value);
@@ -82,7 +82,7 @@ describe('Register', () => {
     const { register } = renderRegister();
     const user = await fill(validData);
 
-    await user.click(screen.getByRole('button', { name: 'Crear Cuenta' }));
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     expect(register).toHaveBeenCalledWith({
       username: 'ana',
@@ -99,7 +99,7 @@ describe('Register', () => {
     const { register } = renderRegister(vi.fn().mockResolvedValue({ success: false, error: 'El nombre de usuario ya existe.' }));
     const user = await fill(validData);
 
-    await user.click(screen.getByRole('button', { name: 'Crear Cuenta' }));
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     expect(await screen.findByText('El nombre de usuario ya existe.')).toBeInTheDocument();
     expect(register).toHaveBeenCalledTimes(1);
@@ -110,7 +110,7 @@ describe('Register', () => {
     renderRegister(vi.fn().mockRejectedValue(new Error('red caída')));
     const user = await fill(validData);
 
-    await user.click(screen.getByRole('button', { name: 'Crear Cuenta' }));
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     expect(await screen.findByText('Error al registrar usuario. Por favor, intenta nuevamente.')).toBeInTheDocument();
   });
