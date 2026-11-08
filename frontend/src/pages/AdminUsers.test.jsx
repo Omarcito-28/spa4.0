@@ -162,5 +162,8 @@ describe('AdminUsers', () => {
     expect(screen.getByRole('button', { name: 'Desactivar' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Eliminar a admin' })).toBeDisabled();
     expect(screen.getByLabelText('Rol de admin')).toBeDisabled();
+    // Bloqueado no es "cargando": el cursor indica que no está permitido, no la ruedita de espera.
+    expect(getComputedStyle(screen.getByRole('button', { name: 'Eliminar a admin' })).cursor).toBe('not-allowed');
+    expect(screen.getByRole('button', { name: 'Eliminar a admin' })).not.toHaveAttribute('aria-busy');
   });
 });

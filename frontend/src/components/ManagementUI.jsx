@@ -36,8 +36,13 @@ export const control = css`
     box-shadow: 0 0 0 4px rgba(201, 148, 42, 0.2);
   }
 
+  /* Deshabilitado = no permitido; la ruedita solo si de verdad está procesando (aria-busy). */
   &:disabled {
     background-color: #f6f3ee;
+    cursor: not-allowed;
+  }
+
+  &:disabled[aria-busy='true'] {
     cursor: wait;
   }
 
@@ -223,6 +228,10 @@ export const Button = styled.button`
 
   &:disabled {
     opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:disabled[aria-busy='true'] {
     cursor: wait;
   }
 

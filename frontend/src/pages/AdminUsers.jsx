@@ -188,7 +188,7 @@ function AdminUsers() {
                 </select>
               </Field>
             </Grid>
-            <Button type="submit" disabled={saving}>{saving ? 'Creando…' : 'Crear cuenta'}</Button>
+            <Button type="submit" disabled={saving} aria-busy={saving || undefined}>{saving ? 'Creando…' : 'Crear cuenta'}</Button>
             <Button type="button" $secondary onClick={() => { setCreating(false); setAccount(emptyAccount); setNotice(null); }}>Cancelar</Button>
           </Form>
           {notice?.error && <Notice $error role="alert">{notice.text}</Notice>}
@@ -217,27 +217,28 @@ function AdminUsers() {
           {visibleUsers.map(user => {
             // El backend no permite que el administrador se desactive, se elimine ni cambie su propio rol.
             const isSelf = user.username === currentUser?.username;
-            const locked = isSelf || busyId === user._id;
+            const busy = busyId === user._id;
+            const locked = isSelf || busy;
             return (
               <Fragment key={user._id}>
               <tr>
                 <td><Person><strong>{user.fullName}</strong><span>@{user.username}{isSelf && ' (tú)'}</span></Person></td>
                 <td>{user.email}</td><td>{user.phoneNumber || '—'}</td>
                 <td>
-                  <select aria-label={`Rol de ${user.username}`} value={user.role} disabled={locked} onChange={event => updateRole(user, event.target.value)}>
+                  <select aria-label={`Rol de ${user.username}`} value={user.role} disabled={locked} aria-busy={busy || undefined} onChange={event => updateRole(user, event.target.value)}>
                     {ROLE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                   </select>
                 </td>
                 <td><AccountState $active={user.isActive !== false}>{user.isActive === false ? 'Desactivada' : 'Activa'}</AccountState></td>
                 <td>
-                  <Button type="button" $danger={user.isActive !== false} $secondary={user.isActive === false} disabled={locked} onClick={() => setActive(user)}>
+                  <Button type="button" $danger={user.isActive !== false} $secondary={user.isActive === false} disabled={locked} aria-busy={busy || undefined} onClick={() => setActive(user)}>
                     {user.isActive === false ? 'Reactivar' : 'Desactivar'}
                   </Button>
-                  <Button type="button" $secondary disabled={busyId === user._id} aria-expanded={editingId === user._id}
+                  <Button type="button" $secondary disabled={busy} aria-busy={busy || undefined} aria-expanded={editingId === user._id}
                     onClick={() => setEditingId(current => current === user._id ? '' : user._id)} aria-label={`Editar a ${user.username}`}>
                     <i className="fas fa-pen" aria-hidden="true"></i> Editar
                   </Button>
-                  <Button type="button" $secondary disabled={locked} onClick={() => removeUser(user)} aria-label={`Eliminar a ${user.username}`}>
+                  <Button type="button" $secondary disabled={locked} aria-busy={busy || undefined} onClick={() => removeUser(user)} aria-label={`Eliminar a ${user.username}`}>
                     <i className="fas fa-trash" aria-hidden="true"></i> Eliminar
                   </Button>
                 </td>
