@@ -1,27 +1,16 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import { theme } from '../styles/theme';
-import { apiGetAppointments, apiGetUsers } from '../services/api';
+import { apiGetAllServices, apiGetAppointments, apiGetUsers } from '../services/api';
 import { AppointmentList, LivePanel } from '../components/LivePanel';
-import { Page, Title } from '../components/ManagementUI';
+import { Page } from '../components/ManagementUI';
 import KpiGrid from '../components/dashboard/KpiGrid';
+import SalesCharts from '../components/dashboard/SalesCharts';
+import WelcomeBanner from '../components/dashboard/WelcomeBanner';
 import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { subscribeAppointmentsChanged } from '../utils/appointmentEvents';
 import { appointmentsOn, compareByDateTime, recentRequests, unassignedAppointments } from '../utils/appointmentSummary';
 import { todayInTimeZone } from '../utils/date';
-
-const Header = styled.header`
-  margin-bottom: 1.75rem;
-
-  p {
-    color: ${theme.colors.textMuted};
-    font-size: 1.15rem;
-  }
-
-  strong {
-    color: ${theme.colors.text};
-  }
-`;
 
 const QuickActions = styled.nav`
   display: flex;
@@ -88,24 +77,23 @@ const QUICK_ACTIONS = [
   { to: '/admin/reports', label: 'Reportes', icon: 'fa-chart-line' },
 ];
 
-// Los usuarios son un dato secundario: si fallan, el panel de citas sigue funcionando.
+// Usuarios y catálogo son datos secundarios: si fallan, el panel de citas sigue funcionando
+// (sin catálogo, las ventas usan solo el precio guardado en cada cita).
 const loadDashboard = async () => {
-  const [appointments, users] = await Promise.all([
+  const [appointments, users, catalog] = await Promise.all([
     apiGetAppointments(),
     apiGetUsers().catch(() => null),
+    Promise.resolve().then(apiGetAllServices).catch(() => []),
   ]);
-  return { appointments, users };
+  return { appointments, users, catalog };
 };
-
-const longDate = date => new Intl.DateTimeFormat('es-CO', {
-  weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC',
-}).format(new Date(`${date}T00:00:00Z`));
 
 function AdminSummary() {
   const live = useAutoRefresh(loadDashboard, { subscribe: subscribeAppointmentsChanged });
   const appointments = live.data?.appointments ?? [];
   const users = live.data?.users;
-  const todays = appointmentsOn(appointments, todayInTimeZone());
+  const today = todayInTimeZone();
+  const todays = appointmentsOn(appointments, today);
   const countRole = role => (users ? users.filter(item => item.role === role).length : '—');
 
   const kpis = [
@@ -118,39 +106,37 @@ function AdminSummary() {
   ];
 
   return (
-    <LivePanel title="Operación en vivo" live={live}>
-      <KpiGrid kpis={kpis} />
-      <Columns>
-        <div>
-          <AppointmentList
-            title="Solicitudes recientes"
-            appointments={recentRequests(appointments)}
-            empty="No hay solicitudes pendientes."
-            describe={item => `${item.username} · ${item.stylist || 'sin estilista'}`}
-          />
-        </div>
-        <div>
-          <AppointmentList
-            title="Agenda de hoy"
-            appointments={[...todays].sort(compareByDateTime)}
-            empty="No hay citas para hoy."
-            describe={item => (item.stylist ? `${item.username} con ${item.stylist}` : `${item.username}, sin estilista`)}
-          />
-        </div>
-      </Columns>
-    </LivePanel>
+    <>
+      <LivePanel title="Operación en vivo" live={live}>
+        <KpiGrid kpis={kpis} />
+        <Columns>
+          <div>
+            <AppointmentList
+              title="Solicitudes recientes"
+              appointments={recentRequests(appointments)}
+              empty="No hay solicitudes pendientes."
+              describe={item => `${item.username} · ${item.stylist || 'sin estilista'}`}
+            />
+          </div>
+          <div>
+            <AppointmentList
+              title="Agenda de hoy"
+              appointments={[...todays].sort(compareByDateTime)}
+              empty="No hay citas para hoy."
+              describe={item => (item.stylist ? `${item.username} con ${item.stylist}` : `${item.username}, sin estilista`)}
+            />
+          </div>
+        </Columns>
+      </LivePanel>
+      {live.data && <SalesCharts appointments={appointments} catalog={live.data.catalog} today={today} />}
+    </>
   );
 }
 
 function AdminDashboard({ user }) {
   return (
     <Page $wide>
-      <Header>
-        <Title>Dashboard</Title>
-        <p>
-          Hola, <strong>{user?.fullName || user?.username}</strong>. Este es el resumen del salón para hoy, {longDate(todayInTimeZone())}.
-        </p>
-      </Header>
+      <WelcomeBanner name={user?.fullName || user?.username} roleLabel="Administrador" icon="fa-crown" />
 
       <QuickActions aria-label="Acciones rápidas">
         <span>Acciones rápidas</span>

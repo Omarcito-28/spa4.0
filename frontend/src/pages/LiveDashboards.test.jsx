@@ -14,6 +14,7 @@ vi.mock('../services/api', () => ({
   apiGetAppointments: vi.fn(),
   apiGetStylists: vi.fn().mockResolvedValue([{ _id: 's1', username: 'sofi', fullName: 'Sofi' }]),
   apiGetUsers: vi.fn().mockResolvedValue([]),
+  apiGetAllServices: vi.fn().mockResolvedValue([]),
   apiUpdateAppointment: vi.fn(),
   apiUpdateAppointmentStatus: vi.fn(),
 }));

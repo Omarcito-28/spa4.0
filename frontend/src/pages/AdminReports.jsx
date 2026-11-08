@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiDeleteReview, apiGetAllReviews, apiGetAppointments, apiGetAllServices, apiGetReviewSummary, apiGetUsers } from '../services/api';
 import StarRating from '../components/StarRating';
 import { downloadCsv } from '../utils/download';
+import { currency, priceOf, revenueOf, toAmount } from '../utils/revenue';
 import { Button, Description, EmptyCell, Grid, Notice, Page, SectionTitle, StatCard, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 import { APPOINTMENT_STATUSES, STATUS_OPTIONS, statusLabel } from '../utils/appointmentStatus';
 
@@ -58,18 +59,12 @@ function AdminReports() {
     (!filters.service || item.service === filters.service));
   const confirmed = filteredAppointments.filter(item => item.status === 'CONFIRMED');
   const completed = filteredAppointments.filter(item => item.status === 'COMPLETED');
-  const priceFor = appointment => appointment.price ||
-    stats?.serviceCatalog.find(service => service.name === appointment.service)?.price || '';
-  const toAmount = price => {
-    const numeric = price.replace(/[^\d]/g, '');
-    return numeric ? Number(numeric) : 0;
-  };
-  const revenueOf = items => items.reduce((total, item) => total + toAmount(priceFor(item)), 0);
-  const estimatedRevenue = revenueOf(confirmed);
-  const completedRevenue = revenueOf(completed);
+  const catalog = stats?.serviceCatalog ?? [];
+  const priceFor = appointment => priceOf(appointment, catalog);
+  const estimatedRevenue = revenueOf(confirmed, catalog);
+  const completedRevenue = revenueOf(completed, catalog);
   const estimatesUsingCurrentPrice = confirmed.filter(item => !item.price).length;
   const completedUsingCurrentPrice = completed.filter(item => !item.price).length;
-  const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
   const setFilter = name => event => setFilters(current => ({ ...current, [name]: event.target.value }));
 
   // Desglose por servicio de las citas filtradas, de mayor a menor demanda.
@@ -161,7 +156,7 @@ function AdminReports() {
               {byService.map(group => (
                 <tr key={group.service}>
                   <td>{group.service}</td><td>{group.total}</td><td>{group.completed.length}</td>
-                  <td>{currency.format(revenueOf(group.completed))}</td>
+                  <td>{currency.format(revenueOf(group.completed, catalog))}</td>
                 </tr>
               ))}
             </tbody>
