@@ -20,21 +20,21 @@ const renderAt = (route, user = client) => render(
 );
 
 describe('ClientAccountLayout', () => {
-  it('muestra al cliente sus opciones siempre visibles junto a la página', () => {
+  it('muestra al cliente sus pestañas sobre la página', () => {
     renderAt('/dashboard');
     const nav = screen.getByRole('navigation', { name: 'Opciones de mi cuenta' });
     const expected = {
-      'Mi panel': '/dashboard',
-      'Mis citas': '/appointments/my',
-      'Agendar cita': '/appointments/new',
-      'Mi perfil': '/profile',
+      'Mi Panel': '/dashboard',
+      'Mis Citas': '/appointments/my',
+      'Agendar Cita': '/appointments/new',
+      'Mi Perfil': '/profile',
     };
     Object.entries(expected).forEach(([name, href]) => {
       expect(within(nav).getByRole('link', { name })).toHaveAttribute('href', href);
     });
-    expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Vista panel' })).toBeInTheDocument();
-    expect(within(nav).getByRole('link', { name: 'Mi panel' })).toHaveClass('active');
+    expect(within(nav).getByRole('link', { name: 'Mi Panel' })).toHaveClass('active');
   });
 
   it('navega entre las secciones y marca la actual', async () => {
@@ -42,10 +42,10 @@ describe('ClientAccountLayout', () => {
     renderAt('/dashboard');
     const nav = screen.getByRole('navigation', { name: 'Opciones de mi cuenta' });
 
-    await user.click(within(nav).getByRole('link', { name: 'Agendar cita' }));
+    await user.click(within(nav).getByRole('link', { name: 'Agendar Cita' }));
     expect(screen.getByRole('heading', { name: 'Vista reserva' })).toBeInTheDocument();
-    expect(within(nav).getByRole('link', { name: 'Agendar cita' })).toHaveClass('active');
-    expect(within(nav).getByRole('link', { name: 'Mi panel' })).not.toHaveClass('active');
+    expect(within(nav).getByRole('link', { name: 'Agendar Cita' })).toHaveClass('active');
+    expect(within(nav).getByRole('link', { name: 'Mi Panel' })).not.toHaveClass('active');
   });
 
   it('a quien no es cliente le muestra solo la página, sin el menú de cuenta', () => {

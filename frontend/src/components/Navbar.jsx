@@ -3,6 +3,7 @@ import { Link, NavLink as RouterNavLink, useLocation } from 'react-router-dom';
 import styled, { css, keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
 import { WORKSPACES } from './dashboard/workspaces';
+import { isClientAccountPath } from './account/clientAccount';
 
 const MOBILE = '992px';
 
@@ -147,11 +148,12 @@ const NavLinks = styled.ul`
   }
 `;
 
+// Divide los enlaces públicos de lo propio de la cuenta.
 const Separator = styled.li`
   width: 1px;
-  height: 26px;
-  margin: 0 0.5rem;
-  background: rgba(201, 148, 42, 0.25);
+  height: 28px;
+  margin: 0 0.85rem;
+  background: linear-gradient(180deg, transparent, rgba(201, 148, 42, 0.55), transparent);
 
   @media (max-width: ${MOBILE}) {
     width: auto;
@@ -258,6 +260,30 @@ const LoginButton = styled(Link)`
   @media (max-width: ${MOBILE}) {
     display: block;
     margin: 0.5rem 0 0;
+  }
+`;
+
+// Acceso del cliente a su área: separado de los enlaces públicos y con borde dorado.
+const AccountButton = styled(Link)`
+  ${linkStyles}
+  border: 1px solid rgba(201, 148, 42, 0.45);
+  border-radius: ${theme.borderRadius.pill};
+  padding: 0.45rem 1.05rem;
+
+  &.active {
+    border-color: transparent;
+    background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+    box-shadow: 0 3px 12px rgba(153, 101, 21, 0.35);
+    color: white;
+
+    i {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: ${MOBILE}) {
+    justify-content: center;
+    margin: 0.25rem 0;
   }
 `;
 
@@ -406,13 +432,9 @@ const PRIMARY_LINKS = {
   ],
 };
 
-// Menú de la cuenta. El administrador y el estilista trabajan desde su propio panel
-// (/admin, /stylist); el cliente gestiona sus citas dentro del sitio público.
-const CLIENT_ACCOUNT_LINKS = [
-  { to: '/dashboard', label: 'Mi Panel', icon: 'fa-gauge-high' },
-  { to: '/appointments/my', label: 'Mis Citas', icon: 'fa-calendar-check' },
-  { to: '/appointments/new', label: 'Agendar Cita', icon: 'fa-calendar-plus' },
-];
+// Menú del avatar. El administrador y el estilista trabajan desde su propio panel
+// (/admin, /stylist); el cliente llega a su cuenta con el botón "Mi cuenta" y la
+// recorre con las pestañas del área, así que su menú solo tiene el perfil.
 const PROFILE_LINK = { to: '/profile', label: 'Mi Perfil', icon: 'fa-user-edit' };
 
 const accountLinksFor = role => {
@@ -423,7 +445,7 @@ const accountLinksFor = role => {
       { ...PROFILE_LINK, to: workspace.profile },
     ];
   }
-  return [...CLIENT_ACCOUNT_LINKS, PROFILE_LINK];
+  return [PROFILE_LINK];
 };
 
 function Navbar({ isAuthenticated = false, user = null, onLogout }) {
@@ -510,6 +532,13 @@ function Navbar({ isAuthenticated = false, user = null, onLogout }) {
           {role !== 'GUEST' && (
             <>
               <Separator aria-hidden="true" />
+              {role === 'CLIENT' && (
+                <li>
+                  <AccountButton to="/dashboard" className={isClientAccountPath(location.pathname) ? 'active' : undefined}>
+                    <i className="fas fa-user-circle" aria-hidden="true"></i>Mi cuenta
+                  </AccountButton>
+                </li>
+              )}
               <Dropdown>
                 <DropdownButton
                   type="button"

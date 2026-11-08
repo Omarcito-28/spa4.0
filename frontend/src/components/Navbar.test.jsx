@@ -57,27 +57,27 @@ describe('Navbar', () => {
     expect(screen.queryByRole('link', { name: 'Panel de Administración' })).not.toBeInTheDocument();
   });
 
-  it('el cliente ve un Navbar limpio y gestiona sus citas desde el menú de la cuenta', async () => {
+  it('el cliente ve los enlaces públicos, un acceso a "Mi cuenta" y un menú de avatar solo con perfil y salida', async () => {
     const user = userEvent.setup();
     renderNavbar({ isAuthenticated: true, user: { username: 'ana', fullName: 'Ana Pérez', role: 'CLIENT' } });
 
-    const cuenta = screen.getByRole('button', { name: 'Menú de ana' });
     const bar = screen.getByRole('list');
-    expect(within(bar).getAllByRole('link').map(link => link.textContent)).toEqual(['Inicio', 'Servicios', 'Contáctanos']);
+    expect(within(bar).getAllByRole('link').map(link => link.textContent)).toEqual(['Inicio', 'Servicios', 'Contáctanos', 'Mi cuenta']);
+    expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveAttribute('href', '/dashboard');
 
-    await user.click(cuenta);
+    await user.click(screen.getByRole('button', { name: 'Menú de ana' }));
     expect(screen.getByText('Ana Pérez')).toBeInTheDocument();
     expect(screen.getByText('Cliente')).toBeInTheDocument();
-    const expected = {
-      'Mi Panel': '/dashboard',
-      'Mis Citas': '/appointments/my',
-      'Agendar Cita': '/appointments/new',
-      'Mi Perfil': '/profile',
-    };
-    Object.entries(expected).forEach(([name, href]) => {
-      expect(screen.getByRole('link', { name })).toHaveAttribute('href', href);
+    expect(screen.getByRole('link', { name: 'Mi Perfil' })).toHaveAttribute('href', '/profile');
+    ['Mi Panel', 'Mis Citas', 'Agendar Cita'].forEach(name => {
+      expect(screen.queryByRole('link', { name })).not.toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: 'Cerrar Sesión' })).toBeInTheDocument();
+  });
+
+  it('"Mi cuenta" se resalta en cualquier página del área del cliente', () => {
+    renderNavbar({ isAuthenticated: true, user: { username: 'ana', fullName: 'Ana Pérez', role: 'CLIENT' } }, '/appointments/new');
+    expect(screen.getByRole('link', { name: 'Mi cuenta' })).toHaveClass('active');
   });
 
   it('el panel de administración solo aparece para el administrador', async () => {

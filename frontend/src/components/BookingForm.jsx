@@ -17,17 +17,17 @@ import { downloadIcs } from '../utils/download';
 /* ─── Layout ─────────────────────────────────────────────── */
 // Diseño sobrio: tarjeta blanca y el dorado de la marca solo como acento.
 const PageWrapper = styled.div`
-  display: flex;
-  padding: 0 0 3.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3.5rem;
 
-  @media (max-width: 992px) {
-    padding-top: 1rem;
+  @media (max-width: 600px) {
+    padding: 1.25rem 1rem 2.5rem;
   }
 `;
 
 const FormCard = styled.div`
   width: 100%;
-  max-width: 780px;
   padding: 2.5rem 2.75rem;
   border: 1px solid ${theme.colors.dashboardCardBorder};
   border-radius: ${theme.borderRadius.large};
