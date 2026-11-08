@@ -16,5 +16,11 @@ describe('pathAfterLogin', () => {
     expect(pathAfterLogin({ role: 'CLIENT' }, { returnTo: '/appointments/new?service=Corte', isNewUser: true }))
       .toBe('/appointments/new?service=Corte');
     expect(pathAfterLogin({ role: 'CLIENT' }, { returnTo: 'https://otro-sitio.com' })).toBe('/dashboard');
+    expect(pathAfterLogin({ role: 'CLIENT' }, { returnTo: '/appointments/newhttps://x' })).toBe('/dashboard');
+  });
+
+  it('si quería ver sus citas, vuelve a sus citas', () => {
+    expect(pathAfterLogin({ role: 'CLIENT' }, { returnTo: '/appointments/my' })).toBe('/appointments/my');
+    expect(pathAfterLogin({ role: 'ADMIN' }, { returnTo: '/appointments/my' })).toBe('/admin');
   });
 });

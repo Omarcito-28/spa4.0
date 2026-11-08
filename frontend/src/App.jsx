@@ -36,16 +36,19 @@ function ContactPage({ isAuthenticated }) {
   return <Home isAuthenticated={isAuthenticated} />;
 }
 
+// Sin sesión, va al login y vuelve a la reserva (con el servicio elegido, si venía en la URL).
 function NewAppointmentPage({ isAuthenticated }) {
+  const location = useLocation();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   }
   return <BookingForm />;
 }
 
 function MyAppointmentsPage({ isAuthenticated }) {
+  const location = useLocation();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname)}`} replace />;
   }
   return <ClientAppointments />;
 }
@@ -91,7 +94,7 @@ function App() {
         <Route path="reset-password" element={<PasswordRecovery />} />
         {/* Ruta anterior de la lista de citas del administrador. */}
         <Route path="appointments/all" element={isAdmin ? <Navigate to="/admin/appointments" replace /> : <Navigate to="/login" replace />} />
-        {/* "Mi cuenta": las páginas del cliente comparten un menú lateral dentro del sitio público. */}
+        {/* "Mi cuenta": las páginas del cliente comparten las pestañas del área dentro del sitio público. */}
         <Route element={<ClientAccountLayout user={user} />}>
           <Route path="dashboard" element={!isAuthenticated ? <Navigate to="/login" replace /> : user?.role === 'ADMIN' ? <Navigate to="/admin" replace /> : user?.role === 'STYLIST' ? <Navigate to="/stylist" replace /> : <Dashboard user={user} />} />
           <Route path="appointments/new" element={<NewAppointmentPage isAuthenticated={isAuthenticated} />} />
