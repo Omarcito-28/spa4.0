@@ -1,110 +1,81 @@
 import { useEffect, useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { useSearchParams } from 'react-router-dom';
 import { theme, fadeInUp } from '../styles/theme';
+import { control } from './ManagementUI';
 import { useAuth } from '../contexts/auth';
 import { todayInTimeZone } from '../utils/date';
 import {
   apiCreateAppointment,
   apiGetServices,
   apiGetStylists,
-  apiGetStylistAvailability
+  apiGetStylistAvailability,
+  resolveImageUrl
 } from '../services/api';
 import { downloadIcs } from '../utils/download';
 
-/* ─── Animations ─────────────────────────────────────────── */
-const shimmer = keyframes`
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-`;
-
-const glowPulse = keyframes`
-  0%, 100% { box-shadow: 0 0 8px rgba(153,101,21,0.25), 0 0 20px rgba(153,101,21,0.1); }
-  50%       { box-shadow: 0 0 20px rgba(201,148,42,0.5), 0 0 40px rgba(153,101,21,0.25); }
-`;
-
-/* ─── Page wrapper ───────────────────────────────────────── */
+/* ─── Layout ─────────────────────────────────────────────── */
+// Diseño sobrio: tarjeta blanca y el dorado de la marca solo como acento.
 const PageWrapper = styled.div`
-  min-height: 80vh;
-  background: linear-gradient(160deg, #e8d5a3 0%, #d4b97a 40%, #e0c990 100%);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-`;
+  padding: 0 0 3.5rem;
 
-/* ─── Glass card ─────────────────────────────────────────── */
-const FormCard = styled.div`
-  width: 100%;
-  max-width: 760px;
-  background: rgba(255, 248, 230, 0.92);
-  backdrop-filter: blur(24px);
-  border-radius: ${theme.borderRadius.large};
-  border: 1px solid rgba(153, 101, 21, 0.4);
-  box-shadow:
-    0 0 0 1px rgba(201, 148, 42, 0.18),
-    0 32px 80px rgba(120, 75, 10, 0.25),
-    inset 0 1px 0 rgba(201, 148, 42, 0.25);
-  padding: 3rem 3.5rem;
-  animation: ${fadeInUp} 0.65s ease-out, ${glowPulse} 5s ease-in-out infinite;
-
-  @media (max-width: 600px) {
-    padding: 2rem 1.5rem;
+  @media (max-width: 992px) {
+    padding-top: 1rem;
   }
 `;
 
-/* ─── Header ─────────────────────────────────────────────── */
-const Badge = styled.span`
-  display: block;
-  text-align: center;
-  font-family: ${theme.fonts.secondary};
-  font-size-adjust: ${theme.fonts.secondaryAdjust};
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  background: linear-gradient(90deg,
-    ${theme.colors.primary} 0%,
-    ${theme.colors.navbarLinkHover} 40%,
-    #fff 60%,
-    ${theme.colors.navbarLinkHover} 80%,
-    ${theme.colors.primary} 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: ${shimmer} 4s linear infinite;
+const FormCard = styled.div`
+  width: 100%;
+  max-width: 780px;
+  padding: 2.5rem 2.75rem;
+  border: 1px solid ${theme.colors.dashboardCardBorder};
+  border-radius: ${theme.borderRadius.large};
+  background: white;
+  box-shadow: 0 1px 2px rgba(60, 40, 10, 0.04), 0 12px 32px rgba(60, 40, 10, 0.07);
+  animation: ${fadeInUp} 0.45s ease-out;
+
+  @media (max-width: 600px) {
+    padding: 1.75rem 1.25rem;
+    border-radius: ${theme.borderRadius.medium};
+  }
+`;
+
+const Header = styled.header`
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee8dc;
+`;
+
+const Eyebrow = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   margin-bottom: 0.6rem;
+  color: ${theme.colors.primary};
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
 `;
 
 const Title = styled.h2`
-  text-align: center;
-  font-size: 2.8rem;
-  font-weight: 600;
-  color: ${theme.colors.primaryDark};
-  margin-bottom: 0.4rem;
-  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+  color: ${theme.colors.text};
+  font-size: 2.6rem;
 `;
 
 const Subtitle = styled.p`
-  text-align: center;
-  color: #4a340b;
-  font-size: 1.15rem;
-  margin-bottom: 2.5rem;
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201,148,42,0.5), transparent);
-  margin-bottom: 2.5rem;
+  margin: 0;
+  color: ${theme.colors.textMuted};
+  font-size: 1.1rem;
 `;
 
 /* ─── Form grid ──────────────────────────────────────────── */
 const Form = styled.form`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1.4rem 1.25rem;
 
   @media (max-width: 600px) {
     grid-template-columns: 1fr;
@@ -115,131 +86,162 @@ const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  grid-column: ${props => props.$fullWidth ? '1 / span 2' : 'auto'};
+  grid-column: ${props => props.$fullWidth ? '1 / -1' : 'auto'};
 
-  @media (max-width: 600px) {
-    grid-column: auto;
+  small {
+    color: ${theme.colors.textMuted};
+    font-size: 0.92rem;
   }
 `;
 
 const Label = styled.label`
-  font-size: 1rem;
+  color: ${theme.colors.text};
+  font-size: 1.02rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: ${theme.colors.primary};
-`;
 
-/* Shared input styles */
-const inputBase = `
-  padding: 0.9rem 1.1rem;
-  border-radius: 12px;
-  border: 1px solid #9a8452;
-  background: rgba(255, 242, 200, 0.55);
-  color: #3a2808;
-  font-size: 1.15rem;
-  font-family: inherit;
-  transition: all 0.25s ease;
-  outline: none;
-
-  &::placeholder {
-    color: #6b5b3a;
-  }
-
-  &:focus {
-    border-color: ${theme.colors.accent};
-    background: rgba(255, 242, 200, 0.8);
-    box-shadow: 0 0 0 3px rgba(153, 101, 21, 0.2), 0 0 18px rgba(201, 148, 42, 0.15);
+  span {
+    color: ${theme.colors.textMuted};
+    font-weight: 400;
   }
 `;
 
 const Input = styled.input`
-  ${inputBase}
-  border-color: ${props => props.$error ? theme.colors.danger : '#9a8452'};
-
-  &::-webkit-calendar-picker-indicator {
-    filter: invert(0.7) sepia(1) saturate(3) hue-rotate(10deg);
-    cursor: pointer;
-  }
+  ${control}
+  ${props => props.$error && `border-color: ${theme.colors.danger};`}
 `;
 
 const Select = styled.select`
-  ${inputBase}
-  border-color: ${props => props.$error ? theme.colors.danger : '#9a8452'};
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%23c9942a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1.1rem;
+  ${control}
+  ${props => props.$error && `border-color: ${theme.colors.danger};`}
   cursor: pointer;
 
-  option {
-    background: #f5e9c0;
-    color: #3a2808;
-    font-size: 1.2rem;
+  &:disabled {
+    cursor: not-allowed;
   }
 `;
 
 const Textarea = styled.textarea`
-  ${inputBase}
+  ${control}
   min-height: 100px;
   resize: vertical;
 `;
 
 const ErrorMessage = styled.span`
-  color: ${theme.colors.danger};
-  font-size: 0.8rem;
-  padding-left: 0.25rem;
+  color: #b93224;
+  font-size: 0.92rem;
+`;
+
+/* ─── Vista previa del servicio elegido ─────────────────── */
+const ServicePreview = styled.div`
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 1.1rem;
+  margin-top: 0.35rem;
+  padding: 0.85rem;
+  border: 1px solid #efe3cc;
+  border-radius: 14px;
+  background: #fffdf9;
+  animation: ${fadeInUp} 0.3s ease-out;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const PreviewImage = styled.div`
+  min-height: 120px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f6eedd, #efe3cc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${theme.colors.accent};
+  font-size: 1.8rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (max-width: 520px) {
+    height: 170px;
+  }
+`;
+
+const PreviewBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    color: ${theme.colors.text};
+    font-size: 1.6rem;
+  }
+
+  p {
+    margin: 0;
+    color: ${theme.colors.textMuted};
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+`;
+
+const Facts = styled.ul`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid #ebdfc6;
+    border-radius: 999px;
+    background: white;
+    color: ${theme.colors.text};
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+
+  i {
+    color: ${theme.colors.primary};
+    font-size: 0.9rem;
+  }
 `;
 
 /* ─── Submit button ──────────────────────────────────────── */
 const SubmitButton = styled.button`
-  grid-column: 1 / span 2;
+  grid-column: 1 / -1;
   margin-top: 0.5rem;
-  padding: 1.1rem;
-  background: linear-gradient(135deg, ${theme.colors.primaryDark} 0%, ${theme.colors.primary} 60%, ${theme.colors.primaryDark} 100%);
-  background-size: 200% auto;
-  color: #fff;
+  padding: 1rem;
   border: none;
-  border-radius: 50px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+  box-shadow: 0 4px 14px rgba(153, 101, 21, 0.25);
+  color: white;
   font-size: 1.1rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  cursor: pointer;
-  transition: all 0.35s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(153,101,21,0.35);
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
-  }
+  letter-spacing: 0.4px;
+  transition: transform ${theme.transitions.fast}, box-shadow ${theme.transitions.fast}, filter ${theme.transitions.fast};
 
   &:hover:not(:disabled) {
-    background-position: right center;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 32px rgba(201,148,42,0.5);
-
-    &::before { transform: translateX(100%); }
-  }
-
-  &:active:not(:disabled) {
     transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(153, 101, 21, 0.32);
+    filter: brightness(1.05);
   }
 
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-  }
-
-  @media (max-width: 600px) {
-    grid-column: auto;
   }
 `;
 
@@ -250,53 +252,50 @@ const SuccessWrapper = styled.div`
 `;
 
 const SuccessIcon = styled.div`
-  width: 80px;
-  height: 80px;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 1.25rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, ${theme.colors.primaryDark}, ${theme.colors.accent});
+  background: linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent});
+  box-shadow: 0 6px 18px rgba(153, 101, 21, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1.5rem;
-  box-shadow: 0 0 30px rgba(201,148,42,0.4);
-  font-size: 2.2rem;
+  color: white;
+  font-size: 2rem;
 `;
 
 const SuccessTitle = styled.h3`
-  font-size: 2.8rem;
-  color: ${theme.colors.navbarLinkHover};
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
+  color: ${theme.colors.text};
+  font-size: 2.6rem;
 `;
 
 const SuccessDetail = styled.p`
-  color: rgba(80, 50, 10, 0.75);
-  font-size: 1.15rem;
-  line-height: 1.8;
   margin-bottom: 0.75rem;
+  color: ${theme.colors.textMuted};
+  font-size: 1.12rem;
+  line-height: 1.7;
 
   strong {
-    color: ${theme.colors.primaryDark};
+    color: ${theme.colors.text};
   }
 `;
 
 const BackButton = styled.button`
-  margin-top: 1.75rem;
-  background: transparent;
-  border: 1px solid rgba(153,101,21,0.5);
-  color: ${theme.colors.primary};
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  font-size: 0.9rem;
+  margin-top: 1.5rem;
+  padding: 0.7rem 1.6rem;
+  border: 1px solid #e6d7b9;
+  border-radius: 999px;
+  background: #fdf8ef;
+  color: ${theme.colors.primaryDark};
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all ${theme.transitions.fast};
 
   &:hover {
-    background: ${theme.colors.primary};
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(153,101,21,0.35);
+    border-color: ${theme.colors.accent};
+    background: white;
   }
 `;
 
@@ -363,7 +362,8 @@ function BookingForm() {
   const isLoadingAvailability = Boolean(
     formData.date && (!currentAvailability || currentAvailability.loading)
   );
-  const selectedDuration = services.find(service => service.name === formData.service)?.duration || 60;
+  const selectedService = services.find(service => service.name === formData.service);
+  const selectedDuration = selectedService?.duration || 60;
   const availableSlots = getTimeSlots(availableSchedule, selectedDuration);
   const bookedSlots = availableSlots.filter(time => busyAppointments.some(appointment =>
     appointmentsOverlap(time, selectedDuration, appointment)));
@@ -446,8 +446,8 @@ function BookingForm() {
       <FormCard>
         {isSuccess ? (
           <SuccessWrapper>
-            <SuccessIcon>✨</SuccessIcon>
-            <SuccessTitle>¡Cita Agendada!</SuccessTitle>
+            <SuccessIcon><i className="fas fa-check" aria-hidden="true"></i></SuccessIcon>
+            <SuccessTitle>¡Cita agendada!</SuccessTitle>
             <SuccessDetail>
               Gracias, <strong>{user?.fullName || 'Cliente'}</strong>. Recibimos tu solicitud para&nbsp;
               <strong>{formData.service}</strong> el día <strong>{formData.date}</strong> a las <strong>{formData.time}</strong>.
@@ -467,10 +467,11 @@ function BookingForm() {
           </SuccessWrapper>
         ) : (
           <>
-            <Badge>Essence De Toi · Reservas</Badge>
-            <Title>Agendar una Cita</Title>
-            <Subtitle>Reserva tu momento de bienestar en pocos pasos</Subtitle>
-            <Divider />
+            <Header>
+              <Eyebrow><i className="fas fa-spa" aria-hidden="true"></i>Reservas</Eyebrow>
+              <Title>Agendar una cita</Title>
+              <Subtitle>Elige el servicio, el día y la hora que mejor te queden.</Subtitle>
+            </Header>
 
             <Form onSubmit={handleSubmit} noValidate>
               {/* Servicio */}
@@ -492,11 +493,28 @@ function BookingForm() {
                 {!isLoadingServices && !servicesError && services.length === 0 && (
                   <ErrorMessage>No hay servicios disponibles para reservar.</ErrorMessage>
                 )}
+                {selectedService && (
+                  <ServicePreview role="region" aria-label={`Detalles de ${selectedService.name}`}>
+                    <PreviewImage>
+                      {selectedService.image
+                        ? <img src={resolveImageUrl(selectedService.image)} alt={selectedService.name} onError={event => { event.currentTarget.hidden = true; }} />
+                        : <i className="fas fa-spa" aria-hidden="true"></i>}
+                    </PreviewImage>
+                    <PreviewBody>
+                      <h3>{selectedService.name}</h3>
+                      {selectedService.description && <p>{selectedService.description}</p>}
+                      <Facts>
+                        <li><i className="far fa-clock" aria-hidden="true"></i>{selectedService.duration || 60} min</li>
+                        {selectedService.price && <li><i className="fas fa-tag" aria-hidden="true"></i>{selectedService.price}</li>}
+                      </Facts>
+                    </PreviewBody>
+                  </ServicePreview>
+                )}
               </FormGroup>
 
               {stylists.length > 0 && (
                 <FormGroup $fullWidth>
-                  <Label htmlFor="stylist">Estilista (opcional)</Label>
+                  <Label htmlFor="stylist">Estilista <span>(opcional)</span></Label>
                   <Select id="stylist" name="stylist" value={formData.stylist} onChange={handleChange}>
                     <option value="">Por asignar</option>
                     {stylists.map(stylist => (
@@ -555,7 +573,7 @@ function BookingForm() {
 
               {/* Notas */}
               <FormGroup $fullWidth>
-                <Label htmlFor="notes">Notas adicionales <span style={{ opacity: 0.5, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></Label>
+                <Label htmlFor="notes">Notas adicionales <span>(opcional)</span></Label>
                 <Textarea
                   id="notes" name="notes"
                   placeholder="Escribe aquí cualquier preferencia especial..."
@@ -570,7 +588,7 @@ function BookingForm() {
                 disabled={isSubmitting || isLoadingServices || services.length === 0 ||
                   isLoadingAvailability || Boolean(availabilityError)}
               >
-                {isSubmitting ? 'Agendando…' : 'Confirmar Cita'}
+                {isSubmitting ? 'Agendando…' : 'Confirmar cita'}
               </SubmitButton>
             </Form>
           </>

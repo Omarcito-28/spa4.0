@@ -31,12 +31,13 @@ export const control = css`
   &:focus {
     outline: none;
     border-color: ${theme.colors.primary};
-    background: #fff;
+    /* Solo el color: el atajo "background" borraría la flecha de los select. */
+    background-color: #fff;
     box-shadow: 0 0 0 4px rgba(201, 148, 42, 0.2);
   }
 
   &:disabled {
-    background: #f6f3ee;
+    background-color: #f6f3ee;
     cursor: wait;
   }
 
