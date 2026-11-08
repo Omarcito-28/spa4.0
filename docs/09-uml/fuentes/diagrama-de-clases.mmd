@@ -9,6 +9,8 @@ class BaseController {
 class AuthController { -AuthService auth
   +register(req,res)
   +login(req,res)
+  +getProviders(req,res)
+  +loginWithGoogle(req,res)
   +getProfile(req,res)
   +updateProfile(req,res)
   +requestPasswordReset(req,res)
@@ -71,6 +73,8 @@ BaseController <|-- ClientNoteController
 class AuthService { +RESET_TOKEN_TTL_MS$ int
   +register(data) Session
   +login(credentials) Session
+  +getProviders() object
+  +loginWithGoogle(data) Session
   +getProfile(user)
   +updateProfile(user, data) Session
   +requestPasswordReset(email)
@@ -150,6 +154,9 @@ class BookingLockService { +initialize()
 class EmailService { +isConfigured() bool
   +send(message)
   +sendBestEffort(message) }
+class GoogleIdentityService { -string clientId
+  +isConfigured() bool
+  +verify(credential) GoogleProfile }
 class TokenService { -string secret
   +sign(user) string
   +verify(token) object }
@@ -173,6 +180,7 @@ ClientNoteController --> ClientNoteService
 AuthService --> PasswordHasher
 AuthService --> TokenService
 AuthService --> EmailService
+AuthService --> GoogleIdentityService
 UserService --> PasswordHasher
 AppointmentService --> AvailabilityService
 AppointmentService --> BookingLockService

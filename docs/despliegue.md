@@ -112,6 +112,7 @@ Se configuran en **Environment** dentro del servicio. Todas están documentadas 
 | `NODE_VERSION` | Sí | `22`. Ya viene en el blueprint. |
 | `CORS_ORIGINS` | No | Otros orígenes permitidos, separados por comas (por ejemplo un dominio propio `https://www.tuspa.co`). |
 | `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_PASSWORD`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_NAME` | Solo si la base no tiene administrador | Crean el primer usuario ADMIN en el primer arranque. Después puedes borrarlas. |
+| `GOOGLE_CLIENT_ID` | No | El Client ID de OAuth de Google del paso 4. Vacío, el botón "Continuar con Google" no aparece. |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | No | Para la recuperación de contraseña y los correos de citas. Sin SMTP, la recuperación de contraseña responde que no está configurada y no se envían correos de citas; el resto funciona. |
 
 **No definas `PORT`.** Render asigna el puerto y el backend lo lee de `PORT`.
@@ -172,7 +173,40 @@ Vite lee estas variables **al compilar**. Si cambias una, ve a **Deployments →
 
 ---
 
-## 4. Comprobar que todo funciona
+## 4. Inicio de sesión con Google (opcional)
+
+Activa el botón **Continuar con Google** en el login y el registro. Sin este paso, el sitio funciona igual con usuario y contraseña.
+
+### 4.1 Crear el proyecto y la pantalla de consentimiento
+
+1. Entra a [Google Cloud Console](https://console.cloud.google.com) con la cuenta de Google del spa o del equipo y crea un proyecto (por ejemplo `essence-de-toi`).
+2. Abre **Google Auth Platform** (en el menú: *APIs y servicios → Pantalla de consentimiento de OAuth*) y pulsa **Comenzar**:
+   - **Información de la app:** nombre `Essence De Toi` y un correo de asistencia.
+   - **Público:** *Externo*.
+   - **Información de contacto:** el correo del equipo.
+3. Solo se usan los permisos básicos `openid`, `email` y `profile`. Al ser permisos no sensibles, Google no pide verificación de la app.
+4. En **Público**, pulsa **Publicar app**. Mientras esté *En prueba*, solo pueden entrar los *usuarios de prueba* que agregues ahí.
+
+### 4.2 Crear el Client ID
+
+1. En **Google Auth Platform → Clientes → Crear cliente**, elige el tipo **Aplicación web**.
+2. En **Orígenes autorizados de JavaScript** agrega, sin `/` al final:
+   - `http://localhost:5173` y `http://localhost`, para desarrollo;
+   - `https://<proyecto>.vercel.app`, para producción, y tu dominio propio si tienes uno.
+3. **URI de redireccionamiento autorizados:** déjalos vacíos. El botón usa una ventana emergente, no redirecciones.
+4. Pulsa **Crear** y copia el **ID de cliente** (termina en `.apps.googleusercontent.com`). El *secreto del cliente* no se usa: no lo copies a ningún lado.
+
+### 4.3 Configurarlo
+
+- **Render:** agrega `GOOGLE_CLIENT_ID` en **Environment** (paso 2.2).
+- **Desarrollo:** ponlo en `backend/.env` y reinicia el backend.
+- **Vercel no necesita nada:** el frontend pide el Client ID al backend (`GET /api/auth/providers`).
+
+Los cambios de orígenes en Google pueden tardar unos minutos en aplicarse.
+
+---
+
+## 5. Comprobar que todo funciona
 
 Haz esta lista después de cada despliegue importante:
 
@@ -182,11 +216,12 @@ Haz esta lista después de cada despliegue importante:
 4. **Rutas de React Router:** entra a `https://<proyecto>.vercel.app/login` directamente y recarga. Debe aparecer la página de inicio de sesión, no un 404 de Vercel.
 5. **Registro e inicio de sesión:** crea una cuenta de cliente, cierra sesión y vuelve a entrar.
 6. **Citas:** agenda una cita como cliente. En otra ventana, inicia sesión como administrador: en *Todas las citas* la cita debe aparecer en 30 segundos o menos, sin recargar.
-7. **Recuperación de contraseña** (solo con SMTP configurado): pide el enlace desde *¿Olvidaste tu contraseña?*. El correo debe traer un enlace a `https://<proyecto>.vercel.app/reset-password?token=…`.
+7. **Google** (solo con `GOOGLE_CLIENT_ID`): `https://<servicio>.onrender.com/api/auth/providers` muestra el Client ID, el login muestra *Continuar con Google* y, al entrar con una cuenta nueva, se abre *Mi perfil* con el mensaje de bienvenida.
+8. **Recuperación de contraseña** (solo con SMTP configurado): pide el enlace desde *¿Olvidaste tu contraseña?*. El correo debe traer un enlace a `https://<proyecto>.vercel.app/reset-password?token=…`.
 
 ---
 
-## 5. Problemas frecuentes
+## 6. Problemas frecuentes
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
@@ -199,10 +234,14 @@ Haz esta lista después de cada despliegue importante:
 | 404 de Vercel al recargar `/dashboard` | Vercel no está usando `frontend/vercel.json`. | Revisa que el *Root Directory* del proyecto sea `frontend`. |
 | La primera carga tarda mucho | El servicio gratuito de Render estaba dormido. | Espera alrededor de un minuto. Si molesta, usa un plan pago de Render. |
 | "La recuperación de contraseña no está configurada" | No hay SMTP. | Configura las variables `SMTP_*` (paso 2.2). |
+| No aparece el botón de Google | `GOOGLE_CLIENT_ID` vacío, o el backend no respondió a `/api/auth/providers`. | Revisa la variable en Render y abre `/api/auth/providers`: debe mostrar el Client ID. |
+| La ventana de Google dice `Error 400: origin_mismatch` o "The given origin is not allowed" | El dominio del sitio no está en los orígenes autorizados del cliente de OAuth. | Agrégalo en el paso 4.2 (exacto, con `https://` y sin `/` final) y espera unos minutos. Las vistas previas de Vercel tienen otro dominio. |
+| Google dice "Acceso bloqueado: esta app no completó el proceso de verificación" | La app está *En prueba*. | Publícala (paso 4.1) o agrega a la persona como usuario de prueba. |
+| "Este correo ya está vinculado a otra cuenta de Google" | El correo de la cuenta del spa ya se vinculó con otra cuenta de Google. | Entra con esa cuenta de Google, o con usuario y contraseña. |
 
 ---
 
-## 6. Actualizaciones posteriores
+## 7. Actualizaciones posteriores
 
 - Render y Vercel vuelven a desplegar solos con cada push a la rama conectada (`autoDeploy: true` en Render; Vercel lo hace por defecto).
 - El flujo de GitHub Actions (`.github/workflows/ci.yml`) corre lint, build y pruebas en cada push. Conviene esperar a que pase antes de fusionar a `main`.

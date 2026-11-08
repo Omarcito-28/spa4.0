@@ -11,7 +11,8 @@ erDiagram
   USER {
     ObjectId _id PK
     string username UK "minúsculas"
-    string password "hash bcrypt"
+    string password "hash bcrypt; vacío si entra solo con Google"
+    string googleId UK "sub de Google; opcional, único"
     string fullName
     string email UK
     string phoneNumber
