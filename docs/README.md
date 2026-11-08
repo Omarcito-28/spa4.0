@@ -16,15 +16,15 @@ Cada carpeta corresponde a un entregable de las condiciones del proyecto final (
 | # | Entregable | Dónde está | Estado |
 |---|------------|------------|--------|
 | 1 | Proceso de desarrollo (esquema gráfico, fases, actividades, tareas y roles) | [`01-proceso-de-desarrollo/`](01-proceso-de-desarrollo/) | Listo; faltan las fechas de los sprints |
-| 2 | Prototipo de la solución (Figma) | [`02-prototipo/`](02-prototipo/) | Listo (enlace de Figma y capturas del sitio) |
+| 2 | Prototipo de la solución (Figma) | [`02-prototipo/`](02-prototipo/) | Enlace de Figma listo; varias capturas son anteriores al rediseño |
 | 3 | Propuesta | [`03-propuesta/`](03-propuesta/) | Listo |
-| 4 | Documento de requerimientos | [`04-requerimientos/`](04-requerimientos/) | Listo (versión 1.2) |
-| 5 | Historias de usuario (Excel y tarjetas) | [`05-historias-de-usuario/`](05-historias-de-usuario/) | Listo (EDT-HU-001 a 031, EDT-HT-004) |
-| 6 | Pila del producto (Product Backlog) | [`06-pila-del-producto/`](06-pila-del-producto/) | Listo |
+| 4 | Documento de requerimientos | [`04-requerimientos/`](04-requerimientos/) | Por actualizar: Google, carrusel de la portada, paneles y exportes en Excel |
+| 5 | Historias de usuario (Excel y tarjetas) | [`05-historias-de-usuario/`](05-historias-de-usuario/) | Por actualizar: faltan historias de lo nuevo y "Exportar CSV" pasó a Excel |
+| 6 | Pila del producto (Product Backlog) | [`06-pila-del-producto/`](06-pila-del-producto/) | Por actualizar con las historias nuevas |
 | 7 | Lista de tareas de la iteración (Sprint Backlog) | [`07-lista-de-tareas/`](07-lista-de-tareas/) | Listo (sprints 4, 5 y 6); faltan dueños de tareas |
-| 8 | SAD (documento de arquitectura) | [`08-sad/`](08-sad/) | Listo |
-| 9 | UML: clases, secuencia, componentes y actividades (más despliegue) | [`09-uml/`](09-uml/) | Listo |
-| 10 | Lógica de los datos (MongoDB, base no relacional) | [`10-logica-de-datos/`](10-logica-de-datos/) | Listo |
+| 8 | SAD (documento de arquitectura) | [`08-sad/`](08-sad/) | Por actualizar: Google Identity, carrusel y ExcelJS |
+| 9 | UML: clases, secuencia, componentes y actividades (más despliegue) | [`09-uml/`](09-uml/) | Fuentes `.mmd` al día; faltan regenerar las imágenes |
+| 10 | Lógica de los datos (MongoDB, base no relacional) | [`10-logica-de-datos/`](10-logica-de-datos/) | Por actualizar: colección `heroslides` y `users.googleId` |
 | 11 | Uso de inteligencia artificial | [`11-uso-de-ia/`](11-uso-de-ia/) | Listo; falta el enlace a las evidencias |
 | — | Pruebas de software | [`pruebas.md`](pruebas.md) | Listo |
 | — | Despliegue en la nube | [`despliegue.md`](despliegue.md) | Guía lista; falta publicar |
@@ -37,6 +37,7 @@ Busca `[Pendiente` dentro de los documentos. Lo principal:
 - Fechas de inicio y fin de cada sprint y el dueño de cada tarea en la lista de tareas.
 - Capturas de pantalla en las tarjetas de historias de usuario.
 - Enlace compartido al documento de prompts para el apartado de IA.
+- Llevar a los documentos Word y Excel lo implementado después de la versión 1.2: inicio de sesión con Google, carrusel de la portada administrable, paneles de administrador y estilista, pestañas de "Mi cuenta", gráficas de ventas y exportes en Excel.
 
 ## Convenciones
 

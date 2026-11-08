@@ -5,6 +5,9 @@ Archivo de Figma: [Essence De Toi - Prototipo](https://www.figma.com/design/rX2r
 Las pantallas de abajo son capturas del sitio funcionando (frontend real en React, escritorio 1440 px),
 con datos de ejemplo. Están en la carpeta [`capturas/`](capturas/).
 
+> Varias capturas son anteriores al rediseño de los paneles, el registro y la cuenta del cliente, y aún no
+> incluyen el botón de Google ni la página "Carrusel del inicio" del administrador. Hay que retomarlas.
+
 ## Sitio público
 
 | Pantalla | Historia de usuario | Captura |
