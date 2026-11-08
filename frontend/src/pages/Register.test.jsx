@@ -4,6 +4,10 @@ import userEvent from '@testing-library/user-event';
 import Register from './Register';
 import { renderWithAuth } from '../test/render';
 
+vi.mock('../components/GoogleSignInButton', () => ({
+  default: ({ onCredential }) => <button type="button" onClick={() => onCredential('id-token')}>Registrarse con Google</button>,
+}));
+
 const renderRegister = (register = vi.fn().mockResolvedValue({ success: true })) => {
   const view = renderWithAuth(<Register />, { auth: { register }, route: '/register', path: '/register' });
   return { register, form: view.container.querySelector('form') };
@@ -109,5 +113,17 @@ describe('Register', () => {
     await user.click(screen.getByRole('button', { name: 'Crear Cuenta' }));
 
     expect(await screen.findByText('Error al registrar usuario. Por favor, intenta nuevamente.')).toBeInTheDocument();
+  });
+
+  it('con Google crea la cuenta sin llenar el formulario y lleva al perfil', async () => {
+    const loginWithGoogle = vi.fn().mockResolvedValue({ success: true, user: { role: 'CLIENT' }, isNewUser: true });
+    const register = vi.fn();
+    renderWithAuth(<Register />, { auth: { register, loginWithGoogle }, route: '/register', path: '/register' });
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Registrarse con Google' }));
+
+    expect(loginWithGoogle).toHaveBeenCalledWith('id-token');
+    expect(register).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByTestId('current-path')).toHaveTextContent('/profile'));
   });
 });

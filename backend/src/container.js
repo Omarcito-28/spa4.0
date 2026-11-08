@@ -1,6 +1,6 @@
 // Raíz de composición: único lugar donde se crean las instancias y se
 // inyectan sus dependencias. El resto del código solo recibe abstracciones.
-import { JWT_SECRET } from '../config.js';
+import { GOOGLE_CLIENT_ID, JWT_SECRET } from '../config.js';
 
 import User from './models/user.model.js';
 import Service from './models/service.model.js';
@@ -14,6 +14,7 @@ import ClientNote from './models/client-note.model.js';
 import EmailService from './services/email.service.js';
 import TokenService from './services/token.service.js';
 import PasswordHasher from './services/password-hasher.js';
+import GoogleIdentityService from './services/google-identity.service.js';
 import BookingLockService from './services/booking-lock.service.js';
 import AvailabilityService from './services/availability.service.js';
 import AppointmentService from './services/appointment.service.js';
@@ -44,6 +45,7 @@ import DatabaseSeeder from './database/database-seeder.js';
 const emailService = new EmailService(process.env);
 const tokenService = new TokenService(JWT_SECRET);
 const passwordHasher = new PasswordHasher();
+const googleIdentity = new GoogleIdentityService(GOOGLE_CLIENT_ID);
 const bookingLockService = new BookingLockService({ userModel: User, bookingLockModel: BookingLock });
 
 const clock = new BogotaClock();
@@ -67,7 +69,7 @@ const appointmentService = new AppointmentService({
   clock,
   cancellationNoticeHours: Number.isNaN(cancellationNoticeHours) ? 24 : Math.max(0, cancellationNoticeHours)
 });
-const authService = new AuthService({ userModel: User, passwordHasher, tokenService, emailService });
+const authService = new AuthService({ userModel: User, passwordHasher, tokenService, emailService, googleIdentity });
 const userService = new UserService({ userModel: User, appointmentModel: Appointment, passwordHasher, clock });
 const serviceCatalogService = new ServiceCatalogService({ serviceModel: Service, appointmentModel: Appointment, clock });
 const serviceImageService = new ServiceImageService({ serviceImageModel: ServiceImage });

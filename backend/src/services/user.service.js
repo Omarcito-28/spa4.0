@@ -18,7 +18,7 @@ export default class UserService {
   }
 
   listAll() {
-    return this.#users.find().select('-password');
+    return this.#users.find().select('-password -googleId');
   }
 
   // Alta desde el panel de administrador: a diferencia del registro público, permite elegir el rol.
@@ -54,7 +54,7 @@ export default class UserService {
       throw error;
     }
     // Misma forma que listAll: sin contraseña ni campos internos.
-    return this.#users.findById(created._id).select('-password');
+    return this.#users.findById(created._id).select('-password -googleId');
   }
 
   listStylists() {
@@ -151,7 +151,7 @@ export default class UserService {
         id,
         updates,
         { new: true, runValidators: true }
-      ).select('-password');
+      ).select('-password -googleId');
     } catch (error) {
       if (error?.code === 11000) throw new ConflictError('Ese correo ya está asociado a otra cuenta.', { cause: error });
       throw error;

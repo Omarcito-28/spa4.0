@@ -3,6 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
 import { useAuth } from '../contexts/auth';
+import GoogleSignInButton from '../components/GoogleSignInButton';
+import { pathAfterLogin } from '../utils/sessionRedirect';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -217,7 +219,25 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, sessionNotice } = useAuth();
+  const { login, loginWithGoogle, sessionNotice } = useAuth();
+
+  const goAfterLogin = (user, isNewUser = false) => {
+    setSuccess(isNewUser ? 'Tu cuenta se creó con Google' : 'Has iniciado sesión correctamente');
+    setTimeout(() => {
+      const to = pathAfterLogin(user, { returnTo: searchParams.get('returnTo'), isNewUser });
+      navigate(to, isNewUser && to === '/profile' ? { state: { welcome: 'google' } } : undefined);
+    }, 1000);
+  };
+
+  const handleGoogle = async credential => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+    const result = await loginWithGoogle(credential);
+    setLoading(false);
+    if (result.success) goAfterLogin(result.user, result.isNewUser);
+    else setError(result.error);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -227,24 +247,9 @@ function Login() {
 
     try {
       const result = await login(username, password);
-      
+
       if (result.success) {
-        setSuccess('Has iniciado sesión correctamente');
-        setTimeout(() => {
-          const returnTo = searchParams.get('returnTo');
-          if (returnTo?.startsWith('/appointments/new')) {
-            navigate(returnTo);
-            return;
-          }
-          // Redirigir según el rol
-          if (result.user.role === 'ADMIN') {
-            navigate('/admin');
-          } else if (result.user.role === 'STYLIST') {
-            navigate('/stylist');
-          } else {
-            navigate('/dashboard');
-          }
-        }, 1000);
+        goAfterLogin(result.user);
       } else {
         setError(result.error || 'Usuario o contraseña incorrectos');
       }
@@ -263,13 +268,13 @@ function Login() {
           <Title>Bienvenido de vuelta</Title>
           <TitleSub>Inicia sesión en tu cuenta</TitleSub>
         </LogoArea>
-        
+
         {sessionNotice && !error && !success && (
           <Alert $type="error" role="status"><i className="fas fa-clock" aria-hidden="true"></i>{sessionNotice} Vuelve a iniciar sesión para continuar.</Alert>
         )}
         {error && <Alert $type="error"><i className="fas fa-exclamation-circle"></i>{error}</Alert>}
         {success && <Alert $type="success"><i className="fas fa-check-circle"></i>{success}</Alert>}
-        
+
         <Form onSubmit={handleSubmit}>
           <FormGroup>
             <Label htmlFor="username">Usuario o correo electrónico</Label>
@@ -283,7 +288,7 @@ function Login() {
               autoFocus
             />
           </FormGroup>
-          
+
           <FormGroup>
             <Label htmlFor="password">Contraseña</Label>
             <Input
@@ -295,7 +300,7 @@ function Login() {
               required
             />
           </FormGroup>
-          
+
           <SubmitButton type="submit" disabled={loading}>
             {loading ? (
               <><i className="fas fa-spinner fa-spin" style={{ marginRight: 8 }}></i>Procesando...</>
@@ -306,7 +311,9 @@ function Login() {
         </Form>
 
         <Divider><span>o</span></Divider>
-        
+
+        <GoogleSignInButton onCredential={handleGoogle} text="continue_with" disabled={loading} />
+
         <RegisterLink>
           ¿No tienes cuenta? <StyledLink to="/register">Regístrate aquí</StyledLink>
         </RegisterLink>

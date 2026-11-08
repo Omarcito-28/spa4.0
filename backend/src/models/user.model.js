@@ -8,9 +8,19 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  // Opcional solo para quien entra con Google: puede crear una contraseña después
+  // desde su perfil o con "¿Olvidaste tu contraseña?".
   password: {
     type: String,
-    required: true
+    required() {
+      return !this.googleId;
+    }
+  },
+  // Identificador estable de la cuenta de Google (claim "sub"), no el correo.
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
   },
   fullName: {
     type: String,

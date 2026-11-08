@@ -67,8 +67,11 @@ describe('AuthService', () => {
         fullName: 'Ana Pérez',
         email: 'ana@correo.co',
         phoneNumber: '300 123 4567',
-        role: 'CLIENT'
+        role: 'CLIENT',
+        hasPassword: true,
+        googleLinked: false
       });
+      expect(JSON.stringify(result.user)).not.toContain('$2');
       expect(tokenService.verify(result.token)).toMatchObject({ username: 'ana', role: 'CLIENT' });
     });
 
@@ -173,7 +176,7 @@ describe('AuthService', () => {
 
   describe('perfil y recuperación', () => {
     it('getProfile responde 404 si el usuario ya no existe', async () => {
-      userModel.findOne.mockReturnValue({ select: vi.fn().mockResolvedValue(null) });
+      userModel.findOne.mockResolvedValue(null);
       await expect(service.getProfile({ username: 'ana' })).rejects.toBeInstanceOf(NotFoundError);
     });
 

@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event';
 import Login from './Login';
 import { renderWithAuth } from '../test/render';
 
+// El botón real depende del script de Google; aquí basta uno que entregue una credencial.
+vi.mock('../components/GoogleSignInButton', () => ({
+  default: ({ onCredential }) => <button type="button" onClick={() => onCredential('id-token')}>Continuar con Google</button>,
+}));
+
 const fillAndSubmit = async (username, password) => {
   const user = userEvent.setup();
   await user.type(screen.getByLabelText('Usuario o correo electrónico'), username);
@@ -88,5 +93,38 @@ describe('Login', () => {
 
     await waitFor(() => expect(screen.getByTestId('current-path'))
       .toHaveTextContent('/appointments/new?service=Corte'), { timeout: 2000 });
+  });
+
+  describe('con Google', () => {
+    const clickGoogle = () => userEvent.setup().click(screen.getByRole('button', { name: 'Continuar con Google' }));
+
+    it('inicia sesión con la credencial de Google y va al panel', async () => {
+      const loginWithGoogle = vi.fn().mockResolvedValue({ success: true, user: { role: 'CLIENT' }, isNewUser: false });
+      renderWithAuth(<Login />, { auth: { loginWithGoogle }, route: '/login', path: '/login' });
+
+      await clickGoogle();
+
+      expect(loginWithGoogle).toHaveBeenCalledWith('id-token');
+      await waitFor(() => expect(screen.getByTestId('current-path')).toHaveTextContent('/dashboard'), { timeout: 2000 });
+    });
+
+    it('una cuenta nueva va a completar el perfil', async () => {
+      const loginWithGoogle = vi.fn().mockResolvedValue({ success: true, user: { role: 'CLIENT' }, isNewUser: true });
+      renderWithAuth(<Login />, { auth: { loginWithGoogle }, route: '/login', path: '/login' });
+
+      await clickGoogle();
+
+      expect(await screen.findByText('Tu cuenta se creó con Google')).toBeInTheDocument();
+      await waitFor(() => expect(screen.getByTestId('current-path')).toHaveTextContent('/profile'), { timeout: 2000 });
+    });
+
+    it('muestra el error del backend', async () => {
+      const loginWithGoogle = vi.fn().mockResolvedValue({ success: false, error: 'La cuenta está desactivada.' });
+      renderWithAuth(<Login />, { auth: { loginWithGoogle }, route: '/login', path: '/login' });
+
+      await clickGoogle();
+
+      expect(await screen.findByText('La cuenta está desactivada.')).toBeInTheDocument();
+    });
   });
 });

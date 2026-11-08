@@ -7,6 +7,8 @@ process.env.MONGODB_URI = inject('mongoUri');
 process.env.JWT_SECRET = 'test-secret-que-tiene-mas-de-32-caracteres';
 process.env.PORT = '0';
 process.env.FRONTEND_URL = 'http://localhost:5173';
+// Sin Google en las pruebas: el Client ID real de backend/.env no debe usarse.
+process.env.GOOGLE_CLIENT_ID = '';
 for (const key of ['SMTP_HOST', 'SMTP_PORT', 'SMTP_SECURE', 'SMTP_USER', 'SMTP_PASSWORD', 'SMTP_FROM']) {
   process.env[key] = '';
 }

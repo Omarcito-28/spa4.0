@@ -60,6 +60,26 @@ describe('API (integración)', () => {
     expect(res.body).toEqual({ status: 'ok' });
   });
 
+  describe('Google', () => {
+    it('sin GOOGLE_CLIENT_ID no ofrece Google y el endpoint responde 503', async () => {
+      const providers = await request(app).get('/api/auth/providers');
+      expect(providers.status).toBe(200);
+      expect(providers.body).toEqual({ google: null });
+
+      const login = await request(app).post('/api/auth/google').send({ credential: 'cualquier-cosa' });
+      expect(login.status).toBe(503);
+    });
+
+    it('una cuenta solo con Google no exige contraseña en la base', async () => {
+      const user = await User.create({ username: 'google-only', fullName: 'G', email: 'g@spa.test', googleId: 'sub-integracion' });
+      expect(user.password).toBeUndefined();
+      await expect(User.create({ username: 'sin-clave', fullName: 'S', email: 's@spa.test' })).rejects.toThrow(/password/);
+      await expect(User.create({ username: 'otro', fullName: 'O', email: 'o@spa.test', googleId: 'sub-integracion' }))
+        .rejects.toMatchObject({ code: 11000 });
+      await User.deleteMany({ username: { $in: ['google-only', 'otro'] } });
+    });
+  });
+
   describe('POST /api/auth/register', () => {
     it('registra un cliente y devuelve token y usuario', async () => {
       const res = await request(app).post('/api/auth/register').send(newClient);
@@ -67,7 +87,8 @@ describe('API (integración)', () => {
       expect(res.status).toBe(201);
       expect(res.body.token).toEqual(expect.any(String));
       expect(res.body.user).toEqual({
-        username: 'carla', fullName: 'Carla Ruiz', email: 'carla@spa.test', phoneNumber: '', role: 'CLIENT'
+        username: 'carla', fullName: 'Carla Ruiz', email: 'carla@spa.test', phoneNumber: '', role: 'CLIENT',
+        hasPassword: true, googleLinked: false
       });
       const stored = await User.findOne({ username: 'carla' });
       expect(stored.password).not.toBe(newClient.password);

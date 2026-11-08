@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
 import { useAuth } from '../contexts/auth';
+import GoogleSignInButton from '../components/GoogleSignInButton';
+import { pathAfterLogin } from '../utils/sessionRedirect';
 
 const slideUp = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -231,7 +233,22 @@ function Register() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
+
+  // Con Google no hace falta llenar el formulario: la cuenta se crea con el nombre
+  // y el correo de Google, y si el correo ya tenía cuenta se vincula a ella.
+  const handleGoogle = async credential => {
+    setErrors({});
+    setLoading(true);
+    const result = await loginWithGoogle(credential);
+    setLoading(false);
+    if (!result.success) {
+      setErrors({ general: result.error });
+      return;
+    }
+    const to = pathAfterLogin(result.user, { isNewUser: result.isNewUser });
+    navigate(to, result.isNewUser && to === '/profile' ? { state: { welcome: 'google' } } : undefined);
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -283,7 +300,7 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -320,9 +337,16 @@ function Register() {
           <Title>Crear una Cuenta</Title>
           <TitleSub>Únete a Essence De Toi</TitleSub>
         </LogoArea>
-        
+
         {errors.general && <Alert><i className="fas fa-exclamation-circle"></i>{errors.general}</Alert>}
-        
+
+        <GoogleSignInButton
+          onCredential={handleGoogle}
+          text="signup_with"
+          disabled={loading}
+          hint="O completa el formulario para crear tu cuenta con usuario y contraseña."
+        />
+
         <Form onSubmit={handleSubmit}>
           <FormRow>
             <FormGroup>
@@ -425,7 +449,7 @@ function Register() {
         </Form>
 
         <Divider><span>o</span></Divider>
-        
+
         <LoginLink>
           ¿Ya tienes cuenta? <StyledLink to="/login">Inicia sesión aquí</StyledLink>
         </LoginLink>

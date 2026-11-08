@@ -78,6 +78,16 @@ export const apiRegister = (userData) =>
     body: JSON.stringify(userData),
   });
 
+// Métodos de inicio de sesión que ofrece el backend: { google: { clientId } | null }.
+export const apiGetAuthProviders = () => apiFetch('/auth/providers');
+
+// Envía el token de identidad que Google entregó al navegador; el backend lo verifica.
+export const apiGoogleLogin = credential =>
+  apiFetch('/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  });
+
 export const apiGetProfile = () => apiFetch('/auth/me');
 
 export const apiUpdateProfile = (data) =>

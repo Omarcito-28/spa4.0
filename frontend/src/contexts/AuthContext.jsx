@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiLogin, apiRegister, apiGetProfile, apiUpdateProfile, onSessionExpired, SESSION_INVALID } from '../services/api';
+import { apiGoogleLogin, apiLogin, apiRegister, apiGetProfile, apiUpdateProfile, onSessionExpired, SESSION_INVALID } from '../services/api';
 import { AuthContext } from './auth';
 
 const clearStoredSession = () => {
@@ -63,19 +63,34 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Guarda la sesión que devuelve la API (login, registro o Google).
+  const startSession = data => {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+    setIsAuthenticated(true);
+    setSessionNotice('');
+  };
+
   // Login contra la API real
   const login = async (username, password) => {
     try {
       const data = await apiLogin(username, password);
-      // Guardar token y usuario
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-      setIsAuthenticated(true);
-      setSessionNotice('');
+      startSession(data);
       return { success: true, user: data.user };
     } catch (error) {
       return { success: false, error: error.message || 'Credenciales inválidas' };
+    }
+  };
+
+  // Inicia sesión o crea la cuenta con el token de identidad que entregó Google.
+  const loginWithGoogle = async credential => {
+    try {
+      const data = await apiGoogleLogin(credential);
+      startSession(data);
+      return { success: true, user: data.user, isNewUser: Boolean(data.isNewUser) };
+    } catch (error) {
+      return { success: false, error: error.message || 'No se pudo iniciar sesión con Google.' };
     }
   };
 
@@ -84,11 +99,7 @@ export function AuthProvider({ children }) {
     try {
       const data = await apiRegister(userData);
       // Auto-login tras registro
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-      setIsAuthenticated(true);
-      setSessionNotice('');
+      startSession(data);
       return { success: true, user: data.user };
     } catch (error) {
       return { success: false, error: error.message || 'Error al registrar usuario' };
@@ -108,6 +119,8 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    // Que Google no vuelva a elegir la cuenta sola en el próximo inicio de sesión.
+    window.google?.accounts?.id?.disableAutoSelect?.();
     setUser(null);
     setIsAuthenticated(false);
     setSessionNotice('');
@@ -115,7 +128,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register, updateProfile, loading, sessionNotice }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, loginWithGoogle, logout, register, updateProfile, loading, sessionNotice }}>
       {children}
     </AuthContext.Provider>
   );

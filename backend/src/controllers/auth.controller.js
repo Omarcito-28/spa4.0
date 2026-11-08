@@ -20,6 +20,15 @@ export default class AuthController extends BaseController {
     res.json(await this.#auth.login(req.body));
   }
 
+  async getProviders(_req, res) {
+    res.json(this.#auth.getProviders());
+  }
+
+  async loginWithGoogle(req, res) {
+    const session = await this.#auth.loginWithGoogle(req.body);
+    res.status(session.isNewUser ? 201 : 200).json(session);
+  }
+
   async getProfile(req, res) {
     res.json(await this.#auth.getProfile(req.user));
   }

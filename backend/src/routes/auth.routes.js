@@ -5,6 +5,8 @@ const router = Router();
 
 router.post('/register', authControl.handle('register'));
 router.post('/login', loginRateLimiter.handle, authControl.handle('login'));
+router.get('/providers', authControl.handle('getProviders'));
+router.post('/google', loginRateLimiter.handle, authControl.handle('loginWithGoogle'));
 router.post('/password-reset/request', authControl.handle('requestPasswordReset'));
 router.post('/password-reset/confirm', authControl.handle('resetPassword'));
 router.get('/me', auth.authenticate, authControl.handle('getProfile'));
