@@ -15,6 +15,7 @@ import ClientAppointments from './pages/ClientAppointments';
 import Profile from './pages/Profile';
 import AdminUsers from './pages/AdminUsers';
 import AdminServices from './pages/AdminServices';
+import AdminHomeCarousel from './pages/AdminHomeCarousel';
 import AdminAppointments from './pages/AdminAppointments';
 import StylistAppointments from './pages/StylistAppointments';
 import StylistSchedule from './pages/StylistSchedule';
@@ -66,6 +67,7 @@ function App() {
         <Route path="appointments" element={<AdminAppointments />} />
         <Route path="agenda" element={<AdminAgenda />} />
         <Route path="services" element={<AdminServices />} />
+        <Route path="home-carousel" element={<AdminHomeCarousel />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="profile" element={<Profile />} />

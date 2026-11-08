@@ -7,6 +7,7 @@ erDiagram
   USER ||--o{ CLIENT_NOTE : "es descrito (client)"
   USER ||--o{ CLIENT_NOTE : "escribe (author)"
   SERVICE_IMAGE ||--o{ SERVICE : "ilustra (image = URL)"
+  SERVICE_IMAGE ||--o{ HERO_SLIDE : "fondo de la portada (image = URL)"
   USER ||--o| BOOKING_LOCK : "serializa reservas (_id = username)"
   USER {
     ObjectId _id PK
@@ -22,6 +23,13 @@ erDiagram
     int tokenVersion
     string passwordResetTokenHash
     date passwordResetExpiresAt
+  }
+  HERO_SLIDE {
+    ObjectId _id PK
+    string image "/images/... o /api/service-images/:id"
+    string alt "descripción para lectores de pantalla"
+    int position
+    bool isActive
   }
   SERVICE {
     ObjectId _id PK

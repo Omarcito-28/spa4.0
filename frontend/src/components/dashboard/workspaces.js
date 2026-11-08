@@ -28,6 +28,7 @@ export const WORKSPACES = {
         title: 'Gestión',
         links: [
           { to: '/admin/services', label: 'Catálogo de servicios', icon: 'fa-spa' },
+          { to: '/admin/home-carousel', label: 'Carrusel del inicio', icon: 'fa-images' },
           { to: '/admin/users', label: 'Usuarios', icon: 'fa-users' },
         ],
       },

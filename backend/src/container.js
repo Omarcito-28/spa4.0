@@ -10,6 +10,7 @@ import BookingLock from './models/booking-lock.model.js';
 import TimeOff from './models/time-off.model.js';
 import Review from './models/review.model.js';
 import ClientNote from './models/client-note.model.js';
+import HeroSlide from './models/hero-slide.model.js';
 
 import EmailService from './services/email.service.js';
 import TokenService from './services/token.service.js';
@@ -26,6 +27,7 @@ import TimeOffService from './services/time-off.service.js';
 import ReminderService from './services/reminder.service.js';
 import ReviewService from './services/review.service.js';
 import ClientNoteService from './services/client-note.service.js';
+import HeroSlideService from './services/hero-slide.service.js';
 import BogotaClock from './utils/bogota-clock.js';
 
 import AuthController from './controllers/auth.controller.js';
@@ -36,6 +38,7 @@ import AppointmentController from './controllers/appointment.controller.js';
 import TimeOffController from './controllers/time-off.controller.js';
 import ReviewController from './controllers/review.controller.js';
 import ClientNoteController from './controllers/client-note.controller.js';
+import HeroSlideController from './controllers/hero-slide.controller.js';
 
 import AuthMiddleware from './middlewares/auth.middleware.js';
 import ErrorMiddleware from './middlewares/error.middleware.js';
@@ -74,6 +77,7 @@ const userService = new UserService({ userModel: User, appointmentModel: Appoint
 const serviceCatalogService = new ServiceCatalogService({ serviceModel: Service, appointmentModel: Appointment, clock });
 const serviceImageService = new ServiceImageService({ serviceImageModel: ServiceImage });
 const reviewService = new ReviewService({ reviewModel: Review, appointmentModel: Appointment, userModel: User });
+const heroSlideService = new HeroSlideService({ heroSlideModel: HeroSlide });
 const clientNoteService = new ClientNoteService({ clientNoteModel: ClientNote, userModel: User, appointmentModel: Appointment });
 
 export const reminderService = new ReminderService({ appointmentModel: Appointment, userModel: User, emailService, clock });
@@ -90,6 +94,7 @@ export const appointmentController = new AppointmentController(appointmentServic
 export const timeOffController = new TimeOffController(timeOffService);
 export const reviewController = new ReviewController(reviewService);
 export const clientNoteController = new ClientNoteController(clientNoteService);
+export const heroSlideController = new HeroSlideController(heroSlideService);
 
 export const databaseSeeder = new DatabaseSeeder({
   userModel: User,

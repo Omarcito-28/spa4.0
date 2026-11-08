@@ -9,6 +9,7 @@ import usersRoutes from './routes/users.routes.js';
 import timeOffRoutes from './routes/time-off.routes.js';
 import reviewsRoutes from './routes/reviews.routes.js';
 import clientNotesRoutes from './routes/client-notes.routes.js';
+import heroSlidesRoutes from './routes/hero-slides.routes.js';
 
 import { errorMiddleware } from './container.js';
 import CorsPolicy from './middlewares/cors.policy.js';
@@ -34,6 +35,7 @@ export const createApp = ({ corsPolicy = CorsPolicy.fromEnv() } = {}) => {
   app.use('/api/time-off', timeOffRoutes);
   app.use('/api/reviews', reviewsRoutes);
   app.use('/api/client-notes', clientNotesRoutes);
+  app.use('/api/hero-slides', heroSlidesRoutes);
 
   // Debe registrarse después de las rutas para recibir sus errores.
   app.use(errorMiddleware.handle);

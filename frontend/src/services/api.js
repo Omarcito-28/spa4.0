@@ -156,6 +156,24 @@ export const apiUploadServiceImage = async (file) => {
   return readResponse(res, 'No se pudo subir la imagen.');
 };
 
+// ─── CARRUSEL DE LA PORTADA ──────────────────────────────────────────────────
+
+// Diapositivas visibles, en orden. Vacía: la portada usa sus imágenes predeterminadas.
+export const apiGetHeroSlides = () => apiFetch('/hero-slides');
+
+export const apiGetAllHeroSlides = () => apiFetch('/hero-slides/all');
+
+export const apiCreateHeroSlide = slide =>
+  apiFetch('/hero-slides', { method: 'POST', body: JSON.stringify(slide) });
+
+export const apiUpdateHeroSlide = (id, changes) =>
+  apiFetch(`/hero-slides/${id}`, { method: 'PUT', body: JSON.stringify(changes) });
+
+export const apiReorderHeroSlides = ids =>
+  apiFetch('/hero-slides/order', { method: 'PUT', body: JSON.stringify({ ids }) });
+
+export const apiDeleteHeroSlide = id => apiFetch(`/hero-slides/${id}`, { method: 'DELETE' });
+
 // ─── APPOINTMENTS ────────────────────────────────────────────────────────────
 
 // Tras un cambio exitoso avisa a las demás pestañas para que refresquen sus paneles.

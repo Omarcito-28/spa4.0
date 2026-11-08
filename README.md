@@ -12,7 +12,7 @@ Los entregables del curso (propuesta, requerimientos, historias de usuario, SAD,
 |-----|-----------------|
 | **Cliente** (`CLIENT`) | Registrarse e iniciar sesión con usuario y contraseña o con su cuenta de Google, recuperar su contraseña por correo, consultar el catálogo de servicios y la disponibilidad, agendar citas, reprogramarlas o cancelarlas con la anticipación mínima de la política de cancelación, agregarlas a su calendario (`.ics`), calificar las citas completadas, ver su historial y editar su perfil. Todo eso está en *Mi cuenta*: pestañas Mi Panel, Mis Citas, Agendar Cita y Mi Perfil. Al reservar ve la imagen, descripción, duración y precio del servicio elegido. Recibe un recordatorio por correo el día anterior a cada cita. |
 | **Estilista** (`STYLIST`) | Trabajar desde su propio panel (`/stylist`, con menú lateral): ver las citas del día, su agenda en lista o calendario semanal y su historial, confirmar y cancelar las citas que tiene asignadas, marcar como completadas o como inasistencia las citas que ya empezaron, escribir notas internas sobre sus clientes, configurar su horario semanal y bloquear sus días libres o vacaciones. |
-| **Administrador** (`ADMIN`) | Trabajar desde su propio panel (`/admin`, con menú lateral, indicadores en vivo y gráficas de ventas de 7, 14 o 30 días). Todo lo anterior sobre cualquier cita (incluido moverla de fecha y hora o eliminarla, y verlas en un calendario por estilista), además de crear y editar cuentas con el rol que elija, gestionar usuarios y roles, administrar el catálogo de servicios, cerrar el spa en festivos, enviar recordatorios a mano, moderar reseñas y consultar reportes de citas, ingresos, inasistencias y calificaciones, exportables a Excel (`.xlsx`) con formato de la marca, totales y una hoja por sección. |
+| **Administrador** (`ADMIN`) | Trabajar desde su propio panel (`/admin`, con menú lateral, indicadores en vivo y gráficas de ventas de 7, 14 o 30 días). Todo lo anterior sobre cualquier cita (incluido moverla de fecha y hora o eliminarla, y verlas en un calendario por estilista), además de crear y editar cuentas con el rol que elija, gestionar usuarios y roles, administrar el catálogo de servicios, elegir las imágenes del carrusel de la portada (orden, descripción, visibles u ocultas), cerrar el spa en festivos, enviar recordatorios a mano, moderar reseñas y consultar reportes de citas, ingresos, inasistencias y calificaciones, exportables a Excel (`.xlsx`) con formato de la marca, totales y una hoja por sección. |
 
 Cualquier rol puede entrar con Google si su cuenta usa el mismo correo; las cuentas nuevas creadas con Google son siempre de cliente. Ver [Inicio de sesión con Google](#inicio-de-sesión-con-google).
 
@@ -34,7 +34,7 @@ Navegador ──► Frontend React (Vercel) ──HTTP/JSON──► API REST Ex
   - `routes/` define los endpoints y aplica el `AuthMiddleware` (token y rol).
   - `controllers/` traduce peticiones HTTP a llamadas de servicio.
   - `services/` contiene las reglas de negocio: citas, disponibilidad, días libres y cierres, recordatorios, reseñas, notas de clientes, autenticación (con contraseña y con Google), usuarios, catálogo, imágenes y correo.
-  - `models/` son los esquemas de Mongoose: `User`, `Service`, `ServiceImage`, `Appointment`, `BookingLock`, `TimeOff`, `Review` y `ClientNote`.
+  - `models/` son los esquemas de Mongoose: `User`, `Service`, `ServiceImage`, `HeroSlide`, `Appointment`, `BookingLock`, `TimeOff`, `Review` y `ClientNote`.
   - `errors/` define la jerarquía `AppError` que el `ErrorMiddleware` convierte en respuestas JSON con su código HTTP.
   - `container.js` crea e inyecta todas las dependencias, y `database/database-seeder.js` siembra el catálogo inicial y el administrador.
   - Las reservas usan transacciones de MongoDB y bloqueos por estilista y fecha para evitar citas superpuestas.
@@ -55,6 +55,8 @@ Todos bajo `/api`. "Auth" requiere el encabezado `Authorization: Bearer <token>`
 | `GET /services/all` · `POST /services` · `PUT /services/:id` · `DELETE /services/:id` | Admin | Gestión del catálogo, incluidos los servicios ocultos (`isActive: false`). No se puede borrar un servicio con citas próximas |
 | `GET /service-images/:id` | Público | Imagen de un servicio guardada en la base |
 | `GET /service-images` · `POST /service-images` | Admin | Listar y subir imágenes de servicios (JPEG, PNG o WebP) |
+| `GET /hero-slides` | Público | Imágenes visibles del carrusel de la portada, en orden. Vacía: el sitio usa sus imágenes predeterminadas |
+| `GET /hero-slides/all` · `POST /hero-slides` · `PUT /hero-slides/:id` · `PUT /hero-slides/order` · `DELETE /hero-slides/:id` | Admin | Gestión del carrusel (hasta 10 imágenes, solo del sitio: incluidas o subidas al panel) |
 | `GET /appointments/availability` | Público | Horarios disponibles (con `closedReason` si el día está bloqueado) |
 | `GET /appointments/policy` | Público | Horas mínimas para cancelar o reprogramar |
 | `POST /appointments/reminders` | Admin | Envía ya los recordatorios de las citas de mañana |

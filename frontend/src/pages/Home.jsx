@@ -4,12 +4,8 @@ import styled, { keyframes } from 'styled-components';
 import { theme } from '../styles/theme';
 import ServicesCarousel from '../components/ServicesCarousel';
 import Testimonials from '../components/Testimonials';
-
-const heroImages = [
-  '/images/services/corte_dama.jpg',
-  '/images/services/tintura.webp',
-  '/images/services/tratamiento_capilar.webp',
-];
+import { apiGetHeroSlides, resolveImageUrl } from '../services/api';
+import { DEFAULT_HERO_SLIDES } from '../utils/heroSlides';
 
 /* ─── ANIMATIONS ─── */
 const slideUp = keyframes`
@@ -24,6 +20,7 @@ const HeroSection = styled.div`
   padding: 7rem 1.5rem;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(160deg, ${theme.colors.sidebarBg}, ${theme.colors.sidebarBgEnd});
   color: white;
   display: flex;
   align-items: center;
@@ -38,7 +35,7 @@ const HeroSection = styled.div`
 const HeroBg = styled.div`
   position: absolute;
   inset: 0;
-  background-image: url(${props => props.$src});
+  background-image: url("${props => props.$src}");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -693,33 +690,66 @@ const ContactCardText = styled.div`
 
 /* ─── COMPONENT ─── */
 function Home({ isAuthenticated }) {
+  // Imágenes que eligió el administrador. Mientras cargan, el fondo queda oscuro (sin
+  // mostrar otras imágenes que luego cambien); si no hay, la API falla o tarda, se
+  // usan las predeterminadas.
+  const [loadedSlides, setLoadedSlides] = useState(null);
   const [currentBg, setCurrentBg] = useState(0);
+  const heroSlides = loadedSlides ?? [];
+  const slideCount = heroSlides.length;
+  const activeBg = slideCount ? currentBg % slideCount : 0;
   const phone = import.meta.env.VITE_CONTACT_PHONE?.trim();
   const email = import.meta.env.VITE_CONTACT_EMAIL?.trim();
   const address = import.meta.env.VITE_CONTACT_ADDRESS?.trim();
 
   useEffect(() => {
-    // First transition happens quickly, then regular interval
+    let active = true;
+    const showDefaults = () => setLoadedSlides(current => current ?? DEFAULT_HERO_SLIDES);
+    // En Render gratuito la API puede tardar en despertar: no se deja la portada vacía.
+    const fallback = setTimeout(showDefaults, 2500);
+    apiGetHeroSlides()
+      .then(slides => {
+        if (!active) return;
+        setLoadedSlides(Array.isArray(slides) && slides.length ? slides : DEFAULT_HERO_SLIDES);
+        setCurrentBg(0);
+      })
+      .catch(() => { if (active) showDefaults(); });
+    return () => {
+      active = false;
+      clearTimeout(fallback);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (slideCount < 2) return undefined;
+    // La primera transición llega pronto; después, cada 6 segundos.
     const initialTimeout = setTimeout(() => {
-      setCurrentBg(prev => (prev + 1) % heroImages.length);
+      setCurrentBg(prev => (prev + 1) % slideCount);
     }, 2000);
 
     const timer = setInterval(() => {
-      setCurrentBg(prev => (prev + 1) % heroImages.length);
+      setCurrentBg(prev => (prev + 1) % slideCount);
     }, 6000);
 
     return () => {
       clearTimeout(initialTimeout);
       clearInterval(timer);
     };
-  }, []);
+  }, [slideCount]);
 
   return (
     <>
       {/* ── HERO ── */}
       <HeroSection>
-        {heroImages.map((img, index) => (
-          <HeroBg key={index} $src={img} $active={index === currentBg} />
+        {heroSlides.map((slide, index) => (
+          <HeroBg
+            key={slide._id || slide.image}
+            $src={resolveImageUrl(slide.image)}
+            $active={index === activeBg}
+            role="img"
+            aria-label={slide.alt || undefined}
+            aria-hidden={index === activeBg && slide.alt ? undefined : true}
+          />
         ))}
         <HeroContent>
 
@@ -743,16 +773,19 @@ function Home({ isAuthenticated }) {
               </PrimaryButton>
             </ButtonGroup>
           )}
-          <HeroIndicators>
-            {heroImages.map((_, index) => (
-              <HeroIndicator
-                key={index}
-                $active={index === currentBg}
-                onClick={() => setCurrentBg(index)}
-                aria-label={`Imagen ${index + 1}`}
-              />
-            ))}
-          </HeroIndicators>
+          {slideCount > 1 && (
+            <HeroIndicators>
+              {heroSlides.map((slide, index) => (
+                <HeroIndicator
+                  key={slide._id || slide.image}
+                  $active={index === activeBg}
+                  onClick={() => setCurrentBg(index)}
+                  aria-label={`Imagen ${index + 1}${slide.alt ? `: ${slide.alt}` : ''}`}
+                  aria-current={index === activeBg}
+                />
+              ))}
+            </HeroIndicators>
+          )}
         </HeroContent>
       </HeroSection>
 
