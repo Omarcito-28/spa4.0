@@ -11,7 +11,8 @@ import RescheduleForm from '../components/RescheduleForm';
 import { Button, Description, EmptyCell, Notice, Page, ResultCount, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 import StatusBadge from '../components/StatusBadge';
 import { STATUS_OPTIONS, statusLabel } from '../utils/appointmentStatus';
-import { downloadCsv } from '../utils/download';
+import { downloadExcel } from '../utils/excel';
+import { toAmount } from '../utils/revenue';
 
 const loadAgenda = async () => {
   const [appointments, stylists, users] = await Promise.all([apiGetAppointments(), apiGetStylists(), apiGetUsers()]);
@@ -61,6 +62,7 @@ function AdminAppointments() {
   const [view, setView] = useState('table');
   // Fila abierta debajo de una cita: { id, panel: 'move' | 'notes' }.
   const [expanded, setExpanded] = useState(null);
+  const [exporting, setExporting] = useState(false);
   const pageSize = 10;
 
   const userOf = username => users.find(item => item.username === username);
@@ -120,18 +122,42 @@ function AdminAppointments() {
     setView('table');
   };
 
-  const exportCsv = () => downloadCsv('citas.csv', [
-    { label: 'Fecha', value: item => item.date },
-    { label: 'Hora', value: item => item.time },
-    { label: 'Cliente', value: item => nameOf(item.username) },
-    { label: 'Usuario', value: item => item.username },
-    { label: 'Teléfono', value: item => userOf(item.username)?.phoneNumber || '' },
-    { label: 'Servicio', value: item => item.service },
-    { label: 'Estilista', value: item => (item.stylist ? nameOf(item.stylist) : 'Por asignar') },
-    { label: 'Estado', value: item => statusLabel(item.status) },
-    { label: 'Precio', value: item => item.price || '' },
-    { label: 'Notas', value: item => item.notes || '' },
-  ], filteredAppointments);
+  const exportExcel = async () => {
+    const filtersApplied = [
+      filters.search && `Búsqueda: "${filters.search}"`,
+      filters.status && `Estado: ${statusLabel(filters.status)}`,
+      filters.service && `Servicio: ${filters.service}`,
+      (filters.from || filters.to) && `Período: ${filters.from || 'inicio'} a ${filters.to || 'hoy'}`,
+    ].filter(Boolean).join('  ·  ');
+    setExporting(true);
+    try {
+      await downloadExcel(`citas-${new Date().toISOString().slice(0, 10)}.xlsx`, {
+        title: 'Listado de citas',
+        subtitle: filtersApplied || 'Todas las citas',
+        sheets: [{
+          name: 'Citas',
+          totals: { label: 'Citas' },
+          rows: [...filteredAppointments].sort((a, b) => a.date.localeCompare(b.date)),
+          columns: [
+            { label: 'Fecha', type: 'date', value: item => item.date },
+            { label: 'Hora', type: 'time', value: item => item.time },
+            { label: 'Cliente', bold: true, value: item => nameOf(item.username) },
+            { label: 'Usuario', value: item => item.username },
+            { label: 'Teléfono', value: item => userOf(item.username)?.phoneNumber || '' },
+            { label: 'Servicio', value: item => item.service },
+            { label: 'Estilista', value: item => (item.stylist ? nameOf(item.stylist) : 'Por asignar') },
+            { label: 'Estado', type: 'status', value: item => item.status },
+            { label: 'Precio', type: 'currency', total: true, value: item => toAmount(item.price) || '' },
+            { label: 'Notas', wrap: true, value: item => item.notes || '' },
+          ],
+        }],
+      });
+    } catch (exportError) {
+      setActionError(`No se pudo generar el Excel: ${exportError.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <Page $wide>
@@ -162,8 +188,8 @@ function AdminAppointments() {
           <label>Desde <input name="from" type="date" value={filters.from} onChange={changeFilter} /></label>
           <label>Hasta <input name="to" type="date" value={filters.to} onChange={changeFilter} /></label>
           <Button type="button" $secondary onClick={() => { setFilters(EMPTY_FILTERS); setPage(1); }}>Limpiar filtros</Button>
-          <Button type="button" onClick={exportCsv} disabled={!filteredAppointments.length}>
-            <i className="fas fa-file-excel" aria-hidden="true"></i> Exportar CSV
+          <Button type="button" onClick={exportExcel} disabled={!filteredAppointments.length || exporting} aria-busy={exporting || undefined}>
+            <i className="fas fa-file-excel" aria-hidden="true"></i> {exporting ? 'Generando…' : 'Exportar a Excel'}
           </Button>
         </Toolbar>
         <ResultCount>{filteredAppointments.length} citas encontradas</ResultCount>

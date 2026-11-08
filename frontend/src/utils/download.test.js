@@ -1,21 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appointmentInterval, toCsv, toIcs } from './download';
-
-describe('toCsv', () => {
-  const columns = [
-    { label: 'Cliente', value: row => row.name },
-    { label: 'Notas', value: row => row.notes },
-  ];
-
-  it('usa ";" con BOM, escapa comillas y saltos de línea', () => {
-    const csv = toCsv(columns, [{ name: 'Ana Pérez', notes: 'Dijo "hola"; luego\nse fue' }]);
-    expect(csv).toBe('﻿Cliente;Notas\r\nAna Pérez;"Dijo ""hola""; luego\nse fue"');
-  });
-
-  it('neutraliza celdas que Excel ejecutaría como fórmula', () => {
-    expect(toCsv(columns, [{ name: '=HYPERLINK("x")', notes: null }])).toBe('﻿Cliente;Notas\r\n"\'=HYPERLINK(""x"")";');
-  });
-});
+import { appointmentInterval, toIcs } from './download';
 
 describe('calendario', () => {
   const appointment = { _id: 'a1', service: 'Corte, lavado', stylist: 'sofi', date: '2030-01-07', time: '2:30 PM', duration: 90 };

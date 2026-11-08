@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { apiDeleteReview, apiGetAllReviews, apiGetAppointments, apiGetAllServices, apiGetReviewSummary, apiGetUsers } from '../services/api';
 import StarRating from '../components/StarRating';
-import { downloadCsv } from '../utils/download';
+import { downloadExcel } from '../utils/excel';
 import { currency, priceOf, revenueOf, toAmount } from '../utils/revenue';
 import { Button, Description, EmptyCell, Grid, Notice, Page, SectionTitle, StatCard, Table, TableWrap, Title, Toolbar } from '../components/ManagementUI';
 import { APPOINTMENT_STATUSES, STATUS_OPTIONS, statusLabel } from '../utils/appointmentStatus';
@@ -16,6 +16,7 @@ function AdminReports() {
   const [ratings, setRatings] = useState({ stylists: [] });
   const [reviews, setReviews] = useState([]);
   const [reviewError, setReviewError] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const loadReviews = () => Promise.all([apiGetReviewSummary(), apiGetAllReviews()])
     .then(([summary, all]) => { setRatings(summary); setReviews(all); setReviewError(''); })
@@ -86,19 +87,93 @@ function AdminReports() {
   const userOf = username => stats?.users.find(item => item.username === username);
   const nameOf = username => userOf(username)?.fullName || username;
 
-  const exportCsv = () => downloadCsv(`citas-${filters.from || 'inicio'}-a-${filters.to || 'hoy'}.csv`, [
-    { label: 'Fecha', value: item => item.date },
-    { label: 'Hora', value: item => item.time },
-    { label: 'Cliente', value: item => nameOf(item.username) },
-    { label: 'Usuario', value: item => item.username },
-    { label: 'Servicio', value: item => item.service },
-    { label: 'Estilista', value: item => (item.stylist ? nameOf(item.stylist) : 'Por asignar') },
-    { label: 'Estado', value: item => statusLabel(item.status) },
-    { label: 'Duración (min)', value: item => item.duration || 60 },
-    { label: 'Precio', value: item => toAmount(priceFor(item)) || '' },
-    { label: 'Notas', value: item => item.notes || '' },
-  ], [...filteredAppointments].sort((a, b) => a.date.localeCompare(b.date)));
   const attendedOrMissed = completed.length + noShows.length;
+  const countOf = status => filteredAppointments.filter(item => item.status === status).length;
+
+  // Libro con un resumen, el detalle de citas, el desglose por servicio y las inasistencias.
+  const exportExcel = async () => {
+    const subtitle = [
+      `Período: ${filters.from || 'inicio'} a ${filters.to || 'hoy'}`,
+      filters.status && `Estado: ${statusLabel(filters.status)}`,
+      filters.service && `Servicio: ${filters.service}`,
+    ].filter(Boolean).join('  ·  ');
+    const summary = [
+      { label: 'Citas en el período', value: filteredAppointments.length, type: 'number' },
+      { label: 'Pendientes', value: countOf('PENDING'), type: 'number' },
+      { label: 'Confirmadas', value: confirmed.length, type: 'number' },
+      { label: 'Completadas', value: completed.length, type: 'number' },
+      { label: 'Canceladas', value: countOf('CANCELLED'), type: 'number' },
+      { label: 'Inasistencias', value: noShows.length, type: 'number' },
+      { label: 'Tasa de inasistencia', value: attendedOrMissed ? noShows.length / attendedOrMissed : '', type: 'percent' },
+      { label: 'Ingresos de citas completadas', value: completedRevenue, type: 'currency' },
+      { label: 'Valor estimado confirmado', value: estimatedRevenue, type: 'currency' },
+      { label: 'Ticket promedio (completadas)', value: completed.length ? Math.round(completedRevenue / completed.length) : '', type: 'currency' },
+    ];
+    setExporting(true);
+    try {
+      await downloadExcel(`reporte-citas-${filters.from || 'inicio'}-a-${filters.to || 'hoy'}.xlsx`, {
+        title: 'Resumen del negocio',
+        subtitle,
+        sheets: [
+          {
+            name: 'Resumen',
+            rows: summary,
+            columns: [
+              { label: 'Indicador', bold: true, value: row => row.label },
+              { label: 'Valor', type: row => row.type, value: row => row.value, width: 22 },
+            ],
+          },
+          {
+            name: 'Citas',
+            title: 'Detalle de citas',
+            totals: { label: 'Citas' },
+            rows: [...filteredAppointments].sort((a, b) => a.date.localeCompare(b.date)),
+            columns: [
+              { label: 'Fecha', type: 'date', value: item => item.date },
+              { label: 'Hora', type: 'time', value: item => item.time },
+              { label: 'Cliente', bold: true, value: item => nameOf(item.username) },
+              { label: 'Usuario', value: item => item.username },
+              { label: 'Servicio', value: item => item.service },
+              { label: 'Estilista', value: item => (item.stylist ? nameOf(item.stylist) : 'Por asignar') },
+              { label: 'Estado', type: 'status', value: item => item.status },
+              { label: 'Duración (min)', type: 'number', total: true, value: item => item.duration || 60 },
+              { label: 'Precio', type: 'currency', total: true, value: item => toAmount(priceFor(item)) || '' },
+              { label: 'Notas', wrap: true, value: item => item.notes || '' },
+            ],
+          },
+          {
+            name: 'Por servicio',
+            title: 'Citas por servicio',
+            totals: { label: 'Servicios' },
+            rows: byService,
+            columns: [
+              { label: 'Servicio', bold: true, value: group => group.service },
+              { label: 'Citas', type: 'number', total: true, value: group => group.total },
+              { label: 'Completadas', type: 'number', total: true, value: group => group.completed.length },
+              { label: 'Ingresos completados', type: 'currency', total: true, value: group => revenueOf(group.completed, catalog) },
+            ],
+          },
+          {
+            name: 'Inasistencias',
+            title: 'Clientes con inasistencias',
+            rows: frequentNoShows,
+            columns: [
+              { label: 'Cliente', bold: true, value: group => nameOf(group.username) },
+              { label: 'Usuario', value: group => group.username },
+              { label: 'Correo', value: group => userOf(group.username)?.email || '' },
+              { label: 'Teléfono', value: group => userOf(group.username)?.phoneNumber || '' },
+              { label: 'Inasistencias', type: 'number', value: group => group.count },
+              { label: 'Última', type: 'date', value: group => group.last },
+            ],
+          },
+        ],
+      });
+    } catch (exportError) {
+      setError(`No se pudo generar el Excel: ${exportError.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <Page $wide>
@@ -121,8 +196,8 @@ function AdminReports() {
               </select>
             </label>
             <Button type="button" $secondary onClick={() => setFilters(EMPTY_FILTERS)}>Limpiar filtros</Button>
-            <Button type="button" onClick={exportCsv} disabled={!filteredAppointments.length}>
-              <i className="fas fa-file-excel" aria-hidden="true"></i> Exportar a Excel (CSV)
+            <Button type="button" onClick={exportExcel} disabled={!filteredAppointments.length || exporting} aria-busy={exporting || undefined}>
+              <i className="fas fa-file-excel" aria-hidden="true"></i> {exporting ? 'Generando…' : 'Exportar a Excel'}
             </Button>
           </Toolbar>
 

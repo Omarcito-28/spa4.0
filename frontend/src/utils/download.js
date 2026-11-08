@@ -12,24 +12,6 @@ export const downloadFile = (filename, content, type) => {
   URL.revokeObjectURL(url);
 };
 
-// ─── CSV ─────────────────────────────────────────────────────────────────────
-
-const csvCell = value => {
-  const text = value === null || value === undefined ? '' : String(value);
-  // Evita que Excel interprete una celda como fórmula (inyección de CSV).
-  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
-  return /[";\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
-};
-
-// Separado por ";" y con BOM, que es lo que Excel en español abre directamente con tildes.
-export const toCsv = (columns, rows) => '\uFEFF' + [
-  columns.map(column => csvCell(column.label)).join(';'),
-  ...rows.map(row => columns.map(column => csvCell(column.value(row))).join(';')),
-].join('\r\n');
-
-export const downloadCsv = (filename, columns, rows) =>
-  downloadFile(filename, toCsv(columns, rows), 'text/csv;charset=utf-8');
-
 // ─── CALENDARIO (.ics) ───────────────────────────────────────────────────────
 
 const BOGOTA_UTC_OFFSET_MINUTES = 5 * 60; // Colombia no usa horario de verano: UTC-5 todo el año.
