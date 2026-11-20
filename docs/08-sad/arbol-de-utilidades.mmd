@@ -1,0 +1,46 @@
+---
+config:
+  layout: elk
+  flowchart:
+    wrappingWidth: 640
+    nodeSpacing: 12
+    rankSpacing: 30
+---
+%% Imagen: docs/08-sad/Arbol de utilidades.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/08-sad/arbol-de-utilidades.mmd" -o "docs/08-sad/Arbol de utilidades.png" -s 2 -b white
+flowchart LR
+  U(("Utilidad"))
+  S["Seguridad"]
+  I["Integridad<br/>de la agenda"]
+  US["Usabilidad"]
+  R["Rendimiento"]
+  M["Mantenibilidad"]
+  D["Disponibilidad"]
+  U --- S & I & US & R & M & D
+  S --- S1["Acceso por rol"] --- S1h["(A,M) Un cliente que pide /api/users recibe 403"]
+  S --- S2["Contraseñas"] --- S2h["(A,B) Ninguna contraseña se guarda en texto plano"]
+  I --- I1["Reservas simultáneas"] --- I1h["(A,A) Dos reservas a la misma hora: una se guarda y la otra recibe 409"]
+  US --- U1["Reserva en pocos pasos"] --- U1h["(A,M) Un cliente nuevo reserva en menos de 2 minutos"]
+  US --- U2["Menú por rol"] --- U2h["(M,B) Cada rol ve solo sus opciones"]
+  R --- R1["Paneles actualizados"] --- R1h["(A,M) Una reserva nueva aparece en el panel en 30 s o menos"]
+  R --- R2["Tiempo de respuesta"] --- R2h["(M,M) Las consultas responden en menos de 2 s con la API activa"]
+  M --- M1["Bajo acoplamiento"] --- M1h["(M,B) Cambiar el proveedor de correo solo toca EmailService"]
+  M --- M2["Pruebas"] --- M2h["(A,B) Cada push ejecuta las 453 pruebas en CI"]
+  D --- D1["Nube"] --- D1h["(M,M) Tras un reinicio de Render la API responde en menos de 1 minuto"]
+  classDef root fill:#1F497D,stroke:#1F497D,color:#FFFFFF
+  classDef sec fill:#F8CBAD,stroke:#C55A11,stroke-width:1.5px,color:#1F2D3D
+  classDef int fill:#FFE699,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef usa fill:#C6E0B4,stroke:#548235,stroke-width:1.5px,color:#1F2D3D
+  classDef ren fill:#BDD7EE,stroke:#2E75B6,stroke-width:1.5px,color:#1F2D3D
+  classDef man fill:#D9D2E9,stroke:#7030A0,stroke-width:1.5px,color:#1F2D3D
+  classDef dis fill:#D9D9D9,stroke:#7F7F7F,stroke-width:1.5px,color:#1F2D3D
+  classDef leaf fill:#FFFFFF,stroke:#8EA9C8,stroke-width:1px,color:#1F2D3D
+  class U root
+  class S,S1 sec
+  class I,I1 int
+  class US,U1,U2 usa
+  class R,R1,R2 ren
+  class M,M1,M2 man
+  class D,D1 dis
+  class S1h,S2h,I1h,U1h,U2h,R1h,R2h,M1h,M2h,D1h leaf
+  class S2 sec

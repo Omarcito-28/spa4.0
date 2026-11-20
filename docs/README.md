@@ -17,29 +17,25 @@ Cada carpeta corresponde a un entregable de las condiciones del proyecto final (
 |---|------------|------------|--------|
 | 1 | Proceso de desarrollo (esquema gráfico, fases, actividades, tareas y roles) | [`01-proceso-de-desarrollo/`](01-proceso-de-desarrollo/) | Listo (versión 1.1, siete sprints con fechas) |
 | 2 | Prototipo de la solución (Figma) | [`02-prototipo/`](02-prototipo/) | Listo: enlace de Figma y capturas de la versión 1.3 (08/11/2026) |
-| 3 | Propuesta | [`03-propuesta/`](03-propuesta/) | Listo (versión 1.2, plan de siete sprints y honorarios estimados) |
+| 3 | Propuesta | [`03-propuesta/`](03-propuesta/) | Listo (versión 1.3, con la URL del sistema publicado) |
 | 4 | Documento de requerimientos | [`04-requerimientos/`](04-requerimientos/) | Listo (versión 1.3: REQ-01 a REQ-40) |
 | 5 | Historias de usuario (Excel y tarjetas) | [`05-historias-de-usuario/`](05-historias-de-usuario/) | Listo (EDT-HU-001 a EDT-HU-038 y EDT-HT-004, con capturas) |
 | 6 | Pila del producto (Product Backlog) | [`06-pila-del-producto/`](06-pila-del-producto/) | Listo (historias hasta EDT-HU-038) |
 | 7 | Lista de tareas de la iteración (Sprint Backlog) | [`07-lista-de-tareas/`](07-lista-de-tareas/) | Listo (sprints 4 a 7, con fechas y responsables) |
 | 8 | SAD (documento de arquitectura) | [`08-sad/`](08-sad/) | Listo (Google Identity, HeroSlide y ExcelJS) |
-| 9 | UML: clases, secuencia, componentes y actividades (más despliegue) | [`09-uml/`](09-uml/) | Listo: imágenes regeneradas desde las fuentes `.mmd` |
+| 9 | UML: clases (vista completa y tres vistas por capa), secuencia, componentes, actividades y despliegue | [`09-uml/`](09-uml/) | Listo: imágenes regeneradas desde las fuentes `.mmd` (20/11/2026) |
 | 10 | Lógica de los datos (MongoDB, base no relacional) | [`10-logica-de-datos/`](10-logica-de-datos/) | Listo (versión 1.1, con `heroslides` y `users.googleId`) |
 | 11 | Uso de inteligencia artificial | [`11-uso-de-ia/`](11-uso-de-ia/) | Listo (con enlace a las evidencias) |
 | — | Pruebas de software | [`pruebas.md`](pruebas.md) | Listo |
-| — | Despliegue en la nube | [`despliegue.md`](despliegue.md) | Guía lista; falta publicar |
+| — | Despliegue en la nube | [`despliegue.md`](despliegue.md) | Publicado: sitio en [essence-de-toi.vercel.app](https://essence-de-toi.vercel.app) y API en Render (revisado el 19/11/2026) |
 
 ## Pendientes del equipo
 
-Busca `[Pendiente` dentro de los documentos. Solo quedan los que necesitan evidencia real:
+Los documentos ya no tienen marcas `[Pendiente`. El pendón se lleva impreso a la feria. Fuera de los documentos queda:
 
-- Evidencias de la entrevista o encuesta al salón (Propuesta y SAD).
-- Aporte del docente en la sesión de QAW y la medición con usuarios del tiempo de reserva (SAD).
-- Publicar en Render y Vercel y poner la URL en la Propuesta.
-- Archivo del pendón para INNOVASOFT (Propuesta).
-- Captura de la pestaña Actions de GitHub para la sustentación ([`pruebas.md`](pruebas.md)).
+- Agregar `GOOGLE_CLIENT_ID` en Render si se quiere mostrar *Continuar con Google* en el sitio publicado ([`despliegue.md`](despliegue.md#estado-actual)).
 
 ## Convenciones
 
-- Los documentos siguen las plantillas del docente (Word y Excel). Los diagramas se generan con Mermaid; las fuentes `.mmd` están junto a cada imagen para poder editarlos.
+- Los documentos siguen las plantillas del docente (Word y Excel). Los diagramas se generan con Mermaid; las fuentes `.mmd` están junto a cada imagen para poder editarlos y todas usan el estilo de [`mermaid-config.json`](mermaid-config.json). Cada fuente indica al inicio el comando para regenerar su imagen.
 - No guardes aquí contraseñas, URIs de bases de datos ni otros secretos.

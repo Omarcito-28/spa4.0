@@ -2,7 +2,7 @@
 
 Esta guía publica **Essence De Toi** con tres servicios gratuitos:
 
-| Parte | Servicio | Carpeta del repositorio | URL de ejemplo |
+| Parte | Servicio | Carpeta del repositorio | URL publicada |
 |---|---|---|---|
 | Base de datos | MongoDB Atlas | — | `mongodb+srv://…` |
 | API (Express) | Render (Web Service) | `backend/` | `https://essence-de-toi-api.onrender.com` |
@@ -11,6 +11,20 @@ Esta guía publica **Essence De Toi** con tres servicios gratuitos:
 El navegador carga el sitio desde Vercel y este llama a la API de Render (`VITE_API_URL`). La API solo acepta peticiones de navegador que vengan del dominio de Vercel (`FRONTEND_URL`).
 
 > **Nunca subas valores reales al repositorio.** Los secretos se cargan solo en los paneles de Render y Vercel. Los archivos `.env.example` muestran qué variables existen, sin valores.
+
+## Estado actual
+
+El sistema está publicado. Revisión del 19/11/2026 con la lista del paso 5:
+
+| Comprobación | Resultado |
+|---|---|
+| Sitio: [essence-de-toi.vercel.app](https://essence-de-toi.vercel.app) | Carga la portada con el carrusel y el catálogo de servicios. |
+| API: [`essence-de-toi-api.onrender.com/api/health`](https://essence-de-toi-api.onrender.com/api/health) | Responde `{"status":"ok"}`. |
+| Conexión entre ambos | El sitio pide a la API de Render el catálogo, las reseñas y las imágenes del carrusel. |
+| Rutas de React Router | `/login` abre directo la página de inicio de sesión, sin 404. |
+| Inicio de sesión con Google | No está activo: `/api/auth/providers` responde `{"google":null}`. Para mostrar *Continuar con Google*, agrega `GOOGLE_CLIENT_ID` en Render (paso 4). |
+
+Los puntos 5 a 8 de esa lista (registro, citas, Google y recuperación de contraseña) necesitan cuentas reales y no se revisaron.
 
 ---
 

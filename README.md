@@ -4,6 +4,8 @@ Sistema web de control operativo y agendamiento para Centros de Cuidado Personal
 
 Proyecto final de **Ingeniería de Software Orientada a Objetos**, programa de Ingeniería de Software de la Universidad Surcolombiana. Docente: Eduardo Martínez Vidal. Repositorio: https://github.com/Omarcito-28/spa4.0.
 
+Sitio publicado: https://essence-de-toi.vercel.app (API en https://essence-de-toi-api.onrender.com).
+
 Los entregables del curso (propuesta, requerimientos, historias de usuario, SAD, UML, etc.) están en [`docs/`](docs/README.md).
 
 ## Roles
@@ -233,7 +235,7 @@ Cómo crear el Client ID en Google Cloud: [docs/despliegue.md](docs/despliegue.m
 
 ## Despliegue
 
-El backend se publica en Render (`render.yaml`) y el frontend en Vercel (`frontend/vercel.json`), con la base en MongoDB Atlas. El paso a paso, las variables de cada servicio y la lista de comprobación están en [docs/despliegue.md](docs/despliegue.md).
+El backend está publicado en Render (`render.yaml`, https://essence-de-toi-api.onrender.com) y el frontend en Vercel (`frontend/vercel.json`, https://essence-de-toi.vercel.app), con la base en MongoDB Atlas. El paso a paso, las variables de cada servicio y la lista de comprobación están en [docs/despliegue.md](docs/despliegue.md).
 
 ## Cómo contribuir
 

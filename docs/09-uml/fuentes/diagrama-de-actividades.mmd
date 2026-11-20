@@ -1,0 +1,48 @@
+---
+config:
+  layout: dagre
+  flowchart:
+    nodeSpacing: 40
+    rankSpacing: 32
+---
+%% Imagen: docs/09-uml/Diagrama de actividades - reservar cita.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-actividades.mmd" -o "docs/09-uml/Diagrama de actividades - reservar cita.png" -s 2 -b white
+flowchart TB
+  I@{ shape: sm-circ, label: "inicio" }
+  A1["Cliente: abre el formulario de reserva"]
+  Q1{"¿Tiene sesión<br/>iniciada?"}
+  A2["Cliente: inicia sesión o se registra<br/>(también con Google) y vuelve a la reserva"]
+  A3["Cliente: elige el servicio"]
+  A4["Cliente: elige estilista (opcional) y fecha"]
+  S1["Sistema: consulta las horas libres<br/>(horario, días libres y citas del día)"]
+  Q2{"¿Hay horas<br/>libres?"}
+  A5["Cliente: elige la hora y escribe notas"]
+  A6["Cliente: envía la reserva"]
+  S2["Sistema: valida los datos y bloquea la<br/>agenda del estilista en una transacción"]
+  Q3{"¿La hora sigue<br/>libre al guardar?"}
+  S3["Sistema: responde 409<br/>«la hora ya fue tomada»"]
+  S4["Sistema: guarda la cita en PENDING"]
+  S5["Sistema: envía el correo al cliente<br/>y actualiza los paneles"]
+  E1["Estilista o administrador:<br/>revisa y confirma la cita"]
+  F@{ shape: framed-circle, label: "fin" }
+  I --> A1 --> Q1
+  Q1 -- "No" --> A2 --> A3
+  Q1 -- "Sí" --> A3
+  A3 --> A4 --> S1 --> Q2
+  Q2 -- "No" --> A4
+  Q2 -- "Sí" --> A5 --> A6 --> S2 --> Q3
+  Q3 -- "No" --> S3 --> A5
+  Q3 -- "Sí" --> S4 --> S5 --> E1 --> F
+  classDef fe fill:#DEEAF6,stroke:#2E75B6,stroke-width:1.5px,color:#1F2D3D
+  classDef be fill:#E2EFDA,stroke:#548235,stroke-width:1.5px,color:#1F2D3D
+  classDef db fill:#FFF2CC,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef ex fill:#EDEDED,stroke:#7F7F7F,stroke-width:1.5px,color:#1F2D3D
+  classDef ci fill:#E4DFEC,stroke:#7030A0,stroke-width:1.5px,color:#1F2D3D
+  classDef dec fill:#FFF2CC,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef term fill:#1F2D3D,stroke:#1F2D3D,color:#1F2D3D
+  class A1,A2,A3,A4,A5,A6 fe
+  class S1,S2,S3,S4,S5 be
+  class E1 ci
+  class Q1,Q2,Q3 dec
+  class I,F term
+  style I fill:#1F2D3D,stroke:#1F2D3D

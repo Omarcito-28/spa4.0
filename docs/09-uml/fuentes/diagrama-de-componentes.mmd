@@ -1,26 +1,49 @@
-flowchart LR
-  subgraph NAV["Navegador"]
-    P["Páginas y componentes<br/>React"] --> AC["AuthContext"]
-    P --> AR["useAutoRefresh"]
-    P --> GB["GoogleSignInButton"]
-    P -. "import diferido" .-> XL["utils/excel.js<br/>(ExcelJS)"]
-    P --> API["services/api.js"]
-    AR --> API
-    GB --> API
+---
+config:
+  layout: elk
+---
+%% Imagen: docs/09-uml/Diagrama de componentes.png (y docs/08-sad/Diagrama de componentes.png)
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-componentes.mmd" -o "docs/09-uml/Diagrama de componentes.png" -s 2 -b white
+flowchart TB
+  subgraph NAV["Navegador: SPA React (Vercel)"]
+    PG["Páginas y componentes React<br/>Home, Dashboard y paneles por rol"]
+    AC["AuthContext<br/>sesión y rol"]
+    AR["useAutoRefresh<br/>paneles en vivo"]
+    GB["GoogleSignIn<br/>Button"]
+    XL["utils/excel.js<br/>ExcelJS (diferido)"]
+    API["services/api.js<br/>cliente HTTP único"]
+    PG --> AC & AR & GB
+    PG -.-> XL
+    AC & AR & GB --> API
   end
-  GIS["Google Identity Services"]
-  GB -- "botón e ID token" --> GIS
-  API -- "HTTPS JSON con JWT" --> R
-  subgraph SRV["API REST en Render"]
-    R["Rutas /api<br/>(incluye /auth/google y /hero-slides)"] --> MW["AuthMiddleware,<br/>CorsPolicy y LoginRateLimiter"]
-    MW --> C["Controladores<br/>(incluye HeroSlideController)"]
-    CT["container.js"] -. "crea e inyecta" .-> C
-    CT -. "crea e inyecta" .-> SV
-    C --> SV["Servicios<br/>(incluye HeroSlideService)"]
-    C -. "errores" .-> EM["ErrorMiddleware"]
-    SV --> GIDS["GoogleIdentityService"]
-    SV --> M["Modelos Mongoose<br/>(incluye HeroSlide)"]
+  GIS["Google Identity<br/>Services"]
+  subgraph SRV["API REST: Express (Render)"]
+    R["Rutas /api y middlewares<br/>CorsPolicy, AuthMiddleware, LoginRateLimiter"]
+    C["Controladores<br/>BaseController + 9 subclases"]
+    SV["Servicios<br/>16 clases de negocio"]
+    M["Modelos Mongoose<br/>9 esquemas"]
+    EM["ErrorMiddleware"]
+    CT["container.js<br/>inyección de dependencias"]
+    R --> C --> SV --> M
+    C -. "errores" .-> EM
+    CT -.-> C & SV
   end
-  M -- "driver de MongoDB" --> DB[("MongoDB Atlas")]
-  SV -- "SMTP" --> MAIL["Servidor de correo"]
-  GIDS -- "verifica el ID token<br/>con google-auth-library" --> GK["Claves públicas<br/>de Google"]
+  DB[("MongoDB Atlas")]
+  MAIL["Servidor SMTP"]
+  GK["Claves públicas<br/>de Google"]
+  API == "HTTPS · JSON · JWT" ==> R
+  GB -- "ID token" --> GIS
+  M --> DB
+  SV -- "SMTP" --> MAIL
+  SV -- "verifica el ID token" --> GK
+  classDef fe fill:#DEEAF6,stroke:#2E75B6,stroke-width:1.5px,color:#1F2D3D
+  classDef be fill:#E2EFDA,stroke:#548235,stroke-width:1.5px,color:#1F2D3D
+  classDef db fill:#FFF2CC,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef ex fill:#EDEDED,stroke:#7F7F7F,stroke-width:1.5px,color:#1F2D3D
+  classDef ci fill:#E4DFEC,stroke:#7030A0,stroke-width:1.5px,color:#1F2D3D
+  class PG,AC,AR,GB,XL,API fe
+  class R,C,SV,M,EM,CT be
+  class DB db
+  class MAIL,GIS,GK ex
+  style NAV fill:#F3F8FD,stroke:#2E75B6,stroke-width:1.5px,color:#1F497D
+  style SRV fill:#F4F9F1,stroke:#548235,stroke-width:1.5px,color:#375623

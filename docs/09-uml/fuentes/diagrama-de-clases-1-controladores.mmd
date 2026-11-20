@@ -1,0 +1,124 @@
+---
+config:
+  layout: elk
+---
+%% Imagen: docs/09-uml/Diagrama de clases - 1 controladores.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-clases-1-controladores.mmd" -o "docs/09-uml/Diagrama de clases - 1 controladores.png" -s 2 -b white
+classDiagram
+direction LR
+  class BaseController {
+    <<abstract>>
+    +DEFAULT_FAILURE_MESSAGE string$
+    +FAILURE_MESSAGES object$
+    +handle(action) Function
+  }
+  class AuthController {
+    -AuthService auth
+    +register(req, res)
+    +login(req, res)
+    +getProviders(req, res)
+    +loginWithGoogle(req, res)
+    +getProfile(req, res)
+    +updateProfile(req, res)
+    +requestPasswordReset(req, res)
+    +resetPassword(req, res)
+  }
+  class UserController {
+    -UserService users
+    +list(req, res)
+    +create(req, res)
+    +listStylists(req, res)
+    +getSchedule(req, res)
+    +updateSchedule(req, res)
+    +update(req, res)
+    +remove(req, res)
+  }
+  class ServiceController {
+    -ServiceCatalogService catalog
+    +list(req, res)
+    +listAll(req, res)
+    +create(req, res)
+    +update(req, res)
+    +remove(req, res)
+  }
+  class ServiceImageController {
+    -ServiceImageService images
+    +list(req, res)
+    +upload(req, res)
+    +show(req, res)
+  }
+  class AppointmentController {
+    -AppointmentService appointments
+    -AvailabilityService availability
+    -ReminderService reminders
+    +policy(req, res)
+    +sendReminders(req, res)
+    +list(req, res)
+    +availability(req, res)
+    +create(req, res)
+    +reschedule(req, res)
+    +updateStatus(req, res)
+    +update(req, res)
+    +remove(req, res)
+  }
+  class TimeOffController {
+    -TimeOffService timeOff
+    +list(req, res)
+    +create(req, res)
+    +remove(req, res)
+  }
+  class ReviewController {
+    -ReviewService reviews
+    +list(req, res)
+    +summary(req, res)
+    +mine(req, res)
+    +listAll(req, res)
+    +create(req, res)
+    +remove(req, res)
+  }
+  class ClientNoteController {
+    -ClientNoteService notes
+    +list(req, res)
+    +create(req, res)
+    +remove(req, res)
+  }
+  class HeroSlideController {
+    -HeroSlideService slides
+    +list(req, res)
+    +listAll(req, res)
+    +create(req, res)
+    +update(req, res)
+    +reorder(req, res)
+    +remove(req, res)
+  }
+  BaseController <|-- AuthController
+  BaseController <|-- UserController
+  BaseController <|-- ServiceController
+  BaseController <|-- ServiceImageController
+  BaseController <|-- AppointmentController
+  BaseController <|-- TimeOffController
+  BaseController <|-- ReviewController
+  BaseController <|-- ClientNoteController
+  BaseController <|-- HeroSlideController
+  class AuthService
+  class UserService
+  class ServiceCatalogService
+  class ServiceImageService
+  class AppointmentService
+  class AvailabilityService
+  class TimeOffService
+  class ReminderService
+  class ReviewService
+  class ClientNoteService
+  class HeroSlideService
+  AuthController --> AuthService
+  UserController --> UserService
+  ServiceController --> ServiceCatalogService
+  ServiceImageController --> ServiceImageService
+  AppointmentController --> AppointmentService
+  AppointmentController --> AvailabilityService
+  AppointmentController --> ReminderService
+  TimeOffController --> TimeOffService
+  ReviewController --> ReviewService
+  ClientNoteController --> ClientNoteService
+  HeroSlideController --> HeroSlideService

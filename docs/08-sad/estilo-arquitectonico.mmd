@@ -1,20 +1,34 @@
+---
+config:
+  layout: dagre
+---
+%% Imagen: docs/08-sad/Estilo arquitectonico.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/08-sad/estilo-arquitectonico.mmd" -o "docs/08-sad/Estilo arquitectonico.png" -s 2 -b white
 flowchart TB
-  subgraph PRES["Presentación"]
-    SPA["SPA React 19<br/>páginas, componentes,<br/>hooks"] --> APIJS["services/api.js<br/>cliente HTTP único"]
-    SPA -. "import diferido" .-> XL["ExcelJS<br/>exportes .xlsx"]
+  subgraph PRES["Capa 1 · Presentación: SPA React en Vercel"]
+    direction LR
+    P1["Páginas y componentes<br/>React 19 + Vite"] --> P2["AuthContext y<br/>useAutoRefresh"] --> P3["services/api.js<br/>cliente HTTP único"]
+    P1 -.-> P4["utils/excel.js<br/>ExcelJS, carga diferida"]
   end
-  subgraph NEG["Negocio: API REST"]
-    RM["Rutas y middlewares<br/>AuthMiddleware,<br/>CorsPolicy"] --> CTRL["Controladores<br/>BaseController y subclases"]
-    CTRL --> SERV["Servicios<br/>reglas de negocio"]
-    SERV --> MOD["Modelos Mongoose"]
+  subgraph NEG["Capa 2 · Negocio: API REST en Express (Render)"]
+    direction LR
+    N1["Rutas /api y middlewares<br/>CorsPolicy, AuthMiddleware,<br/>LoginRateLimiter"] --> N3["Controladores<br/>BaseController y<br/>9 subclases"] --> N4["Servicios<br/>reglas de negocio"]
   end
-  subgraph DAT["Datos y servicios externos"]
-    DB[("MongoDB Atlas")]
-    SMTP["Servidor SMTP"]
-    GID["Google Identity<br/>Services"]
+  subgraph DAT["Capa 3 · Datos y servicios externos"]
+    direction LR
+    D1["Modelos Mongoose<br/>9 esquemas"] --> D2[("MongoDB Atlas")] ~~~ D3["Servidor SMTP<br/>correos y recordatorios"] ~~~ D4["Google Identity Services<br/>inicio de sesión con Google"]
   end
-  APIJS -- "HTTPS + JSON + JWT" --> RM
-  MOD --> DB
-  SERV --> SMTP
-  SPA -- "ID token" --> GID
-  SERV -- "verifica el ID token" --> GID
+  PRES == "HTTPS · JSON · JWT" ==> NEG
+  NEG == "Mongoose sobre TLS, SMTP y verificación del ID token" ==> DAT
+  classDef fe fill:#DEEAF6,stroke:#2E75B6,stroke-width:1.5px,color:#1F2D3D
+  classDef be fill:#E2EFDA,stroke:#548235,stroke-width:1.5px,color:#1F2D3D
+  classDef db fill:#FFF2CC,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef ex fill:#EDEDED,stroke:#7F7F7F,stroke-width:1.5px,color:#1F2D3D
+  classDef ci fill:#E4DFEC,stroke:#7030A0,stroke-width:1.5px,color:#1F2D3D
+  class P1,P2,P3,P4 fe
+  class N1,N3,N4 be
+  class D1,D2 db
+  class D3,D4 ex
+  style PRES fill:#F3F8FD,stroke:#2E75B6,stroke-width:1.5px,color:#1F497D
+  style NEG fill:#F4F9F1,stroke:#548235,stroke-width:1.5px,color:#375623
+  style DAT fill:#FFFBEF,stroke:#BF9000,stroke-width:1.5px,color:#7F6000

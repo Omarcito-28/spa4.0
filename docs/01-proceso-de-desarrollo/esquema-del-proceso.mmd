@@ -1,21 +1,42 @@
-flowchart TB
+---
+config:
+  layout: dagre
+---
+%% Imagen: docs/01-proceso-de-desarrollo/Esquema del proceso.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/01-proceso-de-desarrollo/esquema-del-proceso.mmd" -o "docs/01-proceso-de-desarrollo/Esquema del proceso.png" -s 2 -b white
+flowchart LR
   subgraph F1["1. Inicio"]
-    A1["Entrevista y observación<br/>del negocio"] --> A2["Propuesta y<br/>documento de requerimientos"]
+    direction TB
+    A1["Entrevista y observación<br/>del negocio"] --> A2["Propuesta y documento<br/>de requerimientos"]
   end
   subgraph F2["2. Planeación"]
-    B1["Historias de usuario<br/>con criterios de aceptación"] --> B2["Pila del producto<br/>priorizada y estimada"]
+    direction TB
+    B1["Historias de usuario con<br/>criterios de aceptación"] --> B2["Pila del producto<br/>priorizada y estimada"]
   end
   subgraph F3["3. Sprint (iterativo, 7 sprints)"]
-    direction LR
+    direction TB
     C1["Planeación del sprint<br/>(lista de tareas)"] --> C2["Diseño<br/>(SAD, UML, prototipo)"]
     C2 --> C3["Codificación en rama<br/>(Git + issues)"]
-    C3 --> C4["Pruebas unitarias e<br/>integración + lint"]
+    C3 --> C4["Pruebas unitarias,<br/>de integración y lint"]
     C4 --> C5["Pull request,<br/>revisión y CI"]
     C5 --> C6["Revisión del sprint<br/>con el Product Owner"]
     C6 --> C7["Retrospectiva"]
     C7 -. "siguiente sprint" .-> C1
   end
   subgraph F4["4. Cierre"]
-    D1["Despliegue en la nube<br/>(Vercel + Render + Atlas)"] --> D2["Sustentación e<br/>INNOVASOFT"]
+    direction TB
+    D1["Despliegue en la nube<br/>(Vercel + Render + Atlas)"] --> D2["Sustentación y feria<br/>INNOVASOFT"]
   end
-  F1 --> F2 --> F3 --> F4
+  F1 ==> F2 ==> F3 ==> F4
+  classDef ini fill:#DEEAF6,stroke:#2E75B6,stroke-width:1.5px,color:#1F2D3D
+  classDef pla fill:#E2EFDA,stroke:#548235,stroke-width:1.5px,color:#1F2D3D
+  classDef spr fill:#FFF2CC,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef cie fill:#E4DFEC,stroke:#7030A0,stroke-width:1.5px,color:#1F2D3D
+  class A1,A2 ini
+  class B1,B2 pla
+  class C1,C2,C3,C4,C5,C6,C7 spr
+  class D1,D2 cie
+  style F1 fill:#F3F8FD,stroke:#2E75B6,stroke-width:1.5px,color:#1F497D
+  style F2 fill:#F4F9F1,stroke:#548235,stroke-width:1.5px,color:#375623
+  style F3 fill:#FFFBEF,stroke:#BF9000,stroke-width:1.5px,color:#7F6000
+  style F4 fill:#F6F3FA,stroke:#7030A0,stroke-width:1.5px,color:#4B1F6F

@@ -1,0 +1,75 @@
+---
+config:
+  layout: elk
+---
+%% Imagen: docs/09-uml/Diagrama de clases - 3 middlewares y errores.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-clases-3-middlewares-y-errores.mmd" -o "docs/09-uml/Diagrama de clases - 3 middlewares y errores.png" -s 2 -b white
+classDiagram
+direction LR
+  class AuthMiddleware {
+    +authenticate(req, res, next)
+    +requireRole(roles) Function
+    -resolveUser(authorization)
+  }
+  class LoginRateLimiter {
+    -int maxFailures
+    -int windowMs
+    +handle(req, res, next)
+    -record(key)
+    -retryAfter(key, limit) int
+    -prune(now)
+  }
+  class ErrorMiddleware {
+    +handle(error, req, res, next)
+    -log(req, error)
+  }
+  class CorsPolicy {
+    +fromEnv(env)$ CorsPolicy
+    +allowsAnyOrigin() bool
+    +origins() string[]
+    +isAllowed(origin) bool
+    +toOptions() object
+    -normalize(origin)$
+  }
+  class DatabaseSeeder {
+    +DEFAULT_SERVICES object[]$
+    +run()
+    -seedAdmin()
+    -seedServices()
+    -repairServiceDescriptions()
+  }
+  class AppError {
+    -int status
+    +status() int
+    +isServerError() bool
+    +toJSON() object
+    +from(error, message)$ AppError
+  }
+  class ValidationError
+  class UnauthorizedError
+  class InvalidSessionError
+  class ForbiddenError
+  class NotFoundError
+  class ConflictError
+  class BookingError
+  class ServiceUnavailableError
+  class TooManyAttemptsError
+  AppError <|-- ValidationError
+  AppError <|-- UnauthorizedError
+  UnauthorizedError <|-- InvalidSessionError
+  AppError <|-- ForbiddenError
+  AppError <|-- NotFoundError
+  AppError <|-- ConflictError
+  ConflictError <|-- BookingError
+  AppError <|-- ServiceUnavailableError
+  AppError <|-- TooManyAttemptsError
+  ErrorMiddleware ..> AppError : responde con status y toJSON
+  LoginRateLimiter ..> TooManyAttemptsError : lanza
+  class TokenService
+  class PasswordHasher
+  class BookingLockService
+  class AvailabilityService
+  AuthMiddleware --> TokenService
+  DatabaseSeeder --> PasswordHasher
+  DatabaseSeeder --> BookingLockService
+  AvailabilityService ..> BookingError : lanza

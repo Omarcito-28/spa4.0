@@ -1,255 +1,371 @@
+---
+config:
+  layout: elk
+---
+%% Imagen: docs/09-uml/Diagrama de clases.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-clases.mmd" -o "docs/09-uml/Diagrama de clases.png" -s 2 -b white
 classDiagram
 direction LR
-class BaseController {
-  <<abstract>>
-  +DEFAULT_FAILURE_MESSAGE$ string
-  +FAILURE_MESSAGES$ object
-  +handle(action) Function
-}
-class AuthController { -AuthService auth
-  +register(req,res)
-  +login(req,res)
-  +getProviders(req,res)
-  +loginWithGoogle(req,res)
-  +getProfile(req,res)
-  +updateProfile(req,res)
-  +requestPasswordReset(req,res)
-  +resetPassword(req,res) }
-class UserController { -UserService users
-  +list(req,res)
-  +create(req,res)
-  +listStylists(req,res)
-  +getSchedule(req,res)
-  +updateSchedule(req,res)
-  +update(req,res)
-  +remove(req,res) }
-class ServiceController { -ServiceCatalogService catalog
-  +list(req,res)
-  +listAll(req,res)
-  +create(req,res)
-  +update(req,res)
-  +remove(req,res) }
-class ServiceImageController { -ServiceImageService images
-  +list(req,res)
-  +upload(req,res)
-  +show(req,res) }
-class AppointmentController { -AppointmentService appointments
-  -AvailabilityService availability
-  -ReminderService reminders
-  +policy(req,res)
-  +sendReminders(req,res)
-  +list(req,res)
-  +availability(req,res)
-  +create(req,res)
-  +reschedule(req,res)
-  +updateStatus(req,res)
-  +update(req,res)
-  +remove(req,res) }
-class TimeOffController { -TimeOffService timeOff
-  +list(req,res)
-  +create(req,res)
-  +remove(req,res) }
-class ReviewController { -ReviewService reviews
-  +list(req,res)
-  +summary(req,res)
-  +mine(req,res)
-  +listAll(req,res)
-  +create(req,res)
-  +remove(req,res) }
-class ClientNoteController { -ClientNoteService notes
-  +list(req,res)
-  +create(req,res)
-  +remove(req,res) }
-class HeroSlideController { -HeroSlideService slides
-  +list(req,res)
-  +listAll(req,res)
-  +create(req,res)
-  +update(req,res)
-  +reorder(req,res)
-  +remove(req,res) }
-
-BaseController <|-- AuthController
-BaseController <|-- UserController
-BaseController <|-- ServiceController
-BaseController <|-- ServiceImageController
-BaseController <|-- AppointmentController
-BaseController <|-- TimeOffController
-BaseController <|-- ReviewController
-BaseController <|-- ClientNoteController
-BaseController <|-- HeroSlideController
-
-class AuthService { +RESET_TOKEN_TTL_MS$ int
-  +register(data) Session
-  +login(credentials) Session
-  +getProviders() object
-  +loginWithGoogle(data) Session
-  +getProfile(user)
-  +updateProfile(user, data) Session
-  +requestPasswordReset(email)
-  +resetPassword(data)
-  +toPublicUser(user)$
-  -session(user) }
-class UserService { +ROLES$ string[]
-  +listAll()
-  +create(data)
-  +listStylists()
-  +getSchedule(userId)
-  +updateSchedule(userId, days)
-  +update(id, data, currentUser)
-  +delete(id, currentUser)
-  -isValidWeek(days) bool }
-class ServiceCatalogService {
-  +listActive()
-  +listAll()
-  +create(data)
-  +update(id, data)
-  +delete(id)
-  -hasUpcomingAppointments(name) bool }
-class ServiceImageService { +MAX_BYTES$ int
-  +URL_PREFIX$ string
-  +detectType(bytes)$ string
-  +urlFor(id)$ string
-  +upload(bytes, name)
-  +list()
-  +get(id) }
-class AppointmentService { +STATUSES$ string[]
-  -int cancellationNoticeHours
-  +getPolicy()
-  +listFor(user)
-  +create(user, data)
-  +updateStatus(id, status, user)
-  +update(id, data, user)
-  +reschedule(id, data, user)
-  +delete(id)
-  -change(options)
-  -assertCanChange(appointment, changes, user)
-  -assertCanComplete(appointment)
-  -assertCanMarkNoShow(appointment)
-  -assertCancellationNotice(appointment)
-  -notify(appointment, message) }
-class AvailabilityService { +OCCUPYING_STATUSES$ string[]
-  +DEFAULT_DURATION$ int
-  +getAvailability(date, stylist)
-  +assertSlotAvailable(slot)
-  -workdayOf(stylist, weekday)
-  -overlaps(a, b) bool }
-class TimeOffService { +MAX_DAYS$ int
-  +list(user)
-  +create(user, data)
-  +delete(id, user)
-  +findBlocking(date, stylist, session)
-  +describe(block)$ string }
-class ReminderService { +INTERVAL_MS$ int
-  +sendDueReminders()
-  +start(intervalMs)
-  +stop()
-  -send(appointment) }
-class ReviewService { +MAX_COMMENT$ int
-  +shortName(fullName)$ string
-  +create(user, data)
-  +listPublic(filters)
-  +summary()
-  +reviewedAppointmentIds(user)
-  +listAll()
-  +delete(id) }
-class ClientNoteService { +MAX_LENGTH$ int
-  +list(user, client)
-  +create(user, client, data)
-  +delete(id, user)
-  -assertAccess(user, client) }
-class HeroSlideService { +MAX_SLIDES$ int
-  +MAX_ALT_LENGTH$ int
-  +IMAGE_PATTERN$ RegExp
-  +listPublic()
-  +listAll()
-  +create(data)
-  +update(id, data)
-  +reorder(ids)
-  +remove(id) }
-class BookingLockService { +initialize()
-  +lock(session, stylists) }
-class EmailService { +isConfigured() bool
-  +send(message)
-  +sendBestEffort(message) }
-class GoogleIdentityService { -string clientId
-  +isConfigured() bool
-  +verify(credential) GoogleProfile }
-class TokenService { -string secret
-  +sign(user) string
-  +verify(token) object }
-class PasswordHasher { -int rounds
-  +hash(password) string
-  +compare(password, hash) bool }
-class BogotaClock { +today() string
-  +minutesNow() int }
-
-AuthController --> AuthService
-UserController --> UserService
-ServiceController --> ServiceCatalogService
-ServiceImageController --> ServiceImageService
-AppointmentController --> AppointmentService
-AppointmentController --> AvailabilityService
-AppointmentController --> ReminderService
-TimeOffController --> TimeOffService
-ReviewController --> ReviewService
-ClientNoteController --> ClientNoteService
-HeroSlideController --> HeroSlideService
-
-AuthService --> PasswordHasher
-AuthService --> TokenService
-AuthService --> EmailService
-AuthService --> GoogleIdentityService
-UserService --> PasswordHasher
-AppointmentService --> AvailabilityService
-AppointmentService --> BookingLockService
-AppointmentService --> EmailService
-AppointmentService --> BogotaClock
-AvailabilityService --> TimeOffService
-TimeOffService --> BookingLockService
-ReminderService --> EmailService
-ReminderService --> BogotaClock
-ServiceCatalogService --> BogotaClock
-
-class AuthMiddleware { +authenticate(req,res,next)
-  +requireRole(roles) Function
-  -resolveUser(authorization) }
-class LoginRateLimiter { -int maxFailures
-  -int windowMs
-  +handle(req,res,next)
-  -record(key)
-  -retryAfter(key, limit) int }
-class ErrorMiddleware { +handle(error,req,res,next) }
-class CorsPolicy { +fromEnv(env)$ CorsPolicy
-  +isAllowed(origin) bool
-  +toOptions() object }
-class DatabaseSeeder { +DEFAULT_SERVICES$ object[]
-  +run() }
-AuthMiddleware --> TokenService
-DatabaseSeeder --> PasswordHasher
-DatabaseSeeder --> BookingLockService
-
-class AppError { -int status
-  +status() int
-  +toJSON() object
-  +from(error, message)$ AppError }
-class ValidationError
-class UnauthorizedError
-class InvalidSessionError
-class ForbiddenError
-class NotFoundError
-class ConflictError
-class BookingError
-class ServiceUnavailableError
-class TooManyAttemptsError
-AppError <|-- ValidationError
-AppError <|-- UnauthorizedError
-UnauthorizedError <|-- InvalidSessionError
-AppError <|-- ForbiddenError
-AppError <|-- NotFoundError
-AppError <|-- ConflictError
-ConflictError <|-- BookingError
-AppError <|-- ServiceUnavailableError
-AppError <|-- TooManyAttemptsError
-ErrorMiddleware ..> AppError : responde con status y toJSON
-LoginRateLimiter ..> TooManyAttemptsError : lanza
-AvailabilityService ..> BookingError : lanza
+  namespace Controladores {
+    class BaseController {
+      <<abstract>>
+      +DEFAULT_FAILURE_MESSAGE string$
+      +FAILURE_MESSAGES object$
+      +handle(action) Function
+    }
+    class AuthController {
+      -AuthService auth
+      +register(req, res)
+      +login(req, res)
+      +getProviders(req, res)
+      +loginWithGoogle(req, res)
+      +getProfile(req, res)
+      +updateProfile(req, res)
+      +requestPasswordReset(req, res)
+      +resetPassword(req, res)
+    }
+    class UserController {
+      -UserService users
+      +list(req, res)
+      +create(req, res)
+      +listStylists(req, res)
+      +getSchedule(req, res)
+      +updateSchedule(req, res)
+      +update(req, res)
+      +remove(req, res)
+    }
+    class ServiceController {
+      -ServiceCatalogService catalog
+      +list(req, res)
+      +listAll(req, res)
+      +create(req, res)
+      +update(req, res)
+      +remove(req, res)
+    }
+    class ServiceImageController {
+      -ServiceImageService images
+      +list(req, res)
+      +upload(req, res)
+      +show(req, res)
+    }
+    class AppointmentController {
+      -AppointmentService appointments
+      -AvailabilityService availability
+      -ReminderService reminders
+      +policy(req, res)
+      +sendReminders(req, res)
+      +list(req, res)
+      +availability(req, res)
+      +create(req, res)
+      +reschedule(req, res)
+      +updateStatus(req, res)
+      +update(req, res)
+      +remove(req, res)
+    }
+    class TimeOffController {
+      -TimeOffService timeOff
+      +list(req, res)
+      +create(req, res)
+      +remove(req, res)
+    }
+    class ReviewController {
+      -ReviewService reviews
+      +list(req, res)
+      +summary(req, res)
+      +mine(req, res)
+      +listAll(req, res)
+      +create(req, res)
+      +remove(req, res)
+    }
+    class ClientNoteController {
+      -ClientNoteService notes
+      +list(req, res)
+      +create(req, res)
+      +remove(req, res)
+    }
+    class HeroSlideController {
+      -HeroSlideService slides
+      +list(req, res)
+      +listAll(req, res)
+      +create(req, res)
+      +update(req, res)
+      +reorder(req, res)
+      +remove(req, res)
+    }
+  }
+  namespace Servicios {
+    class AuthService {
+      +RESET_TOKEN_TTL_MS int$
+      +register(data) Session
+      +login(credentials) Session
+      +getProviders() object
+      +loginWithGoogle(data) Session
+      +getProfile(user)
+      +updateProfile(user, data) Session
+      +requestPasswordReset(email)
+      +resetPassword(data)
+      +toPublicUser(user)$
+      -session(user)
+      -availableUsername(email)
+      -hashResetToken(token)$
+      -duplicateKey(error, message)$
+    }
+    class UserService {
+      +ROLES string[]$
+      +listAll()
+      +create(data)
+      +listStylists()
+      +getSchedule(userId)
+      +updateSchedule(userId, days)
+      +update(id, data, currentUser)
+      +delete(id, currentUser)
+      -isValidWeek(days) bool
+    }
+    class ServiceCatalogService {
+      +listActive()
+      +listAll()
+      +create(data)
+      +update(id, data)
+      +delete(id)
+      -hasUpcomingAppointments(name) bool
+    }
+    class ServiceImageService {
+      +MAX_BYTES int$
+      +URL_PREFIX string$
+      +detectType(bytes)$ string
+      +urlFor(id)$ string
+      +upload(bytes, name)
+      +list()
+      +get(id)
+      -summary(image)$
+    }
+    class AppointmentService {
+      +STATUSES string[]$
+      -int cancellationNoticeHours
+      +getPolicy()
+      +listFor(user)
+      +create(user, data)
+      +updateStatus(id, status, user)
+      +update(id, data, user)
+      +reschedule(id, data, user)
+      +delete(id)
+      -change(options)
+      -assertCanChange(appointment, changes, user)
+      -assertCanComplete(appointment)
+      -assertCanMarkNoShow(appointment)
+      -assertCancellationNotice(appointment)
+      -assertFutureSlot(date, time)
+      -hasStarted(appointment) bool
+      -notify(appointment, message)
+    }
+    class AvailabilityService {
+      +OCCUPYING_STATUSES string[]$
+      +DEFAULT_DURATION int$
+      +getAvailability(date, stylist)
+      +assertSlotAvailable(slot)
+      -workdayOf(stylist, weekday)
+      -defaultWorkday(weekday)
+      -isWithinSchedule(time, start, end, duration) bool
+      -overlaps(a, b) bool
+    }
+    class TimeOffService {
+      +MAX_DAYS int$
+      +list(user)
+      +create(user, data)
+      +delete(id, user)
+      +findBlocking(date, stylist, session)
+      +describe(block)$ string
+      -activeStylists(session)
+    }
+    class ReminderService {
+      +INTERVAL_MS int$
+      +sendDueReminders()
+      +start(intervalMs)
+      +stop()
+      -send(appointment)
+    }
+    class ReviewService {
+      +MAX_COMMENT int$
+      +shortName(fullName)$ string
+      +toPublic(review)$
+      +create(user, data)
+      +listPublic(filters)
+      +summary()
+      +reviewedAppointmentIds(user)
+      +listAll()
+      +delete(id)
+    }
+    class ClientNoteService {
+      +MAX_LENGTH int$
+      +list(user, client)
+      +create(user, client, data)
+      +delete(id, user)
+      -assertAccess(user, client)
+    }
+    class HeroSlideService {
+      +MAX_SLIDES int$
+      +MAX_ALT_LENGTH int$
+      +IMAGE_PATTERN RegExp$
+      +listPublic()
+      +listAll()
+      +create(data)
+      +update(id, data)
+      +reorder(ids)
+      +remove(id)
+      -image(image)$
+      -alt(alt)$
+      -validId(id)$
+      -summary(slide)$
+    }
+  }
+  namespace Apoyo {
+    class BookingLockService {
+      +UNASSIGNED_LOCK_ID string$
+      +initialize()
+      +lock(session, stylists)
+    }
+    class EmailService {
+      +isConfigured() bool
+      +send(message)
+      +sendBestEffort(message)
+      -createTransport()
+    }
+    class GoogleIdentityService {
+      -string clientId
+      +clientId() string
+      +isConfigured() bool
+      +verify(credential) GoogleProfile
+    }
+    class TokenService {
+      -string secret
+      +sign(user) string
+      +verify(token) object
+    }
+    class PasswordHasher {
+      -int rounds
+      +hash(password) string
+      +compare(password, hash) bool
+    }
+    class BogotaClock {
+      +today() string
+      +minutesNow() int
+    }
+    class AppointmentTime {
+      <<utility>>
+      +isValidDate(date)$ bool
+      +isValidTime(time)$ bool
+      +weekday(date)$ int
+      +addDays(date, days)$ string
+      +daysBetween(from, to)$ int
+      +minutesUntil(date, time, today, now)$ int
+      +toMinutes(time)$ int
+      +clockToMinutes(clock)$ int
+    }
+  }
+  namespace Middlewares {
+    class AuthMiddleware {
+      +authenticate(req, res, next)
+      +requireRole(roles) Function
+      -resolveUser(authorization)
+    }
+    class LoginRateLimiter {
+      -int maxFailures
+      -int windowMs
+      +handle(req, res, next)
+      -record(key)
+      -retryAfter(key, limit) int
+      -prune(now)
+    }
+    class ErrorMiddleware {
+      +handle(error, req, res, next)
+      -log(req, error)
+    }
+    class CorsPolicy {
+      +fromEnv(env)$ CorsPolicy
+      +allowsAnyOrigin() bool
+      +origins() string[]
+      +isAllowed(origin) bool
+      +toOptions() object
+      -normalize(origin)$
+    }
+    class DatabaseSeeder {
+      +DEFAULT_SERVICES object[]$
+      +run()
+      -seedAdmin()
+      -seedServices()
+      -repairServiceDescriptions()
+    }
+  }
+  namespace Errores {
+    class AppError {
+      -int status
+      +status() int
+      +isServerError() bool
+      +toJSON() object
+      +from(error, message)$ AppError
+    }
+    class ValidationError
+    class UnauthorizedError
+    class InvalidSessionError
+    class ForbiddenError
+    class NotFoundError
+    class ConflictError
+    class BookingError
+    class ServiceUnavailableError
+    class TooManyAttemptsError
+  }
+  BaseController <|-- AuthController
+  BaseController <|-- UserController
+  BaseController <|-- ServiceController
+  BaseController <|-- ServiceImageController
+  BaseController <|-- AppointmentController
+  BaseController <|-- TimeOffController
+  BaseController <|-- ReviewController
+  BaseController <|-- ClientNoteController
+  BaseController <|-- HeroSlideController
+  AppError <|-- ValidationError
+  AppError <|-- UnauthorizedError
+  UnauthorizedError <|-- InvalidSessionError
+  AppError <|-- ForbiddenError
+  AppError <|-- NotFoundError
+  AppError <|-- ConflictError
+  ConflictError <|-- BookingError
+  AppError <|-- ServiceUnavailableError
+  AppError <|-- TooManyAttemptsError
+  AuthController --> AuthService
+  UserController --> UserService
+  ServiceController --> ServiceCatalogService
+  ServiceImageController --> ServiceImageService
+  AppointmentController --> AppointmentService
+  AppointmentController --> AvailabilityService
+  AppointmentController --> ReminderService
+  TimeOffController --> TimeOffService
+  ReviewController --> ReviewService
+  ClientNoteController --> ClientNoteService
+  HeroSlideController --> HeroSlideService
+  AuthService --> PasswordHasher
+  AuthService --> TokenService
+  AuthService --> EmailService
+  AuthService --> GoogleIdentityService
+  UserService --> PasswordHasher
+  UserService --> BogotaClock
+  AppointmentService --> AvailabilityService
+  AppointmentService --> BookingLockService
+  AppointmentService --> EmailService
+  AppointmentService --> BogotaClock
+  AvailabilityService --> TimeOffService
+  TimeOffService --> BookingLockService
+  TimeOffService --> BogotaClock
+  ReminderService --> EmailService
+  ReminderService --> BogotaClock
+  ServiceCatalogService --> BogotaClock
+  AuthMiddleware --> TokenService
+  DatabaseSeeder --> PasswordHasher
+  DatabaseSeeder --> BookingLockService
+  AppointmentService ..> AppointmentTime : usa
+  AvailabilityService ..> AppointmentTime : usa
+  TimeOffService ..> AppointmentTime : usa
+  ReminderService ..> AppointmentTime : usa
+  ErrorMiddleware ..> AppError : responde con status y toJSON
+  LoginRateLimiter ..> TooManyAttemptsError : lanza
+  AvailabilityService ..> BookingError : lanza

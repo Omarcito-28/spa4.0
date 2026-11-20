@@ -1,0 +1,36 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Arial, Liberation Sans, sans-serif",
+    "fontSize": "16px",
+    "primaryColor": "#DEEAF6",
+    "primaryBorderColor": "#2E75B6",
+    "primaryTextColor": "#1F2D3D",
+    "lineColor": "#44546A",
+    "secondaryColor": "#F4F8FC",
+    "tertiaryColor": "#FFFFFF",
+    "clusterBkg": "#F7F9FC",
+    "clusterBorder": "#8EA9C8",
+    "edgeLabelBackground": "#FFFFFF",
+    "titleColor": "#1F497D"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "padding": 14,
+    "nodeSpacing": 35,
+    "rankSpacing": 42,
+    "htmlLabels": true,
+    "wrappingWidth": 280
+  },
+  "class": {
+    "hideEmptyMembersBox": true,
+    "padding": 8
+  },
+  "sequence": {
+    "useMaxWidth": false
+  },
+  "elk": {
+    "mergeEdges": false,
+    "nodePlacementStrategy": "BRANDES_KOEPF"
+  }
+}

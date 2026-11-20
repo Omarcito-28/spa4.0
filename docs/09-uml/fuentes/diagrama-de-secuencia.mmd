@@ -1,0 +1,57 @@
+---
+config:
+  sequence:
+    actorMargin: 18
+    width: 118
+    boxMargin: 6
+    messageMargin: 30
+    mirrorActors: false
+    messageFontSize: 18
+    actorFontSize: 17
+    noteFontSize: 17
+---
+%% Imagen: docs/09-uml/Diagrama de secuencia - agendar cita.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-secuencia.mmd" -o "docs/09-uml/Diagrama de secuencia - agendar cita.png" -s 2 -b white
+sequenceDiagram
+  autonumber
+  actor CL as Cliente
+  box rgb(243,248,253) Navegador
+    participant BF as BookingForm<br/>y api.js
+  end
+  box rgb(244,249,241) API REST en Render
+    participant AM as AuthMiddleware
+    participant AC as Appointment<br/>Controller
+    participant AS as Appointment<br/>Service
+    participant BL as BookingLock<br/>Service
+    participant AV as Availability<br/>Service
+    participant ES as EmailService
+  end
+  box rgb(255,251,239) Datos
+    participant DB as MongoDB Atlas
+  end
+  CL->>BF: Elige servicio, estilista,<br/>fecha y hora
+  BF->>AM: POST /api/appointments<br/>(Bearer JWT)
+  AM->>DB: Busca el usuario del token
+  AM->>AM: Verifica firma,<br/>tokenVersion y rol
+  AM->>AC: req.user
+  AC->>+AS: create(user, datos)
+  AS->>DB: Valida datos y busca<br/>el servicio activo
+  AS->>DB: Abre una transacción
+  AS->>BL: lock(session, [estilista])
+  BL->>DB: Incrementa bookingLockVersion<br/>del estilista
+  AS->>+AV: assertSlotAvailable(slot)
+  AV->>DB: Lee horario, días libres<br/>y citas del día
+  alt La hora está libre
+    AV-->>AS: ok
+    AS->>DB: Guarda la cita (PENDING)<br/>y confirma la transacción
+    AS-)ES: Aviso por correo<br/>(no se espera)
+    AS-->>AC: Cita creada
+    AC-->>BF: 201 Created
+    BF-->>CL: Muestra la cita y avisa<br/>a las otras pestañas
+  else Hora ocupada, día libre o fuera del horario
+    AV-->>-AS: BookingError
+    AS->>DB: Revierte la transacción
+    AS-->>-AC: BookingError
+    AC-->>BF: 409 Conflict<br/>con el mensaje
+    BF-->>CL: Pide elegir otra hora
+  end

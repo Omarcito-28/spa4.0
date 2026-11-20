@@ -1,25 +1,45 @@
-flowchart LR
-  U["Dispositivo del usuario<br/>navegador web<br/>PC o celular"]
-  GH["GitHub<br/>repositorio y Actions"]
-  subgraph RENDER["Render"]
-    API["API Express<br/>backend/index.js<br/>health check /api/health"]
-  end
+---
+config:
+  layout: elk
+---
+%% Imagen: docs/09-uml/Diagrama de despliegue.png (y docs/08-sad/Diagrama de despliegue.png)
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-despliegue.mmd" -o "docs/09-uml/Diagrama de despliegue.png" -s 2 -b white
+flowchart TB
+  GH["GitHub<br/>repositorio + Actions (CI):<br/>lint, build y pruebas"]
+  U["Dispositivo del usuario<br/>navegador web (PC o celular)"]
   subgraph VERCEL["Vercel"]
-    WEB["Sitio estático<br/>frontend/dist<br/>vercel.json"]
+    WEB["Sitio estático<br/>frontend/dist + vercel.json"]
   end
-  subgraph ATLAS["MongoDB Atlas"]
-    DB[("users, services, serviceimages,<br/>heroslides, appointments,<br/>bookinglocks, timeoffs,<br/>reviews, clientnotes")]
+  subgraph RENDER["Render"]
+    API["API Express (Node.js)<br/>backend/index.js<br/>health check /api/health"]
   end
   subgraph GOOGLE["Google"]
     GIS["Google Identity Services<br/>botón y ventana emergente"]
     GK["Claves públicas<br/>de Google"]
   end
+  subgraph ATLAS["MongoDB Atlas (M0)"]
+    DB[("9 colecciones: users, services,<br/>serviceimages, heroslides,<br/>appointments, bookinglocks,<br/>timeoffs, reviews, clientnotes")]
+  end
   SMTP["Servidor SMTP"]
-  U -- "HTTPS JSON con JWT" --> API
   U -- "HTTPS" --> WEB
-  U -- "HTTPS: ID token" --> GIS
-  API -- "TLS, driver MongoDB" --> DB
+  U -- "HTTPS · JSON · JWT" --> API
+  U -- "ID token" --> GIS
+  GH -. "despliegue automático" .-> WEB
+  GH -. "despliegue automático" .-> API
+  API -- "TLS" --> DB
   API -- "SMTP" --> SMTP
-  API -- "HTTPS: verifica el ID token" --> GK
-  GH -. "despliegue" .-> API
-  GH -. "despliegue" .-> WEB
+  API -- "verifica el ID token" --> GK
+  classDef fe fill:#DEEAF6,stroke:#2E75B6,stroke-width:1.5px,color:#1F2D3D
+  classDef be fill:#E2EFDA,stroke:#548235,stroke-width:1.5px,color:#1F2D3D
+  classDef db fill:#FFF2CC,stroke:#BF9000,stroke-width:1.5px,color:#1F2D3D
+  classDef ex fill:#EDEDED,stroke:#7F7F7F,stroke-width:1.5px,color:#1F2D3D
+  classDef ci fill:#E4DFEC,stroke:#7030A0,stroke-width:1.5px,color:#1F2D3D
+  class U,WEB fe
+  class API be
+  class DB db
+  class GIS,GK,SMTP ex
+  class GH ci
+  style VERCEL fill:#F3F8FD,stroke:#2E75B6,stroke-width:1.5px,color:#1F497D
+  style RENDER fill:#F4F9F1,stroke:#548235,stroke-width:1.5px,color:#375623
+  style ATLAS fill:#FFFBEF,stroke:#BF9000,stroke-width:1.5px,color:#7F6000
+  style GOOGLE fill:#F7F7F7,stroke:#7F7F7F,stroke-width:1.5px,color:#404040

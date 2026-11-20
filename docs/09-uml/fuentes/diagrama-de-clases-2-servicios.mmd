@@ -1,0 +1,193 @@
+---
+config:
+  layout: elk
+---
+%% Imagen: docs/09-uml/Diagrama de clases - 2 servicios.png
+%% Generar: npx -p @mermaid-js/mermaid-cli mmdc -c docs/mermaid-config.json -i "docs/09-uml/fuentes/diagrama-de-clases-2-servicios.mmd" -o "docs/09-uml/Diagrama de clases - 2 servicios.png" -s 2 -b white
+classDiagram
+direction LR
+  class AuthService {
+    +RESET_TOKEN_TTL_MS int$
+    +register(data) Session
+    +login(credentials) Session
+    +getProviders() object
+    +loginWithGoogle(data) Session
+    +getProfile(user)
+    +updateProfile(user, data) Session
+    +requestPasswordReset(email)
+    +resetPassword(data)
+    +toPublicUser(user)$
+    -session(user)
+    -availableUsername(email)
+    -hashResetToken(token)$
+    -duplicateKey(error, message)$
+  }
+  class UserService {
+    +ROLES string[]$
+    +listAll()
+    +create(data)
+    +listStylists()
+    +getSchedule(userId)
+    +updateSchedule(userId, days)
+    +update(id, data, currentUser)
+    +delete(id, currentUser)
+    -isValidWeek(days) bool
+  }
+  class ServiceCatalogService {
+    +listActive()
+    +listAll()
+    +create(data)
+    +update(id, data)
+    +delete(id)
+    -hasUpcomingAppointments(name) bool
+  }
+  class ServiceImageService {
+    +MAX_BYTES int$
+    +URL_PREFIX string$
+    +detectType(bytes)$ string
+    +urlFor(id)$ string
+    +upload(bytes, name)
+    +list()
+    +get(id)
+    -summary(image)$
+  }
+  class AppointmentService {
+    +STATUSES string[]$
+    -int cancellationNoticeHours
+    +getPolicy()
+    +listFor(user)
+    +create(user, data)
+    +updateStatus(id, status, user)
+    +update(id, data, user)
+    +reschedule(id, data, user)
+    +delete(id)
+    -change(options)
+    -assertCanChange(appointment, changes, user)
+    -assertCanComplete(appointment)
+    -assertCanMarkNoShow(appointment)
+    -assertCancellationNotice(appointment)
+    -assertFutureSlot(date, time)
+    -hasStarted(appointment) bool
+    -notify(appointment, message)
+  }
+  class AvailabilityService {
+    +OCCUPYING_STATUSES string[]$
+    +DEFAULT_DURATION int$
+    +getAvailability(date, stylist)
+    +assertSlotAvailable(slot)
+    -workdayOf(stylist, weekday)
+    -defaultWorkday(weekday)
+    -isWithinSchedule(time, start, end, duration) bool
+    -overlaps(a, b) bool
+  }
+  class TimeOffService {
+    +MAX_DAYS int$
+    +list(user)
+    +create(user, data)
+    +delete(id, user)
+    +findBlocking(date, stylist, session)
+    +describe(block)$ string
+    -activeStylists(session)
+  }
+  class ReminderService {
+    +INTERVAL_MS int$
+    +sendDueReminders()
+    +start(intervalMs)
+    +stop()
+    -send(appointment)
+  }
+  class ReviewService {
+    +MAX_COMMENT int$
+    +shortName(fullName)$ string
+    +toPublic(review)$
+    +create(user, data)
+    +listPublic(filters)
+    +summary()
+    +reviewedAppointmentIds(user)
+    +listAll()
+    +delete(id)
+  }
+  class ClientNoteService {
+    +MAX_LENGTH int$
+    +list(user, client)
+    +create(user, client, data)
+    +delete(id, user)
+    -assertAccess(user, client)
+  }
+  class HeroSlideService {
+    +MAX_SLIDES int$
+    +MAX_ALT_LENGTH int$
+    +IMAGE_PATTERN RegExp$
+    +listPublic()
+    +listAll()
+    +create(data)
+    +update(id, data)
+    +reorder(ids)
+    +remove(id)
+    -image(image)$
+    -alt(alt)$
+    -validId(id)$
+    -summary(slide)$
+  }
+  class BookingLockService {
+    +UNASSIGNED_LOCK_ID string$
+    +initialize()
+    +lock(session, stylists)
+  }
+  class EmailService {
+    +isConfigured() bool
+    +send(message)
+    +sendBestEffort(message)
+    -createTransport()
+  }
+  class GoogleIdentityService {
+    -string clientId
+    +clientId() string
+    +isConfigured() bool
+    +verify(credential) GoogleProfile
+  }
+  class TokenService {
+    -string secret
+    +sign(user) string
+    +verify(token) object
+  }
+  class PasswordHasher {
+    -int rounds
+    +hash(password) string
+    +compare(password, hash) bool
+  }
+  class BogotaClock {
+    +today() string
+    +minutesNow() int
+  }
+  class AppointmentTime {
+    <<utility>>
+    +isValidDate(date)$ bool
+    +isValidTime(time)$ bool
+    +weekday(date)$ int
+    +addDays(date, days)$ string
+    +daysBetween(from, to)$ int
+    +minutesUntil(date, time, today, now)$ int
+    +toMinutes(time)$ int
+    +clockToMinutes(clock)$ int
+  }
+  AuthService --> PasswordHasher
+  AuthService --> TokenService
+  AuthService --> EmailService
+  AuthService --> GoogleIdentityService
+  UserService --> PasswordHasher
+  UserService --> BogotaClock
+  AppointmentService --> AvailabilityService
+  AppointmentService --> BookingLockService
+  AppointmentService --> EmailService
+  AppointmentService --> BogotaClock
+  AvailabilityService --> TimeOffService
+  TimeOffService --> BookingLockService
+  TimeOffService --> BogotaClock
+  ReminderService --> EmailService
+  ReminderService --> BogotaClock
+  ServiceCatalogService --> BogotaClock
+  AppointmentService ..> AppointmentTime : usa
+  AvailabilityService ..> AppointmentTime : usa
+  TimeOffService ..> AppointmentTime : usa
+  ReminderService ..> AppointmentTime : usa
