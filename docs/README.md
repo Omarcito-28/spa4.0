@@ -27,13 +27,11 @@ Cada carpeta corresponde a un entregable de las condiciones del proyecto final (
 | 10 | Lógica de los datos (MongoDB, base no relacional) | [`10-logica-de-datos/`](10-logica-de-datos/) | Listo (versión 1.1, con `heroslides` y `users.googleId`) |
 | 11 | Uso de inteligencia artificial | [`11-uso-de-ia/`](11-uso-de-ia/) | Listo (con enlace a las evidencias) |
 | — | Pruebas de software | [`pruebas.md`](pruebas.md) | Listo |
-| — | Despliegue en la nube | [`despliegue.md`](despliegue.md) | Publicado: sitio en [essence-de-toi.vercel.app](https://essence-de-toi.vercel.app) y API en Render (revisado el 19/11/2026) |
+| — | Despliegue en la nube | [`despliegue.md`](despliegue.md) | Publicado y completo: sitio en [essence-de-toi.vercel.app](https://essence-de-toi.vercel.app), API en Render, inicio de sesión con Google y correo activos |
 
 ## Pendientes del equipo
 
-Los documentos ya no tienen marcas `[Pendiente`. El pendón se lleva impreso a la feria. Fuera de los documentos queda:
-
-- Agregar `GOOGLE_CLIENT_ID` en Render si se quiere mostrar *Continuar con Google* en el sitio publicado ([`despliegue.md`](despliegue.md#estado-actual)).
+Ninguno. Los documentos no tienen marcas `[Pendiente`, el despliegue está completo ([`despliegue.md`](despliegue.md#estado-actual)) y el pendón se lleva impreso a la feria.
 
 ## Convenciones
 

@@ -14,7 +14,7 @@ El navegador carga el sitio desde Vercel y este llama a la API de Render (`VITE_
 
 ## Estado actual
 
-El sistema está publicado. Revisión del 19/11/2026 con la lista del paso 5:
+El sistema está publicado y la lista del paso 5 está completa (20/11/2026):
 
 | Comprobación | Resultado |
 |---|---|
@@ -22,9 +22,10 @@ El sistema está publicado. Revisión del 19/11/2026 con la lista del paso 5:
 | API: [`essence-de-toi-api.onrender.com/api/health`](https://essence-de-toi-api.onrender.com/api/health) | Responde `{"status":"ok"}`. |
 | Conexión entre ambos | El sitio pide a la API de Render el catálogo, las reseñas y las imágenes del carrusel. |
 | Rutas de React Router | `/login` abre directo la página de inicio de sesión, sin 404. |
-| Inicio de sesión con Google | No está activo: `/api/auth/providers` responde `{"google":null}`. Para mostrar *Continuar con Google*, agrega `GOOGLE_CLIENT_ID` en Render (paso 4). |
-
-Los puntos 5 a 8 de esa lista (registro, citas, Google y recuperación de contraseña) necesitan cuentas reales y no se revisaron.
+| Registro e inicio de sesión | Se crea una cuenta de cliente, se cierra sesión y se vuelve a entrar. |
+| Citas | La cita que agenda el cliente aparece en *Todas las citas* del administrador sin recargar. |
+| Inicio de sesión con Google | Activo: `GOOGLE_CLIENT_ID` está configurado en Render y el login muestra *Continuar con Google*. |
+| Recuperación de contraseña y avisos de citas | Activos: las variables `SMTP_*` están configuradas en Render y el correo llega con el enlace a `/reset-password`. |
 
 ---
 
